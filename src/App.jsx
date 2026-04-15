@@ -15,7 +15,6 @@ const firebaseConfig = {
   measurementId: "G-TYT7E313E2"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1355,6 +1354,14 @@ function BookingCard({ booking: b, type, db, appId }) {
     catch (e) { alert("狀態更新失敗"); }
   };
 
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (window.confirm('確定要永久刪除這筆預約紀錄嗎？此動作無法復原。')) {
+      try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)); }
+      catch (err) { alert("刪除失敗"); }
+    }
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-4">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -1389,9 +1396,8 @@ function BookingCard({ booking: b, type, db, appId }) {
                <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
                <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
                <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
-               {onDeleteRequest && (
-                  <button onClick={(e) => { e.stopPropagation(); onDeleteRequest(b); }} className="px-3 py-1.5 text-xs font-bold rounded-md text-red-500 hover:text-white hover:bg-red-500 transition-colors ml-1 flex items-center gap-1 shadow-sm border border-red-100 bg-red-50"><Trash2 className="w-3.5 h-3.5"/>刪除</button>
-               )}
+               <div className="w-px bg-slate-200 mx-1 my-1"></div>
+               <button onClick={handleDelete} className="px-2 py-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="永久刪除"><Trash2 className="w-4 h-4" /></button>
             </div>
             <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
          </div>
@@ -2065,10 +2071,6 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
   const [tankPrices, setTankPrices] = useState({ air: sysConfig.airTankPrice || 800, nitrox: sysConfig.nitroxTankPrice || 1200 });
   const [isSubmittingTankPrices, setIsSubmittingTankPrices] = useState(false);
 
-  // 新增：活動與課程的刪除確認狀態
-  const [activityToDelete, setActivityToDelete] = useState(null);
-  const [courseToDelete, setCourseToDelete] = useState(null);
-
   useEffect(() => { setMedicalForm(sysConfig.medicalForm && sysConfig.medicalForm.length > 0 ? sysConfig.medicalForm : DEFAULT_MEDICAL_FORM); }, [sysConfig.medicalForm]);
   useEffect(() => { if (sysConfig.defaultServices) setLocalServices(sysConfig.defaultServices); }, [sysConfig.defaultServices]);
   useEffect(() => { setTankPrices({ air: sysConfig.airTankPrice || 800, nitrox: sysConfig.nitroxTankPrice || 1200 }); }, [sysConfig.airTankPrice, sysConfig.nitroxTankPrice]);
@@ -2094,23 +2096,6 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
     setIsSubmittingTankPrices(false);
   };
 
-  // 新增：確認刪除處理函式
-  const handleDeleteActivityConfirm = async () => {
-    if (!activityToDelete) return;
-    try {
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', activityToDelete.id));
-      setActivityToDelete(null);
-    } catch (e) { alert("刪除失敗，請檢查權限"); }
-  };
-
-  const handleDeleteCourseConfirm = async () => {
-    if (!courseToDelete) return;
-    try {
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'courseTemplates', courseToDelete.id));
-      setCourseToDelete(null);
-    } catch (e) { alert("刪除失敗，請檢查權限"); }
-  };
-
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-2">
       <div className="bg-slate-50 border-b border-slate-200 p-3 flex gap-2 overflow-x-auto rounded-t-2xl">
@@ -2132,7 +2117,12 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                   <div key={act.id} className="bg-white border border-slate-200 p-5 rounded-2xl relative group shadow-sm hover:shadow-md transition-shadow">
                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => { setEditingActivity(act); setIsModalOpen(true); }} className="p-1.5 bg-slate-100 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={() => setActivityToDelete(act)} className="p-1.5 bg-slate-100 rounded-lg hover:bg-red-600 hover:text-white transition-all"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={async () => {
+                        if (window.confirm('確定要永久刪除此活動梯次嗎？此動作無法復原。')) {
+                          try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', act.id)); }
+                          catch (e) { alert("刪除失敗"); }
+                        }
+                      }} className="p-1.5 bg-slate-100 rounded-lg hover:bg-red-600 hover:text-white transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
                     
                     {/* 第一排：分類標籤與價格 */}
@@ -2209,7 +2199,12 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                     </div>
                     <div className="flex gap-2 pt-3 border-t border-slate-100 justify-end">
                       <button onClick={()=>{setEditingCourse(c); setIsCourseModalOpen(true);}} className="p-2 bg-slate-50 hover:bg-blue-500 hover:text-white text-blue-600 rounded-lg transition-all border border-slate-200 shadow-sm"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={()=>setCourseToDelete(c)} className="p-2 bg-slate-50 hover:bg-red-500 hover:text-white text-red-500 rounded-lg transition-all border border-slate-200 shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={async () => {
+                        if (window.confirm('確定要永久刪除此課程公版嗎？此動作無法復原。')) {
+                          try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'courseTemplates', c.id)); }
+                          catch (e) { alert("刪除失敗"); }
+                        }
+                      }} className="p-2 bg-slate-50 hover:bg-red-500 hover:text-white text-red-500 rounded-lg transition-all border border-slate-200 shadow-sm"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
@@ -2345,10 +2340,6 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
       </div>
       {isModalOpen && <ActivityManageModal editingActivity={editingActivity} courseTemplates={courseTemplates} sysConfig={sysConfig} db={db} appId={appId} onClose={() => setIsModalOpen(false)} />}
       {isCourseModalOpen && <CourseTemplateModal editingCourse={editingCourse} db={db} appId={appId} sysConfig={sysConfig} onClose={() => setIsCourseModalOpen(false)} />}
-      
-      {/* 新增：活動與課程的刪除防呆確認視窗 */}
-      {activityToDelete && <DeleteConfirmModal title={activityToDelete.name || '該活動'} onConfirm={handleDeleteActivityConfirm} onCancel={() => setActivityToDelete(null)} />}
-      {courseToDelete && <DeleteConfirmModal title={courseToDelete.courseName || '該課程公版'} onConfirm={handleDeleteCourseConfirm} onCancel={() => setCourseToDelete(null)} />}
     </div>
   );
 }
@@ -3471,8 +3462,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
               <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="真實姓名 *" required value={f.name} onChange={v => setF({...f, name: v})} placeholder="保險與證照使用" />
-                  <FormInput label="常用暱稱" value={f.nickname} onChange={v => setF({...f, nickname: v})} placeholder="教練稱呼您的方式" />
-                  <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v => setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                  <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v => setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字 (例: 0912345678)" />
                   <FormInput label="身分證/護照號碼 *" required value={f.idNumber} onChange={v => setF({...f, idNumber: v})} placeholder="辦理潛水平安險使用" />
                   <BirthdaySelect label="出生年月日 *" required value={f.birthday} onChange={v => setF({...f, birthday: v})} />
                   <div className="grid grid-cols-3 gap-3">
@@ -4041,7 +4031,7 @@ function AccommodationBookingForm({ room, onClose, onSubmit, sysConfig, context 
           )}
 
           <FormInput label="預訂人姓名" required value={f.name} onChange={v => setF({...f, name: v})} />
-          <FormInput label="聯絡電話" required type="tel" value={f.phone} onChange={v => setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+          <FormInput label="聯絡電話" required type="tel" value={f.phone} onChange={v => setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字 (例: 0912345678)" />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormInput label="入住日期" required type="date" value={f.checkIn} onChange={v => setF({...f, checkIn: v})} />
             <FormInput label="預計晚數" required type="number" value={f.nights} onChange={v => setF({...f, nights: v === '' ? '' : Math.max(1, parseInt(v))})} />
@@ -4095,6 +4085,24 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
   );
 }
 
+function DeleteConfirmModal({ title, onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl relative animate-in zoom-in-95">
+        <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+          <Trash2 className="w-8 h-8" />
+        </div>
+        <h3 className="text-xl font-black text-slate-800 mb-2">確認刪除</h3>
+        <p className="text-sm font-bold text-slate-500 mb-6">您確定要刪除「{title}」嗎？<br/>此動作無法復原 / This action cannot be undone.</p>
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">取消 / Cancel</button>
+          <button onClick={onConfirm} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-md shadow-red-200 transition-colors">確認刪除 / Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UserDashboard({ bookings, db, appId }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -4139,7 +4147,7 @@ function UserDashboard({ bookings, db, appId }) {
         <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 shadow-sm p-8 mb-10">
           <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-5 gap-5">
             <div className="sm:col-span-2"><FormInput label="真實姓名 / Name" value={searchName} onChange={setSearchName} placeholder="王小明" required /></div>
-            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" value={searchPhone} onChange={v => setSearchPhone(formatPhoneNumber(v))} placeholder="09xx-xxx-xxx" required /></div>
+            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" type="tel" value={searchPhone} onChange={v => setSearchPhone(v.replace(/\D/g, ''))} placeholder="請輸入純數字 (例: 0912345678)" required /></div>
             <div className="sm:col-span-1 flex items-end">
               <button type="submit" disabled={isSearching} className="w-full py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black shadow-xl transition-all flex items-center justify-center gap-2">
                 {isSearching ? '...' : <Search className="w-5 h-5"/>}
@@ -4162,17 +4170,16 @@ function UserDashboard({ bookings, db, appId }) {
                       </div>
                       <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
                     </div>
-                    {/* 前台狀態顯示與顧客取消/刪除按鈕 */}
                     <div className="flex items-center gap-3">
-                       <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : b.status === 'cancelled' ? 'bg-slate-100 border-slate-300 text-slate-500' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
-                         {b.status === 'confirmed' ? '已確認 / Confirmed' : b.status === 'cancelled' ? '已取消 / Cancelled' : '處理中 / Pending'}
-                       </div>
-                       <button onClick={() => setItemToDelete(b)} className="px-4 py-2 bg-red-50 text-red-600 hover:text-white hover:bg-red-600 font-bold rounded-2xl transition-all shadow-sm flex items-center gap-2" title="取消並刪除此預約">
-                         <Trash2 className="w-4 h-4" /> 刪除
-                       </button>
+                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : b.status === 'cancelled' ? 'bg-slate-100 border-slate-300 text-slate-500' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
+                        {b.status === 'confirmed' ? '已確認 / Confirmed' : b.status === 'cancelled' ? '已取消 / Cancelled' : '處理中 / Pending'}
+                      </div>
+                      <button onClick={() => setItemToDelete(b)} className="p-3 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all shadow-sm" title="取消並刪除此預約">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </div>
-                 </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
@@ -4436,7 +4443,7 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
                    <FormInput label="天數 / Days *" required type="number" value={f.days} onChange={v=>setF({...f, days: v === '' ? '' : Math.max(1, parseInt(v))})} />
                  </div>
                  <FormInput label="真實姓名 / Full Name *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
-                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字" />
                  
                  <label className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 rounded-xl cursor-pointer shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 mt-2 group">
                      <input type="checkbox" checked={isReturningCustomer} onChange={e => setIsReturningCustomer(e.target.checked)} className="w-5 h-5 text-orange-500 rounded border-orange-300 shrink-0" />
