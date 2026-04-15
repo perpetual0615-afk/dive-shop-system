@@ -1365,6 +1365,13 @@ function BookingCard({ booking: b, type, db, appId }) {
            <div>
              <div className="flex items-center gap-2 mb-1">
                <h4 className="font-bold text-lg text-slate-900">{String(b.itemName || '未知')}</h4>
+               {type === 'activity' && (
+                  (b.isCourse === true || (b.certSystem && b.certSystem !== '')) ? (
+                    <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1"><BookOpen className="w-3 h-3"/> 課程</span>
+                  ) : (
+                    <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1"><Fish className="w-3 h-3"/> Fun Dive</span>
+                  )
+               )}
                {b.isReturningCustomer && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-black">回客優惠</span>}
              </div>
              <div className="flex gap-3 text-sm text-slate-500 font-medium">
@@ -1396,6 +1403,11 @@ function BookingCard({ booking: b, type, db, appId }) {
                    <p><span className="text-slate-400 w-24 inline-block">出生日期</span> {String(b.birthday || '未提供')}</p>
                    <p><span className="text-slate-400 w-24 inline-block">身高體重</span> {String(b.height)} cm / {String(b.weight)} kg</p>
                    <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3)} kg</p>
+                </div>
+                <div className="space-y-2">
+                   <p className="font-bold text-slate-700 border-b pb-1">潛水資歷</p>
+                   <p><span className="text-slate-400 w-24 inline-block">等級/系統</span> {String(b.diveCertSystem || '未填寫')} / {String(b.diveLevel || '未填寫')}</p>
+                   <p><span className="text-slate-400 w-24 inline-block">累計支數</span> {String(b.totalDives || 0)} 支</p>
                 </div>
                 <div className="space-y-2">
                    <p className="font-bold text-slate-700 border-b pb-1">預約配置與選修</p>
@@ -1470,59 +1482,68 @@ function BookingCard({ booking: b, type, db, appId }) {
 }
 
 function BookingAdminPanel({ db, appId, bookings, type, title }) {
+  const [activityFilter, setActivityFilter] = useState('all');
   const typeBookings = bookings.filter(b => b.type === type).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
   
-  const handleExport = () => {
-    let headers = [];
-    let rows = [];
+  const filteredBookings = useMemo(() => {
+    return typeBookings.filter(b => {
+      if (type !== 'activity' || activityFilter === 'all') return true;
+      const isC = b.isCourse === true || (b.certSystem && b.certSystem !== '');
+      return activityFilter === 'course' ? isC : !isC;
+    });
+  }, [typeBookings, type, activityFilter]);
 
+  const handleExport = () => {
+    let headers = []; let rows = [];
     if (type === 'activity') {
-      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備'];
-      rows = typeBookings.map(b => {
+      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '證照等級', '系統', '總支數', '專長證照', '資歷備註', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備'];
+      rows = filteredBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
+        const specStr = b.specialties?.join('、 ') || '無';
         const accStr = b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '維持背包房床位' : b.accOption === 'upgrade' ? '升級獨立房型' : b.accOption === 'release' ? '釋出床位' : '住宿自理';
         const electivesStr = b.selectedElectives?.length > 0 ? b.selectedElectives.map(e=>e.name).join('、 ') : '無';
-        const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
-        return [statusStr, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否'];
+        return [b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審', formatTs(b.timestamp), b.itemName || '', b.name || '', b.phone || '', b.diveLevel || '', b.diveCertSystem || '', b.totalDives || 0, specStr, b.expNotes || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否'];
       });
     } else if (type === 'accommodation') {
       headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
-      rows = typeBookings.map(b => {
+      rows = filteredBookings.map(b => {
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
         const deductStr = b.details?.courseDeductTotal > 0 ? `${b.details.courseStudents}人, 折$${b.details.courseDeductTotal}` : '無';
         return [statusStr, formatTs(b.timestamp), b.itemName || '', b.details?.name || '', b.details?.phone || '', b.details?.checkIn || '', b.details?.nights || 1, b.details?.roomCount || 1, b.details?.guests || 1, deductStr];
       });
     } else if (type === 'equipment') {
       headers = ['訂單狀態', '提交時間', '租借人姓名', '聯絡電話', '取件日期', '租借天數', '總計金額(NT$)', '租借項目清單'];
-      rows = typeBookings.map(b => {
+      rows = filteredBookings.map(b => {
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '';
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
         return [statusStr, formatTs(b.timestamp), b.name || '', b.phone || '', b.details?.date || '', b.details?.days || 1, b.price || 0, eqStr];
       });
     }
-
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    exportToCSV(`${title}_${dateStr}.csv`, [headers, ...rows]);
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, ''); exportToCSV(`${title}_${dateStr}.csv`, [headers, ...rows]);
   };
-
-  return (
-     <div className="h-full flex flex-col animate-in fade-in">
-       <div className="p-6 border-b bg-slate-50 shrink-0 rounded-t-2xl flex justify-between items-center">
-         <div>
-           <h3 className="text-xl font-bold text-slate-800">{String(title)}</h3>
-           <p className="text-slate-500 text-sm mt-1">處理顧客提交之預約單</p>
-         </div>
-         {typeBookings.length > 0 && (
-           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-green-700 transition-colors">
-             <Download className="w-4 h-4" /> 匯出 EXCEL
-           </button>
-         )}
-       </div>
-       <div className="p-6 flex-1 overflow-y-auto bg-slate-50/20">
-         {typeBookings.length === 0 ? <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold">目前無相關紀錄</div> : typeBookings.map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
-       </div>
-     </div>
+  return ( 
+    <div className="h-full flex flex-col animate-in fade-in">
+      <div className="p-6 border-b bg-slate-50 shrink-0 rounded-t-2xl flex justify-between items-center">
+        <div>
+          <h3 className="text-xl font-bold text-slate-800">{String(title)}</h3>
+          <p className="text-slate-500 text-sm mt-1">處理顧客提交之預約單</p>
+        </div>
+        {filteredBookings.length > 0 && ( 
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-green-700 transition-colors"><Download className="w-4 h-4" /> 匯出 EXCEL</button> 
+        )}
+      </div>
+      {type === 'activity' && (
+        <div className="px-6 py-3 bg-white border-b border-slate-100 flex gap-2 shrink-0">
+           <button onClick={() => setActivityFilter('all')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activityFilter === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>全部清單</button>
+           <button onClick={() => setActivityFilter('course')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${activityFilter === 'course' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><BookOpen className="w-4 h-4"/> 課程報名</button>
+           <button onClick={() => setActivityFilter('fundive')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${activityFilter === 'fundive' ? 'bg-teal-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><Fish className="w-4 h-4"/> Fun Dive</button>
+        </div>
+      )}
+      <div className="p-6 flex-1 overflow-y-auto bg-slate-50/20">
+        {filteredBookings.length === 0 ? <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold">目前無相關紀錄</div> : filteredBookings.map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
+      </div>
+    </div> 
   );
 }
 
@@ -3097,6 +3118,9 @@ function ServiceSection({ title, items, type, onBook, sysConfig }) {
                     <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
                       <User className="w-4 h-4 text-indigo-500" /> 教練：{String(item.coach || '依店內安排')}
                     </p>
+                    <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-orange-500" /> 名額：{Number(item.capacity || 0)} 人
+                    </p>
                   </div>
                 )}
 
@@ -3140,25 +3164,33 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     { num: 1, title: '行前簡報', sub: '課程資訊總覽' },
     { num: 2, title: '水面整備', sub: '基本與保險資料' },
     { num: 3, title: '海底探索', sub: '裝備配置與加購' },
-    { num: 4, title: '5米停留', sub: '住宿房型選擇' },
-    { num: 5, title: '平安升水', sub: '醫療健康聲明' }
+    { num: 4, title: '資歷驗收', sub: '個人潛水資歷' },
+    { num: 5, title: '5米停留', sub: '住宿房型選擇' },
+    { num: 6, title: '平安升水', sub: '醫療健康聲明' }
   ] : [
     { num: 1, title: '水面整備', sub: '基本與保險資料' },
-    { num: 2, title: '5米停留', sub: '裝備需求配置' },
-    { num: 3, title: '平安升水', sub: '醫療健康聲明' }
+    { num: 2, title: '海底探索', sub: '裝備需求配置' },
+    { num: 3, title: '資歷驗收', sub: '個人潛水資歷' },
+    { num: 4, title: '平安升水', sub: '醫療健康聲明' }
   ];
   const totalSteps = stepTitles.length;
   
   const isStepOverview = isCourse && step === 1;
   const isStepBasic = (isCourse && step === 2) || (!isCourse && step === 1);
   const isStepEq = (isCourse && step === 3) || (!isCourse && step === 2);
-  const isStepAcc = isCourse && step === 4;
-  const isStepMedical = (isCourse && step === 5) || (!isCourse && step === 3);
+  const isStepExperience = (isCourse && step === 4) || (!isCourse && step === 3);
+  const isStepAcc = isCourse && step === 5;
+  const isStepMedical = (isCourse && step === 6) || (!isCourse && step === 4);
 
   // Step 1 / 2: 基礎與保險
-  const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '' });
+  const [f, setF] = useState({ 
+    name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '',
+    diveCertSystem: '無證照 (新手)', diveLevel: '', totalDives: '0', expNotes: '', specialties: [] 
+  });
   const [weights, setWeights] = useState({ w1: 0, w2: 0, w25: 0, w3: 0 });
   const totalWeight = (weights.w1*1) + (weights.w2*2) + (weights.w25*2.5) + (weights.w3*3);
+
+  const SPECIALTY_OPTIONS = ["高氧 (Nitrox)", "深潛 (Deep)", "夜潛 (Night)", "水底導航 (Navigation)", "沉船 (Wreck)", "側掛 (Sidemount)", "乾衣 (Drysuit)", "水底攝影 (Photography)", "裝備專家", "頂尖中性浮力", "放流 (Drift)"];
 
   // Step 2: 裝備租借 與 選修加購
   const [useLocalShopEq, setUseLocalShopEq] = useState(false);
@@ -3242,69 +3274,18 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
 
   const handleSubmit = async () => {
     if (step < totalSteps) { setStep(step + 1); return; }
-    
-    if (!isMedicalComplete) {
-      alert("請完成所有展開的醫療聲明選項 (包含各項子題目)"); return;
-    }
-
-    if(isSubmitting) return;
-    setIsSubmitting(true);
-    
+    if(isSubmitting) return; setIsSubmitting(true);
     try {
-      // 提取被選中的選修項目詳細資料
       const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
-
-      // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
       const medicalIssues = [];
-      sysConfig.medicalForm.forEach(q => {
-        if (medicalAnswers[q.id] === true) {
-           medicalIssues.push(q.text);
-           if (q.subItems && q.subItems.length > 0) {
-              q.subItems.forEach(sub => {
-                 if (medicalAnswers[sub.id] === true) {
-                    medicalIssues.push("↳ " + sub.text);
-                 }
-              });
-           }
-        }
-      });
-
-      const submitData = {
-        type: 'activity', 
-        itemName: activity.name || activity.courseName, 
-        price: calculateTotal(), 
-        ...f,
-        weights,
-        rentals,
-        selectedElectives: finalElectives,
-        certFee: activity.certFee || 0,
-        certSystem: activity.certSystem || '',
-        useLocalShopEq,
-        isReturningCustomer,
-        accOption: isTrip ? 'trip' : accOption,
-        medicalAnswers,
-        medicalIssues,
-        hasMedicalIssue: medicalIssues.length > 0,
-        activityId: activity.id
-      };
+      sysConfig.medicalForm.forEach(q => { if (medicalAnswers[q.id] === true) { medicalIssues.push(q.text); if (q.subItems) q.subItems.forEach(sub => { if (medicalAnswers[sub.id] === true) medicalIssues.push("↳ " + sub.text); }); } });
+      const submitData = { type: 'activity', itemName: activity.name || activity.courseName, price: calculateTotal(), ...f, weights, rentals, selectedElectives: finalElectives, certFee: activity.certFee || 0, certSystem: activity.certSystem || '', useLocalShopEq, isReturningCustomer, accOption: isTrip ? 'trip' : accOption, medicalAnswers, medicalIssues, hasMedicalIssue: medicalIssues.length > 0, activityId: activity.id, isCourse: isCourse };
       await onSubmit(submitData);
-      
-      let gotoAcc = false;
-      let accContext = null;
-
-      if (isCourse && accOption === 'upgrade') {
-        gotoAcc = true;
-        accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; 
-      } else if (!isCourse && !isTrip && accOption !== 'self') {
-        gotoAcc = true;
-        accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue };
-      }
-
+      let gotoAcc = false; let accContext = null;
+      if (isCourse && accOption === 'upgrade') { gotoAcc = true; accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; }
+      else if (!isCourse && !isTrip && accOption !== 'self') { gotoAcc = true; accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue }; }
       onSuccess({ gotoAcc, accContext });
-    } catch (error) {
-      console.error(error);
-      setIsSubmitting(false);
-    }
+    } catch (error) { console.error(error); setIsSubmitting(false); }
   };
 
   return (
@@ -3740,6 +3721,59 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                    </div>
                  )}
 
+              </div>
+            )}
+
+            {/* STEP: Personal Diving Experience */}
+            {isStepExperience && (
+              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-300">
+                <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex items-start gap-4">
+                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600 shrink-0"><Award className="w-6 h-6"/></div>
+                  <div>
+                    <h4 className="font-black text-blue-900 text-sm">為什麼需要填寫資歷？</h4>
+                    <p className="text-xs text-blue-700 mt-1 leading-relaxed">了解您的潛水背景能協助教練安排最適合您的配重、分組與導潛節奏，確保活動安全且愉快。</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">潛水證照系統</label>
+                    <select value={f.diveCertSystem} onChange={e => setF({...f, diveCertSystem: e.target.value})} className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm transition-all">
+                      <option value="無證照 (新手)">無證照 (新手 / 體驗中)</option>
+                      <option value="PADI">PADI</option>
+                      <option value="SSI">SSI</option>
+                      <option value="NAUI">NAUI</option>
+                      <option value="SDI/TDI">SDI / TDI</option>
+                      <option value="CMAS">CMAS</option>
+                      <option value="AIDA">AIDA (自由潛水)</option>
+                      <option value="其他">其他系統</option>
+                    </select>
+                  </div>
+                  <FormInput label="證照等級 (如: OWD, AOWD)" value={f.diveLevel} onChange={v => setF({...f, diveLevel: v})} placeholder="例如: 高階開放水域潛水員" />
+                  <FormInput label="累計總潛水支數 (Log Dives)" type="number" value={f.totalDives} onChange={v => setF({...f, totalDives: v})} placeholder="請填寫數字" />
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-sm font-black text-slate-700 ml-1 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-blue-600" /> 已取得之專長證照 (可複選)
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {SPECIALTY_OPTIONS.map(opt => (
+                      <label key={opt} className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${f.specialties.includes(opt) ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-slate-200 hover:border-blue-200'}`}>
+                        <input type="checkbox" checked={f.specialties.includes(opt)} onChange={(e) => {
+                          if (e.target.checked) setF({...f, specialties: [...f.specialties, opt]});
+                          else setF({...f, specialties: f.specialties.filter(s => s !== opt)});
+                        }} className="w-4 h-4 text-blue-600 rounded" />
+                        <span className="text-xs font-bold text-slate-700">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1 block">特別註明事項 / 潛水偏好</label>
+                  <textarea value={f.expNotes} onChange={e => setF({...f, expNotes: e.target.value})} placeholder="例如：耳壓平衡較慢、容易暈船、想看微距生物..." className="w-full p-4 border border-slate-300 bg-white rounded-2xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all h-24" />
+                </div>
               </div>
             )}
 
@@ -4411,11 +4445,22 @@ function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = async (retryCount = 0) => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-        else await signInAnonymously(auth);
-      } catch (err) { console.error("Auth error:", err); }
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) { 
+        console.error(`Auth error (attempt ${retryCount + 1}):`, err); 
+        if (retryCount < 5) {
+          const delay = Math.pow(2, retryCount) * 1000;
+          setTimeout(() => initAuth(retryCount + 1), delay);
+        } else {
+          setIsLoading(false);
+        }
+      }
     };
     initAuth();
     const unsubscribe = onAuthStateChanged(auth, (u) => { setUser(u); setIsLoading(false); });
