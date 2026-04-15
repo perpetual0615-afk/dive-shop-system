@@ -4,8 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc } from 'firebase/firestore';
 
-// --- Firebase 基礎配置 (加上安全防護) ---
-let firebaseConfig = {
+// --- Firebase 基礎配置 ---
 const firebaseConfig = {
   apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
   authDomain: "sharkenting777550.firebaseapp.com",
@@ -18,7 +17,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = 'dive-shop-demo';
 
 // --- 預設醫療健康聲明問卷 ---
 const DEFAULT_MEDICAL_FORM = [
