@@ -15,11 +15,6 @@ const firebaseConfig = {
   measurementId: "G-TYT7E313E2"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'dive-shop-demo';
-
 // --- 預設醫療健康聲明問卷 ---
 const DEFAULT_MEDICAL_FORM = [
   { id: 1, text: "一、您的肺部/呼吸系統、心臟/血液系統是否有任何狀況或病史？", subItems: [{ id: 11, text: "1. 曾罹患氣喘、氣胸，或過去12個月內曾出現喘息等呼吸困難症狀？" }, { id: 12, text: "2. 曾接受過胸部、肺部或心臟/血管手術？" }, { id: 13, text: "3. 曾有心臟病發作、心律不整、中風，或目前正服用治療血壓、心血管疾病的藥物？" }, { id: 14, text: "4. 曾因呼吸道疾病（如嚴重過敏、支氣管炎）需要看診或接受治療？" }]},
@@ -3442,8 +3437,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
               <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="真實姓名 *" required value={f.name} onChange={v => setF({...f, name: v})} placeholder="保險與證照使用" />
-                  <FormInput label="常用暱稱" value={f.nickname} onChange={v => setF({...f, nickname: v})} placeholder="教練稱呼您的方式" />
-                  <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v => setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                  <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v => setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字 (例: 0912345678)" />
                   <FormInput label="身分證/護照號碼 *" required value={f.idNumber} onChange={v => setF({...f, idNumber: v})} placeholder="辦理潛水平安險使用" />
                   <BirthdaySelect label="出生年月日 *" required value={f.birthday} onChange={v => setF({...f, birthday: v})} />
                   <div className="grid grid-cols-3 gap-3">
@@ -4012,7 +4006,7 @@ function AccommodationBookingForm({ room, onClose, onSubmit, sysConfig, context 
           )}
 
           <FormInput label="預訂人姓名" required value={f.name} onChange={v => setF({...f, name: v})} />
-          <FormInput label="聯絡電話" required type="tel" value={f.phone} onChange={v => setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+          <FormInput label="聯絡電話" required type="tel" value={f.phone} onChange={v => setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字 (例: 0912345678)" />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormInput label="入住日期" required type="date" value={f.checkIn} onChange={v => setF({...f, checkIn: v})} />
             <FormInput label="預計晚數" required type="number" value={f.nights} onChange={v => setF({...f, nights: v === '' ? '' : Math.max(1, parseInt(v))})} />
@@ -4056,21 +4050,22 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
             <button onClick={onGoAccommodations} className="w-full py-4 bg-white text-slate-600 rounded-2xl font-bold hover:bg-slate-50 border-2 border-slate-100 hover:border-blue-200 hover:text-blue-600 transition-colors">
               我只想單獨預訂住宿
             </button>
-            <button onClick={onClose} className="w-full py-2 mt-2 text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors">
-              取消返回
-            </button>
           </div>
         </div>
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-20">
+          <X className="w-5 h-5"/>
+        </button>
       </div>
     </div>
   );
 }
 
-function UserDashboard({ bookings }) {
+function UserDashboard({ bookings, db, appId }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
@@ -4087,6 +4082,16 @@ function UserDashboard({ bookings }) {
     setTimeout(() => { setHasSearched(true); setIsSearching(false); }, 500);
   };
 
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+    try {
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', itemToDelete.id));
+      setItemToDelete(null);
+    } catch (e) {
+      alert("刪除失敗");
+    }
+  };
+
   return (
     <div className="relative animate-in fade-in duration-500 max-w-5xl mx-auto pb-20 pt-4 px-4">
       <div className="relative z-10 max-w-4xl mx-auto">
@@ -4099,7 +4104,7 @@ function UserDashboard({ bookings }) {
         <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 shadow-sm p-8 mb-10">
           <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-5 gap-5">
             <div className="sm:col-span-2"><FormInput label="真實姓名 / Name" value={searchName} onChange={setSearchName} placeholder="王小明" required /></div>
-            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" value={searchPhone} onChange={v => setSearchPhone(formatPhoneNumber(v))} placeholder="09xx-xxx-xxx" required /></div>
+            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" type="tel" value={searchPhone} onChange={v => setSearchPhone(v.replace(/\D/g, ''))} placeholder="請輸入純數字 (例: 0912345678)" required /></div>
             <div className="sm:col-span-1 flex items-end">
               <button type="submit" disabled={isSearching} className="w-full py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black shadow-xl transition-all flex items-center justify-center gap-2">
                 {isSearching ? '...' : <Search className="w-5 h-5"/>}
@@ -4119,20 +4124,34 @@ function UserDashboard({ bookings }) {
                             {b.type === 'activity' ? '活動報名 / Activity' : '住宿預約 / Accommodation'}
                           </span>
                           <span className="text-xs text-slate-400 font-bold">{formatTs(b.timestamp)}</span>
-                        </div>
-                        <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
                       </div>
-                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
-                        {b.status === 'confirmed' ? '已確認 / Confirmed' : '處理中 / Pending'}
-                      </div>
+                      <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
+                    <div className="flex items-center gap-3">
+                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : b.status === 'cancelled' ? 'bg-slate-100 border-slate-300 text-slate-500' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
+                        {b.status === 'confirmed' ? '已確認 / Confirmed' : b.status === 'cancelled' ? '已取消 / Cancelled' : '處理中 / Pending'}
+                      </div>
+                      <button onClick={() => setItemToDelete(b)} className="p-3 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all shadow-sm" title="取消並刪除此預約">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
                   </div>
               )) : <div className="bg-white rounded-[2rem] p-20 text-center shadow-inner font-black text-slate-300">查無相關預約紀錄 / No records found</div>}
            </div>
+        )}
+
+        {/* 顧客專用的刪除確認視窗 */}
+        {itemToDelete && (
+           <DeleteConfirmModal 
+              title={itemToDelete.itemName || '該筆預約'} 
+              onConfirm={handleDeleteConfirm} 
+              onCancel={() => setItemToDelete(null)} 
+           />
         )}
       </div>
     </div>
@@ -4381,7 +4400,7 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
                    <FormInput label="天數 / Days *" required type="number" value={f.days} onChange={v=>setF({...f, days: v === '' ? '' : Math.max(1, parseInt(v))})} />
                  </div>
                  <FormInput label="真實姓名 / Full Name *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
-                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字" />
                  
                  <label className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 rounded-xl cursor-pointer shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 mt-2 group">
                      <input type="checkbox" checked={isReturningCustomer} onChange={e => setIsReturningCustomer(e.target.checked)} className="w-5 h-5 text-orange-500 rounded border-orange-300 shrink-0" />
@@ -4735,7 +4754,7 @@ function App() {
                    window.scrollTo(0,0);
                 } catch(e) { alert("送出失敗"); }
             }} onBack={() => setCurrentView('home')} />}
-            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
+            {currentView === 'dashboard' && <UserDashboard bookings={bookings} db={db} appId={appId} />}
           </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
