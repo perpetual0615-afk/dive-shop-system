@@ -5,7 +5,6 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged }
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc } from 'firebase/firestore';
 
 // --- Firebase 基礎配置 (加上安全防護) ---
-let firebaseConfig = {};
 const firebaseConfig = {
   apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
   authDomain: "sharkenting777550.firebaseapp.com",
