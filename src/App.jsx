@@ -15,6 +15,7 @@ const firebaseConfig = {
   measurementId: "G-TYT7E313E2"
 };
 
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1207,8 +1208,8 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
             <>
               <div className="mt-4">
                 <label className="block text-sm font-bold text-slate-700 mb-2 mt-2">潛水類型</label>
-                <div className="flex gap-2">
-                   {['岸潛','船潛','潛旅'].map(v => (
+                <div className="flex flex-wrap gap-2">
+                   {['岸潛','船潛','潛旅','體驗潛水'].map(v => (
                      <button key={v} type="button" onClick={()=>{
                          const newForm = {...formData, diveCategory: v, isCourse: false};
                          if (v === '岸潛') {
@@ -2421,11 +2422,11 @@ function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }
     </div>
   );
 }
-
-function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, onSuccess }) {
+function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isTrip = activity.diveCategory === '潛旅';
+  const isDSD = activity.diveCategory === '體驗潛水';
   const isCourse = activity.isCourse;
 
   // 決定流程步驟
@@ -2483,7 +2484,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
 
   // 計算裝備費用 (自動套用套裝與回客折扣)
   const calculateEqPrice = () => {
-    if (isCourse) return 0; 
+    if (isCourse || isDSD) return 0; 
     if (isTrip && useLocalShopEq) return 0; 
 
     let heavyCount = rentals.filter(r => r.category === '重裝備').length;
@@ -2828,13 +2829,13 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                  </div>
 
                  {/* 課程專屬加購與簽證費 */}
-                 {isCourse && (
+                 {(isCourse || isDSD) && (
                     <div className="space-y-4 mb-8">
                        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm">
-                         <Info className="w-5 h-5 shrink-0" /> 課程費用已包含裝備租借，請安心選擇下方的裝備尺寸。
+                         <Info className="w-5 h-5 shrink-0" /> {isCourse ? '課程費用' : '體驗潛水費用'}已包含裝備租借，請安心選擇下方的裝備尺寸。
                        </div>
 
-                       {(activity.certFee > 0 || activity.electives?.length > 0 || activity.compulsories?.some(c => typeof c === 'object' && c.price > 0)) && (
+                       {isCourse && (activity.certFee > 0 || activity.electives?.length > 0 || activity.compulsories?.some(c => typeof c === 'object' && c.price > 0)) && (
                          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
                              <h4 className="font-black text-slate-800 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-500"/> 課程選修加購與強制費用</h4>
@@ -2890,7 +2891,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                  )}
 
                  {/* FUN DIVE 一般裝備收費 */}
-                 {!isCourse && !useLocalShopEq && (
+                 {!isCourse && !isDSD && !useLocalShopEq && (
                    <label className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-2xl cursor-pointer shadow-sm mb-6 transition-all hover:bg-orange-100">
                      <input type="checkbox" checked={isReturningCustomer} onChange={e => setIsReturningCustomer(e.target.checked)} className="w-5 h-5 text-orange-600 rounded" />
                      <div>
@@ -3028,7 +3029,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                  </div>
 
                  {/* 瘦身後的 FUN DIVE 一般裝備收費總計 (懸浮在最下方) */}
-                 {!isCourse && !useLocalShopEq && (
+                 {!isCourse && !isDSD && !useLocalShopEq && (
                    <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-t-xl flex justify-between items-center mt-6 border border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.08)] sticky bottom-0 z-30 border-t-4 border-t-blue-500">
                      <span className="font-black text-slate-700 text-sm sm:text-base">預估裝備總額</span>
                      <div className="flex items-center gap-2 sm:gap-3">
