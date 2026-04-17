@@ -1544,12 +1544,20 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
 
 function RoomManageModal({ db, appId, room, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [f, setF] = useState(room || { 
-    name: '', quantity: 1, bedCount: 1, 
-    priceLowWeekday: 1000, priceLowWeekend: 1200, 
-    pricePeakWeekday: 1500, pricePeakWeekend: 1800, 
-    priceHoliday: 2200,
-    priceExtraBed: 600
+  const [f, setF] = useState(() => {
+    if (room) {
+      return {
+        ...room,
+        maxExtraBeds: room.maxExtraBeds !== undefined ? room.maxExtraBeds : (room.priceExtraBed > 0 ? 1 : 0)
+      };
+    }
+    return {
+      name: '', quantity: 1, bedCount: 1, maxExtraBeds: 0,
+      priceLowWeekday: 1000, priceLowWeekend: 1200, 
+      pricePeakWeekday: 1500, pricePeakWeekend: 1800, 
+      priceHoliday: 2200,
+      priceExtraBed: 600
+    };
   });
 
   const handleSubmit = async (e) => {
@@ -1561,6 +1569,7 @@ function RoomManageModal({ db, appId, room, onClose }) {
          ...f,
          quantity: parseInt(f.quantity) || 1,
          bedCount: parseInt(f.bedCount) || 1,
+         maxExtraBeds: parseInt(f.maxExtraBeds) || 0,
          priceLowWeekday: parseInt(f.priceLowWeekday) || 0,
          priceLowWeekend: parseInt(f.priceLowWeekend) || 0,
          pricePeakWeekday: parseInt(f.pricePeakWeekday) || 0,
@@ -1579,14 +1588,15 @@ function RoomManageModal({ db, appId, room, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-xl p-8 shadow-xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
         <h2 className="text-2xl font-black mb-6 text-slate-800">房型及階梯價格設定</h2>
         <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
           <div className="grid grid-cols-1 gap-4">
              <FormInput label="房型/床位名稱" required value={f.name} onChange={v => setF({ ...f, name: v })} placeholder="例如：背包客房 或 豪華雙人房" />
-             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                <FormInput label="實體房間數 (間)" required type="number" value={f.quantity} onChange={v => setF({ ...f, quantity: v === '' ? '' : Math.max(1, parseInt(v)) })} />
-               <FormInput label="每間容納人數/床位" required type="number" value={f.bedCount} onChange={v => setF({ ...f, bedCount: v === '' ? '' : Math.max(1, parseInt(v)) })} />
+               <FormInput label="每間基本容納人數" required type="number" value={f.bedCount} onChange={v => setF({ ...f, bedCount: v === '' ? '' : Math.max(1, parseInt(v)) })} />
+               <FormInput label="每間最多加床數" required type="number" value={f.maxExtraBeds} onChange={v => setF({ ...f, maxExtraBeds: v === '' ? '' : Math.max(0, parseInt(v)) })} />
                <FormInput label="加床費用 (人/晚)" required type="number" value={f.priceExtraBed} onChange={v => setF({ ...f, priceExtraBed: v === '' ? '' : Math.max(0, parseInt(v)) })} />
              </div>
           </div>
@@ -1760,7 +1770,11 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                   <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm font-bold gap-2">
                      <span className="text-slate-500">實體房間：{room.quantity} 間</span>
                      <div className="flex flex-wrap gap-2">
-                       <span className="text-amber-600 bg-amber-50 px-3 py-1 rounded-lg">加床 ${room.priceExtraBed || 0} / 晚</span>
+                       {room.maxExtraBeds > 0 ? (
+                         <span className="text-amber-600 bg-amber-50 px-3 py-1 rounded-lg">加床 ${room.priceExtraBed || 0} / 晚 (上限 {room.maxExtraBeds} 床)</span>
+                       ) : (
+                         <span className="text-slate-400 bg-slate-50 px-3 py-1 rounded-lg">不可加床</span>
+                       )}
                        <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">每間容納：{room.bedCount || 1} 人(床)</span>
                      </div>
                   </div>
@@ -3107,6 +3121,13 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
   const [g, setG] = useState(1);
   const [eb, setEb] = useState(0);
 
+  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : (room.priceExtraBed > 0 ? 1 : 0);
+  const maxEbAllowed = (parseInt(rc) || 0) * maxEbPerRoom;
+
+  useEffect(() => {
+    if (eb > maxEbAllowed) setEb(maxEbAllowed);
+  }, [rc, maxEbAllowed, eb]);
+
   const maxCap = (parseInt(rc) || 0) * (room.bedCount || 1) + (parseInt(eb) || 0);
   const isOverCap = (parseInt(g) || 0) > maxCap;
 
@@ -3127,9 +3148,9 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
               <span className="text-[11px] font-black text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-teal-100">
                 <User className="w-3.5 h-3.5" /> 容納 {room.bedCount} 人/間
               </span>
-              {room.priceExtraBed > 0 && (
+              {room.priceExtraBed > 0 && maxEbPerRoom > 0 && (
                  <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1.5 bg-rose-50 w-fit px-2 py-1 rounded-md border border-rose-100">
-                    <Plus className="w-3 h-3" /> 可加床 (+${room.priceExtraBed})
+                    <Plus className="w-3 h-3" /> 最多加 {maxEbPerRoom} 床 (+${room.priceExtraBed})
                  </span>
               )}
           </div>
@@ -3145,7 +3166,13 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
               </div>
               <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">加床數</label>
-                  <input type="number" min="0" value={eb} onChange={e => setEb(e.target.value)} disabled={!(room.priceExtraBed > 0)} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
+                  <input type="number" min="0" max={maxEbAllowed} value={eb} onChange={e => {
+                     let val = parseInt(e.target.value);
+                     if (isNaN(val)) val = 0;
+                     if (val > maxEbAllowed) val = maxEbAllowed;
+                     if (val < 0) val = 0;
+                     setEb(val);
+                  }} disabled={!(room.priceExtraBed > 0) || maxEbPerRoom <= 0} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
               </div>
           </div>
           
