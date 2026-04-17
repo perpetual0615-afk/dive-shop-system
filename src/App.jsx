@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Waves, Home, LifeBuoy, CalendarDays, User, Users, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, Award } from 'lucide-react';
+import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, Copy, Moon as MoonMoon } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc } from 'firebase/firestore';
@@ -339,236 +339,6 @@ function AdminLoginModal({ onVerify, onClose }) {
   );
 }
 
-// --- 導引卡片專屬背景裝飾圖示 (修正截斷與最佳化動態版) ---
-const SeaweedBg = () => (
-  <svg className="w-56 h-56 overflow-visible opacity-[0.65] group-hover:opacity-100 transition-all duration-700 transform group-hover:translate-y-[-10px] group-hover:scale-105" viewBox="-10 -20 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <style>{`
-      @keyframes swayL { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(4deg); } }
-      @keyframes swayR { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-5deg); } }
-      @keyframes floatUp { 0% { transform: translateY(10px) scale(0.5); opacity: 0; } 20% { opacity: 0.9; } 80% { opacity: 0.5; } 100% { transform: translateY(-45px) scale(1.3); opacity: 0; } }
-      @keyframes fishSwim1 { 0% { transform: translate(-30px, 20px) scale(0.8); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translate(120px, -10px) scale(1.1); opacity: 0; } }
-      @keyframes fishSwim2 { 0% { transform: translate(120px, 40px) scale(0.6) scaleX(-1); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translate(-30px, 10px) scale(0.9) scaleX(-1); opacity: 0; } }
-      .sw-l { transform-origin: 50% 100%; animation: swayL 4.5s ease-in-out infinite; }
-      .sw-r { transform-origin: 50% 100%; animation: swayR 5.5s ease-in-out infinite; }
-      .bub-a { animation: floatUp 3s linear infinite; }
-      .bub-b { animation: floatUp 4s linear infinite 1.5s; opacity: 0; }
-      .bub-c { animation: floatUp 3.5s linear infinite 0.7s; opacity: 0; }
-      .fish-1 { animation: fishSwim1 10s linear infinite; }
-      .fish-2 { animation: fishSwim2 12s linear infinite 3s; opacity: 0; }
-    `}</style>
-    <defs>
-      <linearGradient id="grad-seaweed-1" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stopColor="#064e3b" /> {/* emerald-900 */}
-        <stop offset="100%" stopColor="#10b981" /> {/* emerald-500 */}
-      </linearGradient>
-      <linearGradient id="grad-seaweed-2" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stopColor="#3f6212" /> {/* lime-800 */}
-        <stop offset="100%" stopColor="#84cc16" /> {/* lime-500 */}
-      </linearGradient>
-      <linearGradient id="grad-seaweed-3" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stopColor="#0f766e" /> {/* emerald-700 */}
-        <stop offset="100%" stopColor="#34d399" /> {/* emerald-400 */}
-      </linearGradient>
-      <linearGradient id="grad-coral-tube" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stopColor="#9f1239" /> {/* rose-800 */}
-        <stop offset="100%" stopColor="#fb7185" /> {/* rose-400 */}
-      </linearGradient>
-      <linearGradient id="grad-coral-branch" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stopColor="#7e22ce" /> {/* indigo-700 */}
-        <stop offset="100%" stopColor="#c084fc" /> {/* purple-400 */}
-      </linearGradient>
-      <linearGradient id="grad-fish" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#f97316" /> {/* orange-500 */}
-        <stop offset="100%" stopColor="#fef08a" /> {/* yellow-200 */}
-      </linearGradient>
-    </defs>
-    
-    {/* 海底礁石 (增加底部層次感) */}
-    <path d="M -10 100 Q 15 85 40 100 Z" fill="#0f172a" opacity="0.3" />
-    <path d="M 60 100 Q 85 90 110 100 Z" fill="#0f172a" opacity="0.2" />
-
-    {/* 魚群 2 (遠景小魚，從右到左游動) */}
-    <g className="fish-2">
-       <path d="M 15 50 Q 25 40, 35 50 Q 25 60, 15 50 Z" fill="url(#grad-fish)" />
-       <path d="M 15 50 L 5 42 L 8 50 L 5 58 Z" fill="#ea580c" />
-       <circle cx="30" cy="48" r="1" fill="#fff" />
-    </g>
-
-    {/* 翠綠色粗海帶 (背景層 - 左搖) */}
-    <g className="sw-l">
-      <path d="M 20 100 Q 0 60, 25 30 T 10 -10" stroke="url(#grad-seaweed-1)" strokeWidth="8" strokeLinecap="round" fill="none" opacity="0.9" />
-      <path d="M 35 100 Q 20 70, 40 40 T 30 10" stroke="url(#grad-seaweed-3)" strokeWidth="5" strokeLinecap="round" fill="none" opacity="0.8" />
-    </g>
-
-    {/* 紫色樹枝狀珊瑚 (右搖) */}
-    <g className="sw-r" style={{ animationDuration: '7s' }}>
-      <path d="M 75 100 C 75 75, 55 60, 50 35 M 68 80 C 85 70, 95 50, 90 40 M 60 60 C 45 50, 35 45, 30 35 M 82 60 C 95 60, 100 50, 105 45" stroke="url(#grad-coral-branch)" strokeWidth="6" strokeLinecap="round" fill="none" />
-    </g>
-
-    {/* 青檸色寬葉海草 (前景層 - 慢速右搖) */}
-    <g className="sw-r">
-      <path d="M 85 100 Q 105 70, 80 40 T 95 0" stroke="url(#grad-seaweed-2)" strokeWidth="9" strokeLinecap="round" fill="none" />
-      <path d="M 70 100 Q 85 80, 65 50 T 80 20" stroke="url(#grad-seaweed-1)" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.9" />
-    </g>
-
-    {/* 粉紅管狀海綿珊瑚 (左搖) */}
-    <g className="sw-l" style={{ animationDuration: '6s' }}>
-      <path d="M 45 100 Q 40 80, 50 60" stroke="url(#grad-coral-tube)" strokeWidth="12" strokeLinecap="round" fill="none" />
-      <path d="M 55 100 Q 60 75, 55 50" stroke="url(#grad-coral-tube)" strokeWidth="10" strokeLinecap="round" fill="none" />
-      <path d="M 35 100 Q 30 85, 38 75" stroke="url(#grad-coral-tube)" strokeWidth="8" strokeLinecap="round" fill="none" />
-      {/* 管口陰影增加立體感 */}
-      <ellipse cx="50" cy="60" rx="4" ry="2" fill="#4c0519" opacity="0.5" />
-      <ellipse cx="55" cy="50" rx="3" ry="1.5" fill="#4c0519" opacity="0.5" />
-      <ellipse cx="38" cy="75" rx="2.5" ry="1" fill="#4c0519" opacity="0.5" />
-    </g>
-
-    {/* 魚群 1 (近景大魚，從左到右游動) */}
-    <g className="fish-1">
-       <path d="M 15 50 Q 30 35, 45 50 Q 30 65, 15 50 Z" fill="url(#grad-fish)" />
-       <path d="M 15 50 L 2 40 L 8 50 L 2 60 Z" fill="#ea580c" />
-       <circle cx="38" cy="47" r="1.5" fill="#fff" />
-       {/* 伴游的小魚 */}
-       <g transform="translate(-15, 15) scale(0.6)">
-         <path d="M 15 50 Q 30 35, 45 50 Q 30 65, 15 50 Z" fill="url(#grad-fish)" />
-         <path d="M 15 50 L 2 40 L 8 50 L 2 60 Z" fill="#ea580c" />
-         <circle cx="38" cy="47" r="1.5" fill="#fff" />
-       </g>
-    </g>
-
-    {/* 源源不絕的上升氣泡 */}
-    <circle cx="45" cy="45" r="3.5" fill="#a7f3d0" className="bub-a" />
-    <circle cx="75" cy="55" r="5" fill="#fecdd3" className="bub-b" />
-    <circle cx="30" cy="35" r="2.5" fill="#e9d5ff" className="bub-c" />
-    <circle cx="60" cy="70" r="2" fill="#bae6fd" className="bub-a" style={{ animationDelay: '2s', animationDuration: '4.5s' }} />
-  </svg>
-);
-
-const SingleTankBg = () => (
-  <svg className="w-56 h-56 overflow-visible opacity-[0.75] group-hover:opacity-100 transition-all duration-700 transform group-hover:translate-y-[-10px] group-hover:scale-105" viewBox="-10 -20 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <style>{`
-      @keyframes bubbleWobble {
-        0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
-        20% { opacity: 0.9; }
-        50% { transform: translate(-6px, -20px) scale(1.1); }
-        80% { opacity: 0.6; }
-        100% { transform: translate(4px, -45px) scale(1.5); opacity: 0; }
-      }
-      @keyframes tankHover {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-6px) rotate(1.5deg); }
-      }
-      @keyframes hoseDrift {
-        0%, 100% { transform: rotate(0deg); }
-        50% { transform: rotate(6deg); }
-      }
-      .bub-1 { animation: bubbleWobble 2.6s infinite ease-in; }
-      .bub-2 { animation: bubbleWobble 3.2s infinite ease-in 0.5s; opacity: 0; }
-      .bub-3 { animation: bubbleWobble 2.8s infinite ease-in 1.2s; opacity: 0; }
-      .bub-4 { animation: bubbleWobble 3.5s infinite ease-in 1.8s; opacity: 0; }
-      .tank-body { transform-origin: center; animation: tankHover 4.5s ease-in-out infinite; }
-      .hose { transform-origin: 50px 14px; animation: hoseDrift 3.5s ease-in-out infinite; }
-    `}</style>
-    <defs>
-      <linearGradient id="grad-tank-neon" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#f59e0b" />
-        <stop offset="25%" stopColor="#fde047" />
-        <stop offset="60%" stopColor="#eab308" />
-        <stop offset="100%" stopColor="#b45309" />
-      </linearGradient>
-      <linearGradient id="grad-valve" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#cbd5e1" />
-        <stop offset="100%" stopColor="#475569" />
-      </linearGradient>
-    </defs>
-    
-    {/* 曲折上升的真實氣泡效果 */}
-    <circle cx="48" cy="20" r="4.5" fill="#22d3ee" className="bub-1" />
-    <circle cx="56" cy="22" r="3" fill="#67e8f9" className="bub-2" />
-    <circle cx="40" cy="18" r="5" fill="#a5f3fc" className="bub-3" />
-    <circle cx="52" cy="15" r="2.5" fill="#cffafe" className="bub-4" />
-    
-    {/* 將氣瓶本體群組化加上懸浮動畫 */}
-    <g className="tank-body">
-      {/* 深黑/亮藍 固定帶 */}
-      <path d="M 30 45 H 70" stroke="#0f172a" strokeWidth="8" strokeLinecap="round" />
-      <path d="M 30 75 H 70" stroke="#0f172a" strokeWidth="8" strokeLinecap="round" />
-      <path d="M 30 45 H 70" stroke="#38bdf8" strokeWidth="2.5" strokeDasharray="4 3" />
-      <path d="M 30 75 H 70" stroke="#38bdf8" strokeWidth="2.5" strokeDasharray="4 3" />
-      
-      {/* 單氣瓶主體 */}
-      <rect x="35" y="28" width="30" height="65" rx="15" fill="url(#grad-tank-neon)" />
-      <rect x="40" y="32" width="5" height="55" rx="2.5" fill="#ffffff" opacity="0.65" />
-      
-      {/* 閥門一級頭 */}
-      <rect x="42" y="20" width="16" height="10" rx="3" fill="url(#grad-valve)" />
-      <path d="M 50 20 V 14" stroke="url(#grad-valve)" strokeWidth="8" strokeLinecap="round" />
-      <path d="M 44 16 H 56" stroke="url(#grad-valve)" strokeWidth="4" strokeLinecap="round" />
-      
-      {/* 螢光綠色軟管，加入水流中的獨立漂動動畫 */}
-      <g className="hose">
-        <path d="M 50 14 Q 75 0, 80 25 Q 85 45, 70 55" fill="none" stroke="#4ade80" strokeWidth="4.5" strokeLinecap="round" />
-      </g>
-    </g>
-  </svg>
-);
-
-const AnchorBg = () => (
-  <svg className="w-56 h-56 overflow-visible opacity-[0.7] group-hover:opacity-100 transition-all duration-700 transform group-hover:scale-105" viewBox="-10 -20 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <style>{`
-      @keyframes anchorBob {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-10px) rotate(-3deg); }
-      }
-      @keyframes ropeTension {
-        0%, 100% { transform: scaleY(1) translateY(0); }
-        50% { transform: scaleY(1.04) translateY(-3px); }
-      }
-      @keyframes waterRing {
-        0% { r: 10; stroke-width: 6; opacity: 0.6; }
-        100% { r: 35; stroke-width: 1; opacity: 0; }
-      }
-      .anchor-main { transform-origin: 50% 50%; animation: anchorBob 5s ease-in-out infinite; }
-      .rope-main { transform-origin: top center; animation: ropeTension 5s ease-in-out infinite; }
-      .ring-pulse { transform-origin: center; animation: waterRing 3s cubic-bezier(0.21, 0.53, 0.56, 0.8) infinite; }
-    `}</style>
-    <defs>
-      <linearGradient id="grad-anchor-vibrant" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#3b82f6" />
-        <stop offset="50%" stopColor="#4f46e5" />
-        <stop offset="100%" stopColor="#1e1b4b" />
-      </linearGradient>
-      <linearGradient id="grad-rope" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#fef08a" />
-        <stop offset="50%" stopColor="#f59e0b" />
-        <stop offset="100%" stopColor="#ea580c" />
-      </linearGradient>
-    </defs>
-    
-    {/* 船錨浮動主群組 */}
-    <g className="anchor-main">
-      {/* 擴散的水波紋 / 聲納訊號感 */}
-      <circle cx="50" cy="22" r="10" stroke="#60a5fa" fill="none" className="ring-pulse" />
-      
-      <circle cx="50" cy="22" r="10" stroke="url(#grad-anchor-vibrant)" strokeWidth="6" fill="#eff6ff" />
-      
-      <line x1="20" y1="42" x2="80" y2="42" stroke="url(#grad-anchor-vibrant)" strokeWidth="8" strokeLinecap="round" />
-      <circle cx="20" cy="42" r="4.5" fill="#60a5fa" />
-      <circle cx="80" cy="42" r="4.5" fill="#60a5fa" />
-      
-      <line x1="50" y1="32" x2="50" y2="85" stroke="url(#grad-anchor-vibrant)" strokeWidth="8" strokeLinecap="round" />
-      
-      <path d="M 15 65 C 25 100, 75 100, 85 65" stroke="url(#grad-anchor-vibrant)" strokeWidth="8" strokeLinecap="round" />
-      <path d="M 10 60 L 20 70 L 25 55 Z" fill="#60a5fa" />
-      <path d="M 90 60 L 80 70 L 75 55 Z" fill="#60a5fa" />
-    </g>
-
-    {/* 模擬拉扯張力的繩索群組 */}
-    <g className="rope-main">
-      <path d="M 50 22 Q 35 15, 30 5 Q 40 -5, 55 5 Q 70 15, 50 30 Q 30 45, 50 55 Q 70 65, 50 75 Q 30 85, 40 95" fill="none" stroke="url(#grad-rope)" strokeWidth="5" strokeLinecap="round" />
-    </g>
-  </svg>
-);
-
 function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", bgIcon }) {
   const themeMap = {
     teal: {
@@ -598,8 +368,14 @@ function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", bgIcon }) 
   
   return (
     <div onClick={onClick} className={`bg-white/90 backdrop-blur-xl p-8 rounded-[2rem] border transition-all duration-500 cursor-pointer group hover:-translate-y-2 relative overflow-hidden ${theme.wrapper}`}>
-      {/* 調整圖標容器定位與大小，配合放大的 viewBox 與 SVG 尺寸以防止截斷 */}
-      {bgIcon && <div className="absolute -right-8 -bottom-8 pointer-events-none z-0 transform-gpu">{bgIcon}</div>}
+      {/* 沉浸式光暈 */}
+      <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-150 ${theme.glow}`}></div>
+      
+      {/* 水下波紋/海洋生物 浮水印裝飾 */}
+      <div className={`absolute -bottom-6 -right-6 opacity-[0.04] group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${theme.watermark}`}>
+         {bgIcon || icon}
+      </div>
+      
       <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] relative z-10 ${theme.iconBg}`}>
         {icon}
       </div>
@@ -721,600 +497,72 @@ function BirthdaySelect({ label, required, value, onChange, dark = false }) {
   );
 }
 
-// --- 專屬設計的背景鯨鯊 SVG 動畫 (根據照片特徵還原) ---
-const ContactWhaleSharkBg = () => (
-  <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-3xl">
-    <style>{`
-      @keyframes bgWhaleSharkSwimRight {
-        0% { transform: translateX(-60%) translateY(50px) rotate(-3deg); opacity: 0; }
-        15% { opacity: 0.15; }
-        50% { transform: translateX(10%) translateY(-20px) rotate(1deg); opacity: 0.15; }
-        85% { opacity: 0.15; }
-        100% { transform: translateX(100%) translateY(30px) rotate(-2deg); opacity: 0; }
-      }
-      @keyframes pilotFishHover1 {
-        0%, 100% { transform: translate(450px, 80px) scale(0.65) rotate(0deg); }
-        50% { transform: translate(440px, 70px) scale(0.65) rotate(5deg); }
-      }
-      @keyframes pilotFishHover2 {
-        0%, 100% { transform: translate(520px, 120px) scale(0.5) rotate(0deg); }
-        50% { transform: translate(530px, 110px) scale(0.5) rotate(-3deg); }
-      }
-      .ws-bg-anim {
-        animation: bgWhaleSharkSwimRight 40s ease-in-out infinite;
-        width: 180%;
-        position: absolute;
-        top: 10%;
-        left: -30%;
-      }
-      @media (min-width: 1024px) {
-        .ws-bg-anim {
-          width: 120%;
-          top: 0%;
-          left: -10%;
-        }
-      }
-      .pf-anim-1 { animation: pilotFishHover1 3.5s ease-in-out infinite; }
-      .pf-anim-2 { animation: pilotFishHover2 4.2s ease-in-out infinite 0.5s; }
-    `}</style>
-    <svg className="ws-bg-anim" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-         <linearGradient id="wsBgGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#020617" />
-            <stop offset="30%" stopColor="#0f172a" />
-            <stop offset="70%" stopColor="#1e3a8a" />
-            <stop offset="100%" stopColor="#0284c7" />
-         </linearGradient>
-      </defs>
-
-      {/* Upper Caudal Fin (照片中極修長的上尾葉) */}
-      <path d="M 250 320 Q 100 120 0 20 Q 80 150 220 340 Z" fill="url(#wsBgGrad)" />
-      {/* Lower Caudal Fin (下尾葉) */}
-      <path d="M 220 340 Q 150 480 100 550 Q 180 450 260 370 Z" fill="url(#wsBgGrad)" />
-
-      {/* First Dorsal Fin (第一背鰭) */}
-      <path d="M 520 220 Q 450 100 380 80 Q 420 180 440 230 Z" fill="url(#wsBgGrad)" />
-      {/* Second Dorsal Fin (第二背鰭) */}
-      <path d="M 320 270 Q 280 200 250 200 Q 270 250 290 280 Z" fill="url(#wsBgGrad)" />
-
-      {/* Pectoral Fin (寬大的胸鰭) */}
-      <path d="M 750 400 C 700 550 550 650 500 650 C 600 550 680 450 700 380 Z" fill="url(#wsBgGrad)" />
-      {/* Pelvic Fin (腹鰭) */}
-      <path d="M 400 400 Q 350 480 320 500 Q 360 430 380 400 Z" fill="url(#wsBgGrad)" />
-
-      {/* Main Body (龐大的主身軀與扁平頭部) */}
-      <path d="M 250 320 C 400 220 600 180 800 200 C 1000 220 1150 280 1180 320 C 1180 350 1150 380 1000 400 C 800 430 500 430 260 370 Z" fill="url(#wsBgGrad)" />
-
-      {/* Gill Slits (5道明顯的垂直鰓裂) */}
-      <g stroke="#94a3b8" strokeWidth="4" strokeLinecap="round" opacity="0.7">
-         <path d="M 850 280 Q 830 320 840 370" />
-         <path d="M 820 285 Q 800 325 810 375" />
-         <path d="M 790 290 Q 770 330 780 380" />
-         <path d="M 760 295 Q 740 335 750 385" />
-         <path d="M 730 300 Q 710 340 720 390" />
-      </g>
-
-      {/* Distinct Checkerboard/Maze Grid (側面的網格白線特徵) */}
-      <g stroke="#f8fafc" strokeWidth="2.5" fill="none" opacity="0.45">
-         <path d="M 680 200 Q 650 280 680 410" />
-         <path d="M 630 200 Q 600 280 630 415" />
-         <path d="M 580 205 Q 550 280 580 420" />
-         <path d="M 530 215 Q 500 280 530 415" />
-         <path d="M 480 220 Q 450 280 480 405" />
-         <path d="M 430 230 Q 400 280 430 395" />
-         <path d="M 380 240 Q 350 290 380 385" />
-         <path d="M 330 255 Q 310 290 330 370" />
-         <path d="M 300 290 Q 500 260 700 250" />
-         <path d="M 280 320 Q 500 300 700 290" />
-         <path d="M 270 350 Q 500 340 680 330" />
-         <path d="M 320 380 Q 450 380 650 370" />
-      </g>
-
-      {/* White Spots (散落與網格內的白斑) */}
-      <g fill="#f8fafc" opacity="0.8">
-         <circle cx="880" cy="300" r="4"/><circle cx="900" cy="280" r="3.5"/><circle cx="920" cy="310" r="5"/>
-         <circle cx="870" cy="330" r="4.5"/><circle cx="910" cy="340" r="4"/><circle cx="930" cy="290" r="3"/>
-         <circle cx="950" cy="320" r="4.5"/><circle cx="940" cy="350" r="3.5"/><circle cx="970" cy="310" r="4"/>
-         <circle cx="655" cy="230" r="5"/><circle cx="655" cy="270" r="4"/><circle cx="655" cy="310" r="4.5"/><circle cx="655" cy="350" r="4"/>
-         <circle cx="605" cy="235" r="4"/><circle cx="605" cy="275" r="4.5"/><circle cx="605" cy="315" r="5"/><circle cx="605" cy="355" r="4"/>
-         <circle cx="555" cy="240" r="5"/><circle cx="555" cy="280" r="4"/><circle cx="555" cy="320" r="4.5"/><circle cx="555" cy="360" r="4"/>
-         <circle cx="505" cy="245" r="4.5"/><circle cx="505" cy="285" r="5"/><circle cx="505" cy="325" r="4"/><circle cx="505" cy="365" r="4"/>
-         <circle cx="455" cy="250" r="4"/><circle cx="455" cy="290" r="4.5"/><circle cx="455" cy="330" r="4"/><circle cx="455" cy="370" r="3.5"/>
-         <circle cx="405" cy="255" r="4"/><circle cx="405" cy="295" r="4"/><circle cx="405" cy="335" r="3.5"/><circle cx="405" cy="375" r="4"/>
-         <circle cx="355" cy="265" r="3.5"/><circle cx="355" cy="305" r="4"/><circle cx="355" cy="345" r="3.5"/>
-         <circle cx="305" cy="280" r="3"/><circle cx="305" cy="320" r="3.5"/><circle cx="305" cy="355" r="3"/>
-         <circle cx="630" cy="220" r="2.5"/><circle cx="580" cy="260" r="3"/><circle cx="530" cy="300" r="2.5"/>
-         <circle cx="480" cy="340" r="3"/><circle cx="430" cy="270" r="2.5"/><circle cx="380" cy="310" r="3"/>
-      </g>
-
-      {/* Pilot Fish 1 (上方隨行的黑白條紋嚮導魚 1) */}
-      <g className="pf-anim-1">
-         <path d="M 0 20 Q 30 -5 60 20 Q 30 45 0 20 Z" fill="#f8fafc" />
-         <path d="M 0 20 L -15 5 L -10 20 L -15 35 Z" fill="#f8fafc" />
-         <path d="M 15 10 L 10 30 M 25 5 L 20 35 M 35 3 L 30 37 M 45 6 L 40 34" stroke="#0f172a" strokeWidth="4" />
-         <circle cx="50" cy="18" r="2" fill="#0f172a" />
-      </g>
-
-      {/* Pilot Fish 2 (上方隨行的黑白條紋嚮導魚 2) */}
-      <g className="pf-anim-2">
-         <path d="M 0 20 Q 30 -5 60 20 Q 30 45 0 20 Z" fill="#f8fafc" />
-         <path d="M 0 20 L -15 5 L -10 20 L -15 35 Z" fill="#f8fafc" />
-         <path d="M 15 10 L 10 30 M 25 5 L 20 35 M 35 3 L 30 37 M 45 6 L 40 34" stroke="#0f172a" strokeWidth="4" />
-         <circle cx="50" cy="18" r="2" fill="#0f172a" />
-      </g>
-    </svg>
-  </div>
-);
-
-// --- 聯絡資料卡片專屬：微型鮮豔海洋元素 ---
-const MiniOceanDecor = ({ highlight, animal = 'fish' }) => {
+function ContactItem({ label, value, subValue, icon, href, highlight = false, copyable = false }) {
+  const [copied, setCopied] = useState(false);
   const isLine = highlight === 'line';
   const isBlue = highlight === true || highlight === 'blue';
 
-  const coralColor1 = isLine ? "#059669" : isBlue ? "#0284c7" : "#6366f1";
-  const coralColor2 = isLine ? "#34d399" : isBlue ? "#38bdf8" : "#a78bfa";
-  const bubbleColor = isLine ? "#6ee7b7" : isBlue ? "#7dd3fc" : "#c4b5fd";
-  const fishColor = isLine ? "#fde047" : isBlue ? "#fca5a5" : "#fcd34d";
-  const uid = Math.random().toString(36).substring(7);
-
-  return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[2rem]">
-       <style>{`
-         @keyframes miniFloat { 0% { transform: translateY(10px) scale(0.8); opacity: 0; } 20% { opacity: 0.8; } 80% { opacity: 0.4; } 100% { transform: translateY(-50px) scale(1.2); opacity: 0; } }
-         
-         /* 魟魚：左下向右上優雅滑翔，帶有起伏傾斜 */
-         @keyframes mantaGlide {
-           0% { transform: translate(-100px, 100px) scale(1.1) rotate(-15deg); opacity: 0; }
-           15% { opacity: 0.95; }
-           50% { transform: translate(120px, -10px) scale(1.4) rotate(5deg); }
-           85% { opacity: 0.95; }
-           100% { transform: translate(350px, -60px) scale(1.2) rotate(15deg); opacity: 0; }
-         }
-
-         /* 刺龍蝦：向後彈跳 (Tail-flip escape)，龍蝦受驚時會用力收縮尾巴向後快速游動 */
-         @keyframes lobsterJumpBack {
-           0% { transform: translate(380px, 15px) scale(1.2); opacity: 0; }
-           10% { opacity: 1; transform: translate(300px, 15px) scale(1.2); }
-           15% { transform: translate(300px, 15px) scale(1.2) rotate(0deg); }
-           20% { transform: translate(220px, -15px) scale(1.2) rotate(20deg); } /* 彈跳 1 */
-           28% { transform: translate(180px, 15px) scale(1.2) rotate(0deg); }
-           38% { transform: translate(180px, 15px) scale(1.2); }
-           43% { transform: translate(100px, -15px) scale(1.2) rotate(20deg); } /* 彈跳 2 */
-           51% { transform: translate(60px, 15px) scale(1.2) rotate(0deg); }
-           61% { transform: translate(60px, 15px) scale(1.2); }
-           66% { transform: translate(-20px, -15px) scale(1.2) rotate(20deg); } /* 彈跳 3 */
-           74% { transform: translate(-60px, 15px) scale(1.2) rotate(0deg); }
-           85% { opacity: 1; transform: translate(-60px, 15px) scale(1.2); }
-           100% { transform: translate(-150px, 15px) scale(1.2); opacity: 0; }
-         }
-
-         /* 鯨鯊：修改為從右向左游動 (面向左側，從右往左移動) */
-         @keyframes whaleSharkSwim {
-           0% { transform: translate(350px, 10px) scale(-1.5, 1.5); opacity: 0; }
-           15% { opacity: 0.95; }
-           50% { transform: translate(-50px, -5px) scale(-1.5, 1.5); }
-           85% { opacity: 0.95; }
-           100% { transform: translate(-450px, 15px) scale(-1.5, 1.5); opacity: 0; }
-         }
-
-         /* 深海巨怪 (Kraken) 沉重呼吸與色相微調 */
-         @keyframes krakenBreathe {
-           0%, 100% { transform: scale(1) translateY(0px); filter: hue-rotate(0deg); opacity: 0.9; }
-           50% { transform: scale(1.03) translateY(-4px); filter: hue-rotate(10deg); opacity: 1; }
-         }
-
-         /* 巨怪觸手各種層次的蠕動 */
-         @keyframes krakenArmL {
-           0%, 100% { transform: rotate(0deg) scale(1); }
-           50% { transform: rotate(5deg) scale(1.02); }
-         }
-         @keyframes krakenArmR {
-           0%, 100% { transform: rotate(0deg) scale(1); }
-           50% { transform: rotate(-5deg) scale(1.02); }
-         }
-         @keyframes krakenArmFrontL {
-           0%, 100% { transform: rotate(0deg) scale(1); }
-           50% { transform: rotate(7deg) scale(1.04) translateX(5px); }
-         }
-         @keyframes krakenArmFrontR {
-           0%, 100% { transform: rotate(0deg) scale(1); }
-           50% { transform: rotate(-7deg) scale(1.04) translateX(-5px); }
-         }
-
-         @keyframes miniFish {
-           0% { transform: translate(-40px, 10px) scale(0.8); opacity: 0; }
-           15% { opacity: 1; }
-           85% { opacity: 1; }
-           100% { transform: translate(350px, -20px) scale(1.1); opacity: 0; }
-         }
-         
-         .mini-bub { animation: miniFloat 3s linear infinite; }
-         .anim-manta { animation: mantaGlide 15s ease-in-out infinite; }
-         .anim-lobster { animation: lobsterJumpBack 14s linear infinite; }
-         .anim-whale-shark { animation: whaleSharkSwim 24s linear infinite; }
-         
-         /* 巨怪動畫綁定 */
-         .anim-kraken-fixed { animation: krakenBreathe 8s ease-in-out infinite; transform-origin: center; }
-         .kraken-arm-l { animation: krakenArmL 7s ease-in-out infinite; transform-origin: 150px 130px; }
-         .kraken-arm-r { animation: krakenArmR 8s ease-in-out infinite; transform-origin: 150px 130px; }
-         .kraken-arm-fl { animation: krakenArmFrontL 6s ease-in-out infinite; transform-origin: 150px 130px; }
-         .kraken-arm-fr { animation: krakenArmFrontR 6.5s ease-in-out infinite; transform-origin: 150px 130px; }
-         
-         .mini-fish { animation: miniFish 8s linear infinite; }
-       `}</style>
-       
-       <svg className="absolute -bottom-2 -right-4 w-28 h-28 opacity-[0.35] group-hover:opacity-[0.75] transition-all duration-500 transform group-hover:scale-110 group-hover:-rotate-6 origin-bottom-right" viewBox="0 0 100 100" fill="none">
-         <defs>
-           <linearGradient id={`grad-mini-${uid}`} x1="0%" y1="100%" x2="0%" y2="0%">
-             <stop offset="0%" stopColor={coralColor1} />
-             <stop offset="100%" stopColor={coralColor2} />
-           </linearGradient>
-         </defs>
-         <path d="M 40 100 Q 50 70, 35 40 T 45 0 Q 25 30, 30 60 T 30 100 Z" fill={`url(#grad-mini-${uid})`} />
-         <path d="M 70 100 Q 85 75, 75 50 T 90 10 Q 65 40, 70 70 T 60 100 Z" fill={`url(#grad-mini-${uid})`} opacity="0.8" />
-         <path d="M 10 100 Q 5 80, 15 60 T 0 30 Q 20 50, 10 70 T 25 100 Z" fill={`url(#grad-mini-${uid})`} opacity="0.6" />
-       </svg>
-       
-       <div className="absolute w-2 h-2 rounded-full mix-blend-multiply mini-bub" style={{ backgroundColor: bubbleColor, opacity: 0.6, right: '15%', bottom: '-10px' }} />
-       <div className="absolute w-3.5 h-3.5 rounded-full mix-blend-multiply mini-bub" style={{ backgroundColor: bubbleColor, opacity: 0.4, right: '25%', bottom: '-20px', animationDelay: '1.2s', animationDuration: '4s' }} />
-       <div className="absolute w-1.5 h-1.5 rounded-full mix-blend-multiply mini-bub" style={{ backgroundColor: bubbleColor, opacity: 0.7, right: '8%', bottom: '-5px', animationDelay: '0.5s', animationDuration: '2.5s' }} />
-       
-       {animal === 'manta' && (
-         <svg className="absolute top-[25%] -left-20 w-44 h-44 opacity-0 group-hover:opacity-100 transition-opacity duration-300 anim-manta" style={{ animationDelay: '0.1s' }} viewBox="0 0 200 200" fill="none">
-           <defs>
-             <linearGradient id={`grad-manta-dark-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-               <stop offset="0%" stopColor="#020617" />
-               <stop offset="50%" stopColor="#0f172a" />
-               <stop offset="100%" stopColor="#1e3a8a" />
-             </linearGradient>
-             <linearGradient id={`grad-manta-light-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-               <stop offset="0%" stopColor="#f8fafc" />
-               <stop offset="100%" stopColor="#e2e8f0" />
-             </linearGradient>
-           </defs>
-           
-           {/* 將整個圖形旋轉 90 度，使其面向右方，配合游動動畫方向 */}
-           <g transform="translate(100, 100) rotate(90) translate(-100, -100)">
-             
-             {/* 細長尾巴 */}
-             <path d="M 100 135 C 100 180, 90 200, 90 220" stroke={`url(#grad-manta-dark-${uid})`} strokeWidth="3" strokeLinecap="round" />
-             <path d="M 100 135 C 100 180, 110 200, 110 220" stroke="#0f172a" strokeWidth="1" opacity="0.4"/>
-
-             {/* 黑色主體剪影 (露出於邊緣的背部) */}
-             <path d="M 100 150 C 130 140, 190 100, 195 80 C 170 60, 140 45, 125 42 C 115 40, 85 40, 75 42 C 60 45, 30 60, 5 80 C 10 100, 70 140, 100 150 Z" fill={`url(#grad-manta-dark-${uid})`} />
-
-             {/* 白色腹部 (Ventral area) */}
-             <path d="M 100 135 C 120 120, 175 90, 185 80 C 160 65, 135 50, 120 48 L 80 48 C 65 50, 40 65, 15 80 C 25 90, 80 120, 100 135 Z" fill={`url(#grad-manta-light-${uid})`} />
-
-             {/* 腹部特有的大面積黑色斑紋 (參考照片中的黑色區塊) */}
-             <path d="M 100 145 C 110 135, 135 115, 145 105 C 125 102, 110 115, 100 120 C 90 115, 75 102, 55 105 C 65 115, 90 135, 100 145 Z" fill={`url(#grad-manta-dark-${uid})`} opacity="0.9" />
-             <path d="M 100 95 C 120 95, 135 85, 145 80 C 125 78, 110 85, 100 88 C 90 85, 75 78, 55 80 C 65 85, 80 95, 100 95 Z" fill={`url(#grad-manta-dark-${uid})`} opacity="0.85" />
-             <path d="M 20 85 C 30 95, 45 105, 55 110 C 45 100, 30 90, 20 85 Z" fill="#0f172a" opacity="0.6" />
-             <path d="M 180 85 C 170 95, 155 105, 145 110 C 155 100, 170 90, 180 85 Z" fill="#0f172a" opacity="0.6" />
-
-             {/* 5 對清晰的鰓裂 (Gills) */}
-             <g stroke="#0f172a" strokeWidth="2" strokeLinecap="round">
-               <line x1="85" y1="58" x2="73" y2="62" />
-               <line x1="86" y1="63" x2="74" y2="67" />
-               <line x1="87" y1="68" x2="75" y2="72" />
-               <line x1="88" y1="73" x2="76" y2="77" />
-               <line x1="89" y1="78" x2="77" y2="82" />
-
-               <line x1="115" y1="58" x2="127" y2="62" />
-               <line x1="114" y1="63" x2="126" y2="67" />
-               <line x1="113" y1="68" x2="125" y2="72" />
-               <line x1="112" y1="73" x2="124" y2="77" />
-               <line x1="111" y1="78" x2="123" y2="82" />
-             </g>
-
-             {/* 寬大的端位口 (Mouth) */}
-             <path d="M 75 42 Q 100 30 125 42 Q 100 52 75 42 Z" fill="#020617" />
-             <path d="M 78 44 Q 100 48 122 44" stroke="#ffffff" strokeWidth="2.5" fill="none" opacity="0.9" />
-
-             {/* 頭鰭/角 (Cephalic lobes) - 向內彎曲 */}
-             {/* 左頭鰭 */}
-             <path d="M 72 41 C 60 25, 45 15, 50 15 C 55 20, 65 30, 78 40 Z" fill={`url(#grad-manta-dark-${uid})`} />
-             <path d="M 73 42 C 62 28, 50 20, 52 20 C 58 25, 68 34, 76 41 Z" fill="#f8fafc" />
-
-             {/* 右頭鰭 */}
-             <path d="M 128 41 C 140 25, 155 15, 150 15 C 145 20, 135 30, 122 40 Z" fill={`url(#grad-manta-dark-${uid})`} />
-             <path d="M 127 42 C 138 28, 150 20, 148 20 C 142 25, 132 34, 124 41 Z" fill="#f8fafc" />
-           </g>
-         </svg>
-       )}
-
-       {animal === 'shark' && (
-         <svg className="absolute top-[10%] right-[-50px] w-[280px] h-[160px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 anim-whale-shark" style={{ animationDelay: '0.2s' }} viewBox="0 0 240 120" fill="none">
-           <defs>
-             <linearGradient id={`grad-shark-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%">
-               <stop offset="0%" stopColor="#1e293b" />
-               <stop offset="40%" stopColor="#334155" />
-               <stop offset="80%" stopColor="#64748b" />
-               <stop offset="100%" stopColor="#94a3b8" />
-             </linearGradient>
-           </defs>
-           
-           {/* 俯視角度的尾鰭 (Crescent tail sweeping side to side) */}
-           <path d="M 40 60 C 25 40, 5 25, 0 35 C 10 45, 20 55, 20 60 C 20 65, 10 75, 0 85 C 5 95, 25 80, 40 60 Z" fill={`url(#grad-shark-${uid})`} />
-           
-           {/* 腹鰭 (Pelvic fins) */}
-           <path d="M 75 50 C 65 40, 60 40, 65 50 Z" fill="#334155" />
-           <path d="M 75 70 C 65 80, 60 80, 65 70 Z" fill="#334155" />
-
-           {/* 寬扁頭部與龐大身軀 (Broad flat head, tapering body) */}
-           <path d="M 185 50 C 190 40, 185 35, 175 35 C 130 30, 80 40, 40 50 C 40 60, 40 60, 40 70 C 80 80, 130 90, 175 85 C 185 85, 190 80, 185 70 C 195 65, 195 55, 185 50 Z" fill={`url(#grad-shark-${uid})`} />
-           
-           {/* 巨大的胸鰭 (Pectoral fins) */}
-           <path d="M 140 36 C 135 15, 110 5, 105 20 C 115 30, 125 35, 130 38 Z" fill="#1e293b" />
-           <path d="M 140 84 C 135 105, 110 115, 105 100 C 115 90, 125 85, 130 82 Z" fill="#1e293b" />
-           
-           {/* 背鰭 (從正上方看是一個微突的脊) */}
-           <path d="M 100 55 C 110 55, 120 60, 110 60 C 100 60, 95 55, 100 55 Z" fill="#0f172a" opacity="0.6" />
-
-           {/* 體側隆脊 (Ridges) */}
-           <path d="M 60 42 C 100 38, 140 40, 170 42" stroke="#475569" strokeWidth="1.5" fill="none" />
-           <path d="M 60 78 C 100 82, 140 80, 170 78" stroke="#475569" strokeWidth="1.5" fill="none" />
-           
-           {/* 明顯的五道鰓裂 (5 Gill slits visible on sides) */}
-           <g stroke="#0f172a" strokeWidth="1.5" strokeLinecap="round" opacity="0.7">
-             <path d="M 145 35 L 140 38" /><path d="M 150 35 L 145 38" /><path d="M 155 36 L 150 39" /><path d="M 160 36 L 155 39" /><path d="M 165 37 L 160 40" />
-             <path d="M 145 85 L 140 82" /><path d="M 150 85 L 145 82" /><path d="M 155 84 L 150 81" /><path d="M 160 84 L 155 81" /><path d="M 165 83 L 160 80" />
-           </g>
-
-           {/* 寫實棋盤式斑點與直紋 (Checkerboard pattern) */}
-           <g stroke="#f8fafc" strokeWidth="0.8" opacity="0.2" fill="none">
-             <path d="M 160 45 C 120 40, 80 45, 50 52" />
-             <path d="M 160 75 C 120 80, 80 75, 50 68" />
-             <path d="M 150 38 Q 148 60 150 82" />
-             <path d="M 130 35 Q 128 60 130 85" />
-             <path d="M 110 34 Q 108 60 110 86" />
-             <path d="M 90 35 Q 88 60 90 85" />
-             <path d="M 70 40 Q 68 60 70 80" />
-           </g>
-           
-           <g fill="#f8fafc" opacity="0.85">
-             {/* 散落的斑點 (Whale Shark Spots) */}
-             <circle cx="165" cy="45" r="1.5" /><circle cx="155" cy="40" r="2" /><circle cx="145" cy="45" r="2.5" />
-             <circle cx="135" cy="42" r="1.5" /><circle cx="125" cy="46" r="2.5" /><circle cx="115" cy="40" r="2" />
-             <circle cx="105" cy="45" r="3" /><circle cx="95" cy="42" r="2" /><circle cx="85" cy="46" r="2.5" />
-             <circle cx="75" cy="43" r="1.5" /><circle cx="65" cy="48" r="2" /><circle cx="55" cy="45" r="1.5" />
-             
-             <circle cx="165" cy="75" r="1.5" /><circle cx="155" cy="80" r="2" /><circle cx="145" cy="75" r="2.5" />
-             <circle cx="135" cy="78" r="1.5" /><circle cx="125" cy="74" r="2.5" /><circle cx="115" cy="80" r="2" />
-             <circle cx="105" cy="75" r="3" /><circle cx="95" cy="78" r="2" /><circle cx="85" cy="74" r="2.5" />
-             <circle cx="75" cy="77" r="1.5" /><circle cx="65" cy="72" r="2" /><circle cx="55" cy="75" r="1.5" />
-             
-             <circle cx="150" cy="60" r="2" /><circle cx="130" cy="55" r="2.5" /><circle cx="110" cy="65" r="2" />
-             <circle cx="90" cy="55" r="2.5" /><circle cx="70" cy="62" r="2" /><circle cx="50" cy="58" r="1.5" />
-           </g>
-
-           {/* 位於頭部兩側的小眼睛 */}
-           <circle cx="180" cy="38" r="1.5" fill="#0f172a" />
-           <circle cx="180" cy="82" r="1.5" fill="#0f172a" />
-           {/* 最前端寬扁的嘴巴 */}
-           <path d="M 187 45 Q 192 60 187 75" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
-         </svg>
-       )}
-
-       {animal === 'lobster' && (
-         <svg className="absolute bottom-4 -right-10 w-[180px] h-[180px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 anim-lobster" style={{ animationDelay: '0.1s' }} viewBox="0 0 160 120" fill="none">
-           <defs>
-             <linearGradient id={`grad-lobster-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-               <stop offset="0%" stopColor="#9f1239" />
-               <stop offset="100%" stopColor="#ea580c" />
-             </linearGradient>
-           </defs>
-           
-           <g transform="translate(10, 0)">
-             <path d="M 105 55 C 130 30, 160 10, 150 -10" stroke="#fdba74" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.9" />
-             <path d="M 105 55 C 130 80, 160 100, 150 120" stroke="#f97316" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.9" />
-             <path d="M 105 55 L 115 48 L 112 52 Z M 105 55 L 115 62 L 112 58 Z" fill="#7f1d1d" />
-
-             <g stroke="#9a3412" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-               <path d="M 85 45 L 95 30 L 85 20" /><path d="M 80 48 L 90 28 L 80 15" />
-               <path d="M 75 50 L 85 25 L 75 10" /><path d="M 70 52 L 80 22 L 70 5" />
-               
-               <path d="M 85 65 L 95 80 L 85 90" /><path d="M 80 62 L 90 82 L 80 95" />
-               <path d="M 75 60 L 85 85 L 75 100" /><path d="M 70 58 L 80 88 L 70 105" />
-             </g>
-
-             <path d="M 102 55 C 95 40, 65 40, 60 55 C 65 70, 95 70, 102 55 Z" fill={`url(#grad-lobster-${uid})`} />
-             <path d="M 95 48 L 98 45 M 85 45 L 88 42 M 75 46 L 78 43 M 95 62 L 98 65 M 85 65 L 88 68 M 75 64 L 78 67" stroke="#fbd38d" strokeWidth="1.5" strokeLinecap="round" opacity="0.9" />
-             
-             <path d="M 62 55 C 60 42, 50 45, 48 55 C 50 65, 60 68, 62 55 Z" fill="#9f1239" />
-             <path d="M 50 55 C 48 44, 38 46, 36 55 C 38 64, 48 66, 50 55 Z" fill="#be123c" />
-             <path d="M 38 55 C 36 46, 26 48, 24 55 C 26 62, 36 64, 38 55 Z" fill="#e11d48" />
-             <path d="M 26 55 C 24 48, 16 49, 14 55 C 16 61, 24 62, 26 55 Z" fill="#f97316" />
-             
-             <path d="M 16 55 L 2 40 L -5 50 L -8 55 L -5 60 L 2 70 L 16 55 Z" fill={`url(#grad-lobster-${uid})`} />
-             <path d="M 10 55 L 0 45 M 8 55 L -2 55 M 10 55 L 0 65" stroke="#7f1d1d" strokeWidth="1.5" />
-             <path d="M 100 50 L 105 48 M 100 60 L 105 62" stroke="#7f1d1d" strokeWidth="2" strokeLinecap="round" />
-             
-             <circle cx="106" cy="47" r="2.5" fill="#000" />
-             <circle cx="106" cy="63" r="2.5" fill="#000" />
-             <circle cx="107" cy="46" r="1" fill="#fff" />
-             <circle cx="107" cy="62" r="1" fill="#fff" />
-           </g>
-         </svg>
-       )}
-
-       {animal === 'octopus' && (
-         <div className="absolute bottom-0 right-0 w-[240px] h-[240px] opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out anim-kraken-fixed pointer-events-none">
-           {/* 極大化 viewBox 防護區 (-50 -50 400 400)，確保巨怪觸手與陰影絕對不被裁切 */}
-           <svg viewBox="-50 -50 400 400" fill="none" className="w-full h-full drop-shadow-[0_15px_35px_rgba(30,27,75,0.6)] overflow-visible" style={{ transform: 'scaleX(-1)' }}>
-             <defs>
-               {/* 深淵巨怪主漸層 (血紅 -> 焦糖橘 -> 深紫黑) */}
-               <linearGradient id={`grad-kraken-body-${uid}`} x1="20%" y1="0%" x2="80%" y2="100%">
-                 <stop offset="0%" stopColor="#581c0c" />
-                 <stop offset="50%" stopColor="#c2410c" />
-                 <stop offset="100%" stopColor="#1e1b4b" />
-               </linearGradient>
-               {/* 巨怪惡魔之眼漸層 */}
-               <linearGradient id={`grad-kraken-eye-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                 <stop offset="0%" stopColor="#fef08a" />
-                 <stop offset="50%" stopColor="#f59e0b" />
-                 <stop offset="100%" stopColor="#b45309" />
-               </linearGradient>
-               {/* 吸盤發光濾鏡 */}
-               <filter id={`glow-cyan-${uid}`} x="-50%" y="-50%" width="200%" height="200%">
-                 <feGaussianBlur stdDeviation="3" result="blur" />
-                 <feMerge>
-                   <feMergeNode in="blur" />
-                   <feMergeNode in="blur" />
-                   <feMergeNode in="SourceGraphic" />
-                 </feMerge>
-               </filter>
-               <filter id={`glow-cyan-strong-${uid}`} x="-50%" y="-50%" width="200%" height="200%">
-                 <feGaussianBlur stdDeviation="5" result="blur" />
-                 <feMerge>
-                   <feMergeNode in="blur" />
-                   <feMergeNode in="blur" />
-                   <feMergeNode in="SourceGraphic" />
-                 </feMerge>
-               </filter>
-             </defs>
-
-             {/* 背後散發微弱的神祕青色光暈 */}
-             <circle cx="150" cy="150" r="100" fill="#06b6d4" opacity="0.15" filter={`url(#glow-cyan-strong-${uid})`} />
-
-             {/* 將怪物置於畫布正中 */}
-             <g transform="translate(150, 150) rotate(-5) translate(-150, -150)">
-               
-               {/* --- 背部巨大觸手 (Top Left & Right) --- */}
-               <g className="kraken-arm-l" style={{ animationDelay: '0.3s' }}>
-                 <path d="M 100 140 C 40 120, -20 60, 20 10 C 60 -30, 120 10, 90 60 C 60 110, 10 70, 30 30" stroke={`url(#grad-kraken-body-${uid})`} strokeWidth="18" strokeLinecap="round" fill="none" />
-                 {/* 發光青綠色邊緣與吸盤 */}
-                 <path d="M 100 145 C 40 125, -15 65, 25 15 C 65 -25, 125 15, 95 65" stroke="#22d3ee" strokeWidth="4" fill="none" filter={`url(#glow-cyan-${uid})`} strokeDasharray="2 6" strokeLinecap="round" />
-               </g>
-
-               <g className="kraken-arm-r" style={{ animationDelay: '0.8s' }}>
-                 <path d="M 200 140 C 260 120, 320 60, 280 10 C 240 -30, 180 10, 210 60 C 240 110, 290 70, 270 30" stroke={`url(#grad-kraken-body-${uid})`} strokeWidth="18" strokeLinecap="round" fill="none" />
-                 <path d="M 200 145 C 260 125, 315 65, 275 15 C 235 -25, 175 15, 205 65" stroke="#22d3ee" strokeWidth="4" fill="none" filter={`url(#glow-cyan-${uid})`} strokeDasharray="2 6" strokeLinecap="round" />
-               </g>
-
-               {/* --- 中間向外捲曲的主觸手 (Mid Left & Right) --- */}
-               <g className="kraken-arm-fl" style={{ animationDelay: '0.1s' }}>
-                 <path d="M 110 160 C 30 180, -30 220, 10 290 C 50 360, 130 340, 110 270 C 90 210, 20 230, 40 280" stroke={`url(#grad-kraken-body-${uid})`} strokeWidth="22" strokeLinecap="round" fill="none" />
-                 <path d="M 110 170 C 30 190, -20 230, 20 300 C 60 370, 140 350, 120 280" stroke="#67e8f9" strokeWidth="8" fill="none" filter={`url(#glow-cyan-${uid})`} strokeDasharray="1 14" strokeLinecap="round" />
-                 <path d="M 110 170 C 30 190, -20 230, 20 300 C 60 370, 140 350, 120 280" stroke="#fff" strokeWidth="4" fill="none" strokeDasharray="1 14" strokeLinecap="round" />
-               </g>
-
-               <g className="kraken-arm-fr" style={{ animationDelay: '0.6s' }}>
-                 <path d="M 190 160 C 270 180, 330 220, 290 290 C 250 360, 170 340, 190 270 C 210 210, 280 230, 260 280" stroke={`url(#grad-kraken-body-${uid})`} strokeWidth="22" strokeLinecap="round" fill="none" />
-                 <path d="M 190 170 C 270 190, 320 230, 280 300 C 240 370, 160 350, 180 280" stroke="#67e8f9" strokeWidth="8" fill="none" filter={`url(#glow-cyan-${uid})`} strokeDasharray="1 14" strokeLinecap="round" />
-                 <path d="M 190 170 C 270 190, 320 230, 280 300 C 240 370, 160 350, 180 280" stroke="#fff" strokeWidth="4" fill="none" strokeDasharray="1 14" strokeLinecap="round" />
-               </g>
-
-               {/* --- 前方極度粗壯的攻擊觸手 (Front Left & Right) --- */}
-               <g className="kraken-arm-l" style={{ animationDelay: '0.4s' }}>
-                 <path d="M 120 180 C 100 260, 50 370, 130 380 C 180 390, 200 330, 150 290 C 110 250, 80 310, 120 340" stroke={`url(#grad-kraken-body-${uid})`} strokeWidth="26" strokeLinecap="round" fill="none" />
-                 <path d="M 110 180 C 90 260, 40 370, 120 380 C 170 390, 190 330, 140 290 C 100 250, 70 310, 110 340" stroke="#22d3ee" strokeWidth="10" fill="none" filter={`url(#glow-cyan-${uid})`} strokeDasharray="1 18" strokeLinecap="round" />
-                 <path d="M 110 180 C 90 260, 40 370, 120 380 C 170 390, 190 330, 140 290 C 100 250, 70 310, 110 340" stroke="#fff" strokeWidth="5" fill="none" strokeDasharray="1 18" strokeLinecap="round" />
-               </g>
-
-               <g className="kraken-arm-r" style={{ animationDelay: '0.9s' }}>
-                 <path d="M 180 180 C 200 260, 250 370, 170 380 C 120 390, 100 330, 150 290 C 190 250, 220 310, 180 340" stroke={`url(#grad-kraken-body-${uid})`} strokeWidth="26" strokeLinecap="round" fill="none" />
-                 <path d="M 190 180 C 210 260, 260 370, 180 380 C 130 390, 110 330, 160 290 C 200 250, 230 310, 190 340" stroke="#22d3ee" strokeWidth="10" fill="none" filter={`url(#glow-cyan-${uid})`} strokeDasharray="1 18" strokeLinecap="round" />
-                 <path d="M 190 180 C 210 260, 260 370, 180 380 C 130 390, 110 330, 160 290 C 200 250, 230 310, 190 340" stroke="#fff" strokeWidth="5" fill="none" strokeDasharray="1 18" strokeLinecap="round" />
-               </g>
-
-               {/* --- 巨怪頭部外套膜 (Monster Mantle) --- */}
-               <path d="M 100 130 C 50 0, 250 0, 200 130 C 195 170, 105 170, 100 130 Z" fill={`url(#grad-kraken-body-${uid})`} />
-               
-               {/* 網狀/鱗片般的表皮肌理 */}
-               <g stroke="#2e1065" strokeWidth="2" fill="none" opacity="0.6">
-                 <path d="M 110 60 Q 150 40 190 60 M 105 80 Q 150 70 195 80 M 102 100 Q 150 100 198 100 M 100 120 Q 150 130 200 120 M 120 40 Q 110 90 120 140 M 150 35 Q 150 90 150 145 M 180 40 Q 190 90 180 140" />
-                 <path d="M 135 45 Q 120 90 135 140 M 165 45 Q 180 90 165 140" />
-                 <path d="M 90 100 Q 110 110 150 110 Q 190 110 210 100" />
-               </g>
-               
-               {/* 頭頂閃爍的生物發光斑點 */}
-               <g fill="#a5f3fc" opacity="0.8">
-                 <circle cx="150" cy="50" r="3" filter={`url(#glow-cyan-${uid})`}/>
-                 <circle cx="120" cy="70" r="2.5" filter={`url(#glow-cyan-${uid})`}/>
-                 <circle cx="180" cy="70" r="2.5" filter={`url(#glow-cyan-${uid})`}/>
-                 <circle cx="105" cy="100" r="2" />
-                 <circle cx="195" cy="100" r="2" />
-                 <circle cx="140" cy="90" r="1.5" />
-                 <circle cx="160" cy="90" r="1.5" />
-               </g>
-
-               {/* --- 懾人的邪惡發光巨眼 (Demon Eyes) --- */}
-               <g>
-                 {/* 左眼窩與眼球 */}
-                 <ellipse cx="110" cy="135" rx="14" ry="10" fill="#020617" transform="rotate(-15 110 135)" />
-                 <ellipse cx="110" cy="135" rx="10" ry="6" fill={`url(#grad-kraken-eye-${uid})`} transform="rotate(-15 110 135)" filter={`url(#glow-cyan-${uid})`} />
-                 <path d="M 103 135 Q 110 142 117 135 Q 110 128 103 135 Z" fill="#000" transform="rotate(-15 110 135)" />
-                 <circle cx="108" cy="133" r="1.5" fill="#fff" />
-                 {/* 左眼框邊緣發光 */}
-                 <path d="M 95 145 Q 110 155 125 145" stroke="#22d3ee" strokeWidth="2" fill="none" filter={`url(#glow-cyan-${uid})`} strokeLinecap="round" />
-
-                 {/* 右眼窩與眼球 */}
-                 <ellipse cx="190" cy="135" rx="14" ry="10" fill="#020617" transform="rotate(15 190 135)" />
-                 <ellipse cx="190" cy="135" rx="10" ry="6" fill={`url(#grad-kraken-eye-${uid})`} transform="rotate(15 190 135)" filter={`url(#glow-cyan-${uid})`} />
-                 <path d="M 183 135 Q 190 142 197 135 Q 190 128 183 135 Z" fill="#000" transform="rotate(15 190 135)" />
-                 <circle cx="188" cy="133" r="1.5" fill="#fff" />
-                 {/* 右眼框邊緣發光 */}
-                 <path d="M 175 145 Q 190 155 205 145" stroke="#22d3ee" strokeWidth="2" fill="none" filter={`url(#glow-cyan-${uid})`} strokeLinecap="round" />
-               </g>
-               
-               {/* 嘴部/觸手交界處的黑暗深淵 */}
-               <path d="M 140 165 Q 150 180 160 165 Q 150 170 140 165 Z" fill="#020617" />
-
-             </g>
-           </svg>
-         </div>
-       )}
-       
-       {(!animal || animal === 'fish') && (
-         <svg className="absolute top-[35%] -left-10 w-8 h-8 opacity-0 group-hover:opacity-90 transition-opacity duration-300 mini-fish" style={{ animationDelay: '0.1s' }} viewBox="0 0 50 50" fill={fishColor}>
-            <path d="M 15 25 Q 25 15, 40 25 Q 25 35, 15 25 Z" />
-            <path d="M 15 25 L 5 18 L 10 25 L 5 32 Z" fillOpacity="0.8" />
-            <circle cx="32" cy="23" r="1.5" fill="#fff" />
-         </svg>
-       )}
-    </div>
-  );
-};
-
-function ContactItem({ label, value, subValue, icon, href, highlight = false, animal = 'fish' }) {
-  const isLine = highlight === 'line';
-  const isBlue = highlight === true || highlight === 'blue';
-
-  // 清新明亮海洋風格 (Clear Ocean Theme) 的卡片配置
   const bgClasses = isLine
     ? 'bg-gradient-to-br from-[#F4FFF4] to-[#E6FFE6] border border-[#00C300]/30 hover:border-[#00C300]/60 hover:shadow-[0_10px_30px_rgba(0,195,0,0.15)]'
     : isBlue
     ? 'bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 hover:border-cyan-400 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)]'
-    : 'bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-200/50';
+    : 'bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-slate-200/50';
+
+  const handleCopy = (e) => {
+    if (e) e.preventDefault();
+    const textArea = document.createElement("textarea");
+    textArea.value = value;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+    document.body.removeChild(textArea);
+  };
 
   return (
     <div className={`flex items-start gap-4 p-5 sm:p-6 rounded-[2rem] transition-all duration-500 group relative overflow-hidden hover:-translate-y-1.5 ${bgClasses}`}>
+      {/* 微光暈 */}
+      {(isLine || isBlue) && <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-150 ${isLine ? 'bg-[#00C300]/10' : 'bg-cyan-400/10'}`}></div>}
       
-      {/* 嵌入卡片微型海洋裝飾 */}
-      <MiniOceanDecor highlight={highlight} animal={animal} />
-
-      <div className={`shrink-0 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-sm relative z-10 ${isLine ? 'bg-white text-[#00C300] border border-[#00C300]/20 group-hover:bg-[#00C300] group-hover:text-white' : isBlue ? 'bg-white text-cyan-600 border border-cyan-200 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-50 text-slate-500 border border-slate-100 group-hover:bg-indigo-500 group-hover:text-white group-hover:border-indigo-500'}`}>
+      {/* 背景裝飾浮水印 */}
+      <div className={`absolute -bottom-4 -right-4 opacity-[0.04] group-hover:scale-125 transition-transform duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${isLine ? 'text-[#00C300]' : isBlue ? 'text-blue-500' : 'text-slate-400'}`}>
+        {icon}
+      </div>
+      
+      <div className={`shrink-0 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-sm relative z-10 ${isLine ? 'bg-white text-[#00C300] border border-[#00C300]/20 group-hover:bg-[#00C300] group-hover:text-white' : isBlue ? 'bg-white text-cyan-600 border border-cyan-200 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-50 text-slate-500 border border-slate-100 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500'}`}>
         {icon}
       </div>
       
       <div className="flex-1 min-w-0 pt-0.5 z-10 relative">
-        <h4 className={`text-[11px] sm:text-xs font-black mb-1.5 tracking-wider uppercase transition-colors ${isLine ? 'text-[#009E00]' : isBlue ? 'text-cyan-700' : 'text-slate-500 group-hover:text-indigo-600'}`}>{String(label || '')}</h4>
+        <h4 className={`text-[11px] sm:text-xs font-black mb-1.5 tracking-wider uppercase transition-colors ${isLine ? 'text-[#009E00]' : isBlue ? 'text-cyan-700' : 'text-slate-400 group-hover:text-blue-400'}`}>{String(label || '')}</h4>
         
-        {href ? (
-          <a href={href} target="_blank" rel="noreferrer" className={`text-lg sm:text-xl font-black block break-words transition-colors flex items-center flex-wrap gap-2.5 text-slate-900 group-hover:${isLine ? 'text-[#009E00]' : 'text-cyan-700'}`}>
-            <span>{String(value || '')}</span>
-            {isLine && <span className="text-[10px] bg-white text-[#00A000] border border-[#00A000]/30 px-2.5 py-1 rounded-full font-black shadow-sm shrink-0 leading-none flex items-center gap-1 group-hover:bg-[#00A000] group-hover:text-white transition-colors"><Plus className="w-3 h-3" /> 加入好友</span>}
-          </a>
-        ) : (
-          <p className="text-lg sm:text-xl font-black break-words text-slate-900">{String(value || '')}</p>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {href ? (
+            <a href={href} target="_blank" rel="noreferrer" className={`text-lg sm:text-xl font-black break-words transition-colors flex items-center flex-wrap gap-2.5 text-slate-900 group-hover:${isLine ? 'text-[#009E00]' : 'text-cyan-700'}`}>
+              <span>{String(value || '')}</span>
+              {isLine && <span className="text-[10px] bg-white text-[#00A000] border border-[#00A000]/30 px-2.5 py-1 rounded-full font-black shadow-sm shrink-0 leading-none flex items-center gap-1 group-hover:bg-[#00A000] group-hover:text-white transition-colors"><Plus className="w-3 h-3" /> 加入好友</span>}
+            </a>
+          ) : (
+            <p className="text-lg sm:text-xl font-black break-words text-slate-900">{String(value || '')}</p>
+          )}
+          
+          {copyable && (
+            <button onClick={handleCopy} title="複製資訊" className={`p-1.5 rounded-lg border transition-all ml-1 ${copied ? 'bg-green-100 border-green-300 text-green-700 shadow-inner' : 'bg-white/60 border-slate-200 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 shadow-sm'}`}>
+               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
         
         {subValue && (
-          <div className="mt-3 flex flex-wrap gap-2 items-start relative z-10">
+          <div className="mt-3 flex flex-wrap gap-2 items-start">
             {String(subValue).split('\n').map((line, i) => (
               line.trim() ? (
-                <div key={i} className={`text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg inline-flex text-left leading-relaxed shadow-sm bg-white/70 backdrop-blur-sm text-slate-600 border border-slate-200/60 group-hover:bg-white group-hover:border-slate-200 transition-colors`}>
+                <div key={i} className={`text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg inline-flex text-left leading-relaxed shadow-sm bg-white/60 text-slate-600 border border-slate-200/60 group-hover:bg-white group-hover:border-slate-200 transition-colors`}>
                   {line.trim()}
                 </div>
               ) : null
@@ -1354,14 +602,6 @@ function BookingCard({ booking: b, type, db, appId }) {
     catch (e) { alert("狀態更新失敗"); }
   };
 
-  const handleDelete = async (e) => {
-    e.stopPropagation();
-    if (window.confirm('確定要永久刪除這筆預約紀錄嗎？此動作無法復原。')) {
-      try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)); }
-      catch (err) { alert("刪除失敗"); }
-    }
-  };
-
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-4">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -1372,13 +612,6 @@ function BookingCard({ booking: b, type, db, appId }) {
            <div>
              <div className="flex items-center gap-2 mb-1">
                <h4 className="font-bold text-lg text-slate-900">{String(b.itemName || '未知')}</h4>
-               {type === 'activity' && (
-                  (b.isCourse === true || (b.certSystem && b.certSystem !== '')) ? (
-                    <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1"><BookOpen className="w-3 h-3"/> 課程</span>
-                  ) : (
-                    <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1"><Fish className="w-3 h-3"/> Fun Dive</span>
-                  )
-               )}
                {b.isReturningCustomer && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-black">回客優惠</span>}
              </div>
              <div className="flex gap-3 text-sm text-slate-500 font-medium">
@@ -1396,8 +629,6 @@ function BookingCard({ booking: b, type, db, appId }) {
                <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
                <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
                <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
-               <div className="w-px bg-slate-200 mx-1 my-1"></div>
-               <button onClick={handleDelete} className="px-2 py-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="永久刪除"><Trash2 className="w-4 h-4" /></button>
             </div>
             <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
          </div>
@@ -1412,11 +643,6 @@ function BookingCard({ booking: b, type, db, appId }) {
                    <p><span className="text-slate-400 w-24 inline-block">出生日期</span> {String(b.birthday || '未提供')}</p>
                    <p><span className="text-slate-400 w-24 inline-block">身高體重</span> {String(b.height)} cm / {String(b.weight)} kg</p>
                    <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3)} kg</p>
-                </div>
-                <div className="space-y-2">
-                   <p className="font-bold text-slate-700 border-b pb-1">潛水資歷</p>
-                   <p><span className="text-slate-400 w-24 inline-block">等級/系統</span> {String(b.diveCertSystem || '未填寫')} / {String(b.diveLevel || '未填寫')}</p>
-                   <p><span className="text-slate-400 w-24 inline-block">累計支數</span> {String(b.totalDives || 0)} 支</p>
                 </div>
                 <div className="space-y-2">
                    <p className="font-bold text-slate-700 border-b pb-1">預約配置與選修</p>
@@ -1491,68 +717,59 @@ function BookingCard({ booking: b, type, db, appId }) {
 }
 
 function BookingAdminPanel({ db, appId, bookings, type, title }) {
-  const [activityFilter, setActivityFilter] = useState('all');
   const typeBookings = bookings.filter(b => b.type === type).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
   
-  const filteredBookings = useMemo(() => {
-    return typeBookings.filter(b => {
-      if (type !== 'activity' || activityFilter === 'all') return true;
-      const isC = b.isCourse === true || (b.certSystem && b.certSystem !== '');
-      return activityFilter === 'course' ? isC : !isC;
-    });
-  }, [typeBookings, type, activityFilter]);
-
   const handleExport = () => {
-    let headers = []; let rows = [];
+    let headers = [];
+    let rows = [];
+
     if (type === 'activity') {
-      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '證照等級', '系統', '總支數', '專長證照', '資歷備註', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備'];
-      rows = filteredBookings.map(b => {
+      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備'];
+      rows = typeBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
-        const specStr = b.specialties?.join('、 ') || '無';
         const accStr = b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '維持背包房床位' : b.accOption === 'upgrade' ? '升級獨立房型' : b.accOption === 'release' ? '釋出床位' : '住宿自理';
         const electivesStr = b.selectedElectives?.length > 0 ? b.selectedElectives.map(e=>e.name).join('、 ') : '無';
-        return [b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審', formatTs(b.timestamp), b.itemName || '', b.name || '', b.phone || '', b.diveLevel || '', b.diveCertSystem || '', b.totalDives || 0, specStr, b.expNotes || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否'];
+        const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
+        return [statusStr, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否'];
       });
     } else if (type === 'accommodation') {
       headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
-      rows = filteredBookings.map(b => {
+      rows = typeBookings.map(b => {
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
         const deductStr = b.details?.courseDeductTotal > 0 ? `${b.details.courseStudents}人, 折$${b.details.courseDeductTotal}` : '無';
         return [statusStr, formatTs(b.timestamp), b.itemName || '', b.details?.name || '', b.details?.phone || '', b.details?.checkIn || '', b.details?.nights || 1, b.details?.roomCount || 1, b.details?.guests || 1, deductStr];
       });
     } else if (type === 'equipment') {
       headers = ['訂單狀態', '提交時間', '租借人姓名', '聯絡電話', '取件日期', '租借天數', '總計金額(NT$)', '租借項目清單'];
-      rows = filteredBookings.map(b => {
+      rows = typeBookings.map(b => {
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '';
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
         return [statusStr, formatTs(b.timestamp), b.name || '', b.phone || '', b.details?.date || '', b.details?.days || 1, b.price || 0, eqStr];
       });
     }
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, ''); exportToCSV(`${title}_${dateStr}.csv`, [headers, ...rows]);
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    exportToCSV(`${title}_${dateStr}.csv`, [headers, ...rows]);
   };
-  return ( 
-    <div className="h-full flex flex-col animate-in fade-in">
-      <div className="p-6 border-b bg-slate-50 shrink-0 rounded-t-2xl flex justify-between items-center">
-        <div>
-          <h3 className="text-xl font-bold text-slate-800">{String(title)}</h3>
-          <p className="text-slate-500 text-sm mt-1">處理顧客提交之預約單</p>
-        </div>
-        {filteredBookings.length > 0 && ( 
-          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-green-700 transition-colors"><Download className="w-4 h-4" /> 匯出 EXCEL</button> 
-        )}
-      </div>
-      {type === 'activity' && (
-        <div className="px-6 py-3 bg-white border-b border-slate-100 flex gap-2 shrink-0">
-           <button onClick={() => setActivityFilter('all')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activityFilter === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>全部清單</button>
-           <button onClick={() => setActivityFilter('course')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${activityFilter === 'course' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><BookOpen className="w-4 h-4"/> 課程報名</button>
-           <button onClick={() => setActivityFilter('fundive')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${activityFilter === 'fundive' ? 'bg-teal-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><Fish className="w-4 h-4"/> Fun Dive</button>
-        </div>
-      )}
-      <div className="p-6 flex-1 overflow-y-auto bg-slate-50/20">
-        {filteredBookings.length === 0 ? <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold">目前無相關紀錄</div> : filteredBookings.map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
-      </div>
-    </div> 
+
+  return (
+     <div className="h-full flex flex-col animate-in fade-in">
+       <div className="p-6 border-b bg-slate-50 shrink-0 rounded-t-2xl flex justify-between items-center">
+         <div>
+           <h3 className="text-xl font-bold text-slate-800">{String(title)}</h3>
+           <p className="text-slate-500 text-sm mt-1">處理顧客提交之預約單</p>
+         </div>
+         {typeBookings.length > 0 && (
+           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-green-700 transition-colors">
+             <Download className="w-4 h-4" /> 匯出 EXCEL
+           </button>
+         )}
+       </div>
+       <div className="p-6 flex-1 overflow-y-auto bg-slate-50/20">
+         {typeBookings.length === 0 ? <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold">目前無相關紀錄</div> : typeBookings.map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
+       </div>
+     </div>
   );
 }
 
@@ -2117,12 +1334,7 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                   <div key={act.id} className="bg-white border border-slate-200 p-5 rounded-2xl relative group shadow-sm hover:shadow-md transition-shadow">
                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => { setEditingActivity(act); setIsModalOpen(true); }} className="p-1.5 bg-slate-100 rounded-lg hover:bg-blue-600 hover:text-white transition-all"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={async () => {
-                        if (window.confirm('確定要永久刪除此活動梯次嗎？此動作無法復原。')) {
-                          try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', act.id)); }
-                          catch (e) { alert("刪除失敗"); }
-                        }
-                      }} className="p-1.5 bg-slate-100 rounded-lg hover:bg-red-600 hover:text-white transition-all"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', act.id))} className="p-1.5 bg-slate-100 rounded-lg hover:bg-red-600 hover:text-white transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
                     
                     {/* 第一排：分類標籤與價格 */}
@@ -2199,12 +1411,7 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                     </div>
                     <div className="flex gap-2 pt-3 border-t border-slate-100 justify-end">
                       <button onClick={()=>{setEditingCourse(c); setIsCourseModalOpen(true);}} className="p-2 bg-slate-50 hover:bg-blue-500 hover:text-white text-blue-600 rounded-lg transition-all border border-slate-200 shadow-sm"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={async () => {
-                        if (window.confirm('確定要永久刪除此課程公版嗎？此動作無法復原。')) {
-                          try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'courseTemplates', c.id)); }
-                          catch (e) { alert("刪除失敗"); }
-                        }
-                      }} className="p-2 bg-slate-50 hover:bg-red-500 hover:text-white text-red-500 rounded-lg transition-all border border-slate-200 shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={()=>deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'courseTemplates', c.id))} className="p-2 bg-slate-50 hover:bg-red-500 hover:text-white text-red-500 rounded-lg transition-all border border-slate-200 shadow-sm"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
@@ -3065,6 +2272,7 @@ function SystemAdminPanel({ config, onSave }) {
                <label className="text-sm font-bold text-slate-700">副標題描述</label>
                <textarea value={f.subtitle || ''} onChange={e => setF({ ...f, subtitle: e.target.value })} className="w-full p-3 border border-slate-300 bg-white rounded-xl h-24 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
             </div>
+            <FormInput label="頁尾版權宣告" value={f.footerText || ''} onChange={v => setF({ ...f, footerText: v })} placeholder="例如：© 2026 鯊墾丁 SHARKENTING . HUANG." />
           </div>
         </ControlPanelCard>
 
@@ -3137,9 +2345,6 @@ function ServiceSection({ title, items, type, onBook, sysConfig }) {
                     <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
                       <User className="w-4 h-4 text-indigo-500" /> 教練：{String(item.coach || '依店內安排')}
                     </p>
-                    <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-orange-500" /> 名額：{Number(item.capacity || 0)} 人
-                    </p>
                   </div>
                 )}
 
@@ -3183,33 +2388,25 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     { num: 1, title: '行前簡報', sub: '課程資訊總覽' },
     { num: 2, title: '水面整備', sub: '基本與保險資料' },
     { num: 3, title: '海底探索', sub: '裝備配置與加購' },
-    { num: 4, title: '資歷驗收', sub: '個人潛水資歷' },
-    { num: 5, title: '5米停留', sub: '住宿房型選擇' },
-    { num: 6, title: '平安升水', sub: '醫療健康聲明' }
+    { num: 4, title: '5米停留', sub: '住宿房型選擇' },
+    { num: 5, title: '平安升水', sub: '醫療健康聲明' }
   ] : [
     { num: 1, title: '水面整備', sub: '基本與保險資料' },
-    { num: 2, title: '海底探索', sub: '裝備需求配置' },
-    { num: 3, title: '資歷驗收', sub: '個人潛水資歷' },
-    { num: 4, title: '平安升水', sub: '醫療健康聲明' }
+    { num: 2, title: '5米停留', sub: '裝備需求配置' },
+    { num: 3, title: '平安升水', sub: '醫療健康聲明' }
   ];
   const totalSteps = stepTitles.length;
   
   const isStepOverview = isCourse && step === 1;
   const isStepBasic = (isCourse && step === 2) || (!isCourse && step === 1);
   const isStepEq = (isCourse && step === 3) || (!isCourse && step === 2);
-  const isStepExperience = (isCourse && step === 4) || (!isCourse && step === 3);
-  const isStepAcc = isCourse && step === 5;
-  const isStepMedical = (isCourse && step === 6) || (!isCourse && step === 4);
+  const isStepAcc = isCourse && step === 4;
+  const isStepMedical = (isCourse && step === 5) || (!isCourse && step === 3);
 
   // Step 1 / 2: 基礎與保險
-  const [f, setF] = useState({ 
-    name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '',
-    diveCertSystem: '無證照 (新手)', diveLevel: '', totalDives: '0', expNotes: '', specialties: [] 
-  });
+  const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '' });
   const [weights, setWeights] = useState({ w1: 0, w2: 0, w25: 0, w3: 0 });
   const totalWeight = (weights.w1*1) + (weights.w2*2) + (weights.w25*2.5) + (weights.w3*3);
-
-  const SPECIALTY_OPTIONS = ["高氧 (Nitrox)", "深潛 (Deep)", "夜潛 (Night)", "水底導航 (Navigation)", "沉船 (Wreck)", "側掛 (Sidemount)", "乾衣 (Drysuit)", "水底攝影 (Photography)", "裝備專家", "頂尖中性浮力", "放流 (Drift)"];
 
   // Step 2: 裝備租借 與 選修加購
   const [useLocalShopEq, setUseLocalShopEq] = useState(false);
@@ -3293,18 +2490,69 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
 
   const handleSubmit = async () => {
     if (step < totalSteps) { setStep(step + 1); return; }
-    if(isSubmitting) return; setIsSubmitting(true);
+    
+    if (!isMedicalComplete) {
+      alert("請完成所有展開的醫療聲明選項 (包含各項子題目)"); return;
+    }
+
+    if(isSubmitting) return;
+    setIsSubmitting(true);
+    
     try {
+      // 提取被選中的選修項目詳細資料
       const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
+
+      // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
       const medicalIssues = [];
-      sysConfig.medicalForm.forEach(q => { if (medicalAnswers[q.id] === true) { medicalIssues.push(q.text); if (q.subItems) q.subItems.forEach(sub => { if (medicalAnswers[sub.id] === true) medicalIssues.push("↳ " + sub.text); }); } });
-      const submitData = { type: 'activity', itemName: activity.name || activity.courseName, price: calculateTotal(), ...f, weights, rentals, selectedElectives: finalElectives, certFee: activity.certFee || 0, certSystem: activity.certSystem || '', useLocalShopEq, isReturningCustomer, accOption: isTrip ? 'trip' : accOption, medicalAnswers, medicalIssues, hasMedicalIssue: medicalIssues.length > 0, activityId: activity.id, isCourse: isCourse };
+      sysConfig.medicalForm.forEach(q => {
+        if (medicalAnswers[q.id] === true) {
+           medicalIssues.push(q.text);
+           if (q.subItems && q.subItems.length > 0) {
+              q.subItems.forEach(sub => {
+                 if (medicalAnswers[sub.id] === true) {
+                    medicalIssues.push("↳ " + sub.text);
+                 }
+              });
+           }
+        }
+      });
+
+      const submitData = {
+        type: 'activity', 
+        itemName: activity.name || activity.courseName, 
+        price: calculateTotal(), 
+        ...f,
+        weights,
+        rentals,
+        selectedElectives: finalElectives,
+        certFee: activity.certFee || 0,
+        certSystem: activity.certSystem || '',
+        useLocalShopEq,
+        isReturningCustomer,
+        accOption: isTrip ? 'trip' : accOption,
+        medicalAnswers,
+        medicalIssues,
+        hasMedicalIssue: medicalIssues.length > 0,
+        activityId: activity.id
+      };
       await onSubmit(submitData);
-      let gotoAcc = false; let accContext = null;
-      if (isCourse && accOption === 'upgrade') { gotoAcc = true; accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; }
-      else if (!isCourse && !isTrip && accOption !== 'self') { gotoAcc = true; accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue }; }
+      
+      let gotoAcc = false;
+      let accContext = null;
+
+      if (isCourse && accOption === 'upgrade') {
+        gotoAcc = true;
+        accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; 
+      } else if (!isCourse && !isTrip && accOption !== 'self') {
+        gotoAcc = true;
+        accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue };
+      }
+
       onSuccess({ gotoAcc, accContext });
-    } catch (error) { console.error(error); setIsSubmitting(false); }
+    } catch (error) {
+      console.error(error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -3313,6 +2561,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         
         {/* Header & Progress */}
         <div className="bg-slate-900 text-white p-6 shrink-0 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10"><Waves className="w-32 h-32" /></div>
           <div className="relative z-10 flex justify-between items-start mb-6">
             <div>
               <span className="bg-blue-600 text-xs font-black px-2 py-1 rounded-md mb-2 inline-block">線上報名單</span>
@@ -3462,7 +2711,8 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
               <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="真實姓名 *" required value={f.name} onChange={v => setF({...f, name: v})} placeholder="保險與證照使用" />
-                  <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v => setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字 (例: 0912345678)" />
+                  <FormInput label="常用暱稱" value={f.nickname} onChange={v => setF({...f, nickname: v})} placeholder="教練稱呼您的方式" />
+                  <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v => setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
                   <FormInput label="身分證/護照號碼 *" required value={f.idNumber} onChange={v => setF({...f, idNumber: v})} placeholder="辦理潛水平安險使用" />
                   <BirthdaySelect label="出生年月日 *" required value={f.birthday} onChange={v => setF({...f, birthday: v})} />
                   <div className="grid grid-cols-3 gap-3">
@@ -3742,59 +2992,6 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
               </div>
             )}
 
-            {/* STEP: Personal Diving Experience */}
-            {isStepExperience && (
-              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-300">
-                <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex items-start gap-4">
-                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600 shrink-0"><Award className="w-6 h-6"/></div>
-                  <div>
-                    <h4 className="font-black text-blue-900 text-sm">為什麼需要填寫資歷？</h4>
-                    <p className="text-xs text-blue-700 mt-1 leading-relaxed">了解您的潛水背景能協助教練安排最適合您的配重、分組與導潛節奏，確保活動安全且愉快。</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 ml-1">潛水證照系統</label>
-                    <select value={f.diveCertSystem} onChange={e => setF({...f, diveCertSystem: e.target.value})} className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm transition-all">
-                      <option value="無證照 (新手)">無證照 (新手 / 體驗中)</option>
-                      <option value="PADI">PADI</option>
-                      <option value="SSI">SSI</option>
-                      <option value="NAUI">NAUI</option>
-                      <option value="SDI/TDI">SDI / TDI</option>
-                      <option value="CMAS">CMAS</option>
-                      <option value="AIDA">AIDA (自由潛水)</option>
-                      <option value="其他">其他系統</option>
-                    </select>
-                  </div>
-                  <FormInput label="證照等級 (如: OWD, AOWD)" value={f.diveLevel} onChange={v => setF({...f, diveLevel: v})} placeholder="例如: 高階開放水域潛水員" />
-                  <FormInput label="累計總潛水支數 (Log Dives)" type="number" value={f.totalDives} onChange={v => setF({...f, totalDives: v})} placeholder="請填寫數字" />
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-sm font-black text-slate-700 ml-1 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600" /> 已取得之專長證照 (可複選)
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {SPECIALTY_OPTIONS.map(opt => (
-                      <label key={opt} className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${f.specialties.includes(opt) ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-slate-200 hover:border-blue-200'}`}>
-                        <input type="checkbox" checked={f.specialties.includes(opt)} onChange={(e) => {
-                          if (e.target.checked) setF({...f, specialties: [...f.specialties, opt]});
-                          else setF({...f, specialties: f.specialties.filter(s => s !== opt)});
-                        }} className="w-4 h-4 text-blue-600 rounded" />
-                        <span className="text-xs font-bold text-slate-700">{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 ml-1 block">特別註明事項 / 潛水偏好</label>
-                  <textarea value={f.expNotes} onChange={e => setF({...f, expNotes: e.target.value})} placeholder="例如：耳壓平衡較慢、容易暈船、想看微距生物..." className="w-full p-4 border border-slate-300 bg-white rounded-2xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all h-24" />
-                </div>
-              </div>
-            )}
-
             {/* STEP: Accommodation (Course Only) */}
             {isStepAcc && (
               <div className="space-y-5">
@@ -3915,56 +3112,255 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   );
 }
 
-function AccommodationBookingForm({ room, onClose, onSubmit, sysConfig, context }) {
-  const [f, setF] = useState({ 
-    name: '', 
-    phone: '', 
-    checkIn: context?.date || '', 
-    nights: context?.days ? context.days - 1 : 1, 
-    roomCount: 1,
-    guests: 1 
+function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
+  const [rc, setRc] = useState(1);
+  const [g, setG] = useState(1);
+  const [eb, setEb] = useState(0);
+
+  const maxCap = (parseInt(rc) || 0) * (room.bedCount || 1) + (parseInt(eb) || 0);
+  const isOverCap = (parseInt(g) || 0) > maxCap;
+
+  return (
+      <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-[1.5rem] shadow-sm border border-slate-200 hover:border-teal-300 hover:shadow-[0_10px_30px_rgba(20,184,166,0.15)] transition-all duration-300 flex flex-col h-full relative group">
+          <div className="flex justify-between items-start mb-2">
+              <h3 className="font-black text-xl text-slate-900 group-hover:text-teal-700 transition-colors pr-2">{room.name}</h3>
+              <div className="text-right shrink-0">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">淡季平日起</span>
+                  <span className="text-teal-600 font-black text-lg">NT$ {room.priceLowWeekday}</span>
+              </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-4 mt-1">
+              <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-slate-200">
+                <Home className="w-3.5 h-3.5" /> 實體 {room.quantity} 間
+              </span>
+              <span className="text-[11px] font-black text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-teal-100">
+                <User className="w-3.5 h-3.5" /> 容納 {room.bedCount} 人/間
+              </span>
+              {room.priceExtraBed > 0 && (
+                 <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1.5 bg-rose-50 w-fit px-2 py-1 rounded-md border border-rose-100">
+                    <Plus className="w-3 h-3" /> 可加床 (+${room.priceExtraBed})
+                 </span>
+              )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 mt-auto bg-slate-50/80 p-3 rounded-xl border border-slate-100 shadow-inner">
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">房間/床位</label>
+                  <input type="number" min="1" max={room.quantity} value={rc} onChange={e => setRc(e.target.value)} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all" />
+              </div>
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">入住人數</label>
+                  <input type="number" min="1" value={g} onChange={e => setG(e.target.value)} className={`w-full p-2 text-center rounded-lg border text-sm font-bold outline-none transition-all ${isOverCap ? 'border-rose-500 bg-rose-50 text-rose-600 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20' : 'border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20'}`} />
+              </div>
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">加床數</label>
+                  <input type="number" min="0" value={eb} onChange={e => setEb(e.target.value)} disabled={!(room.priceExtraBed > 0)} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
+              </div>
+          </div>
+          
+          {isOverCap && <p className="text-[10px] font-bold text-rose-500 mt-2 text-center animate-pulse"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>人數超過容量上限 (最大 {maxCap} 人)</p>}
+
+          <button 
+              onClick={() => {
+                  onAdd({ id: Date.now() + Math.random(), room, roomCount: parseInt(rc)||1, guests: parseInt(g)||1, extraBeds: parseInt(eb)||0 });
+                  setRc(1); setG(1); setEb(0);
+              }} 
+              disabled={hasFullDays || isOverCap || nights <= 0}
+              className="w-full mt-4 py-3 bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-xl font-bold shadow-sm hover:from-teal-500 hover:to-teal-400 hover:shadow-teal-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+          >
+              <Plus className="w-4 h-4"/> {nights <= 0 ? '請先於左側選擇日期' : '加入預訂清單'}
+          </button>
+      </div>
+  );
+}
+
+function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, context }) {
+  const [checkIn, setCheckIn] = useState(context?.date || '');
+  const [checkOut, setCheckOut] = useState(() => {
+    if (context?.date && context?.days) {
+      const d = new Date(context.date);
+      d.setDate(d.getDate() + Math.max(1, context.days - 1));
+      return d.toLocaleDateString('sv-SE');
+    }
+    return '';
   });
+
+  const [f, setF] = useState({ name: '', phone: '' });
+  const [cart, setCart] = useState([]); 
   const [courseStudents, setCourseStudents] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 動態計算最大可折抵人數：預訂房間數 × 每間容納床位數
-  const maxStudents = (parseInt(f.roomCount) || 1) * (room.bedCount || 1);
+  // 1. 自動計算晚數
+  const nights = useMemo(() => {
+    if (!checkIn || !checkOut) return 0;
+    const start = new Date(checkIn).getTime();
+    const end = new Date(checkOut).getTime();
+    const diff = Math.round((end - start) / 86400000);
+    return diff > 0 ? diff : 0;
+  }, [checkIn, checkOut]);
 
-  // 當更改房間數導致上限降低時，自動修正已選的折抵人數
+  // 2. 多日滿房防呆掃描
+  const fullDaysInRange = useMemo(() => {
+    if (!checkIn || nights <= 0) return [];
+    const fullDays = [];
+    const startDate = new Date(checkIn);
+    for (let i = 0; i < nights; i++) {
+       const currentDate = new Date(startDate);
+       currentDate.setDate(startDate.getDate() + i);
+       const y = currentDate.getFullYear();
+       const m = currentDate.getMonth() + 1;
+       const d = currentDate.getDate();
+       const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+       if ((sysConfig.fullDates || []).includes(dateStr)) {
+          fullDays.push(dateStr);
+       }
+    }
+    return fullDays;
+  }, [checkIn, nights, sysConfig.fullDates]);
+  const hasFullDays = fullDaysInRange.length > 0;
+
+  // 動態折抵人數上限防呆
+  const maxStudents = useMemo(() => cart.reduce((sum, item) => sum + (item.roomCount * item.room.bedCount) + item.extraBeds, 0), [cart]);
   useEffect(() => {
-     if (courseStudents > maxStudents) {
-         setCourseStudents(maxStudents);
-     }
+     if (courseStudents > maxStudents) setCourseStudents(Math.max(1, maxStudents));
   }, [maxStudents, courseStudents]);
 
   const getDiscountInfo = () => {
     if (!context) return null;
-    if (context.type === 'activity_discount') return `享專屬活動住宿優惠：${context.discountType === 'percent' ? `打 ${context.discountVal/10} 折` : `折抵 NT$ ${context.discountVal}`}`;
+    if (context.type === 'activity_discount') return `享活動住宿優惠：${context.discountType === 'percent' ? `打 ${context.discountVal/10} 折` : `折抵 NT$ ${context.discountVal}`}`;
     return null;
   };
 
+  const handleAddToCart = (item) => setCart([...cart, item]);
+  const handleRemoveFromCart = (id) => setCart(cart.filter(c => c.id !== id));
+
+  // 3. 動態定價引擎 (支援多房間購物車)
+  const priceInfo = useMemo(() => {
+     if (!checkIn || nights <= 0 || cart.length === 0) return { total: 0, breakdown: [], discountTotal: 0, discountLabel: '', totalRoomCount: 0 };
+
+     let total = 0;
+     const dailyAggregated = {};
+     let totalRoomCount = 0;
+
+     cart.forEach(item => {
+         totalRoomCount += item.roomCount;
+         const startDate = new Date(checkIn);
+         for (let i = 0; i < nights; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth() + 1;
+            const d = currentDate.getDate();
+            const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const dayOfWeek = currentDate.getDay();
+
+            const pS = parseInt(sysConfig.peakSeasonStart || '05');
+            const pE = parseInt(sysConfig.peakSeasonEnd || '10');
+            const isPeak = pS <= pE ? (m >= pS && m <= pE) : (m >= pS || m <= pE);
+
+            let isHoliday = (sysConfig.specialHolidays || []).includes(dateStr);
+            if (!isHoliday && sysConfig.holidayRanges) {
+              for (const r of sysConfig.holidayRanges) {
+                if (dateStr >= r.start && dateStr <= r.end) { isHoliday = true; break; }
+              }
+            }
+
+            const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+            let dailyPrice = 0;
+            let priceLabel = '';
+
+            if (isHoliday) {
+               dailyPrice = item.room.priceHoliday || 0;
+               priceLabel = '連假定價';
+            } else if (isPeak) {
+               dailyPrice = isWeekend ? (item.room.pricePeakWeekend || 0) : (item.room.pricePeakWeekday || 0);
+               priceLabel = isWeekend ? '旺季假日' : '旺季平日';
+            } else {
+               dailyPrice = isWeekend ? (item.room.priceLowWeekend || 0) : (item.room.priceLowWeekday || 0);
+               priceLabel = isWeekend ? '淡季假日' : '淡季平日';
+            }
+
+            const dailyBaseTotal = dailyPrice * item.roomCount;
+            const extraBedCost = item.extraBeds * (item.room.priceExtraBed || 0);
+            const subtotal = dailyBaseTotal + extraBedCost;
+
+            total += subtotal;
+
+            if (!dailyAggregated[dateStr]) {
+                dailyAggregated[dateStr] = { date: dateStr, label: priceLabel, baseSum: 0, extraBed: 0, subtotal: 0 };
+            }
+            dailyAggregated[dateStr].baseSum += dailyBaseTotal;
+            dailyAggregated[dateStr].extraBed += extraBedCost;
+            dailyAggregated[dateStr].subtotal += subtotal;
+         }
+     });
+
+     // 將跨房型的基底加總平均為單房供顯示相容
+     const breakdown = Object.values(dailyAggregated).sort((a,b) => a.date.localeCompare(b.date)).map(day => ({
+         date: day.date,
+         label: day.label,
+         base: Math.round(day.baseSum / (totalRoomCount || 1)), 
+         extraBed: day.extraBed,
+         subtotal: day.subtotal
+     }));
+
+     let discountTotal = 0;
+     let discountLabel = '';
+
+     if (context?.type === 'course_upgrade') {
+         const discountNights = Math.min(nights, Math.max(1, context.days - 1));
+         discountTotal = courseStudents * context.baseDeduct * discountNights;
+         discountLabel = `學員房型升級折抵 (${courseStudents}人 × ${discountNights}晚)`;
+         total -= discountTotal;
+     } else if (context?.type === 'activity_discount') {
+         if (sysConfig.accDiscountType === 'percent') {
+            const ratio = (100 - (sysConfig.accDiscountValue || 100)) / 100;
+            discountTotal = total * ratio;
+            discountLabel = `活動專屬折扣 (${sysConfig.accDiscountValue}折)`;
+            total -= discountTotal;
+         } else if (sysConfig.accDiscountType === 'fixed') {
+            discountTotal = (sysConfig.accDiscountValue || 0) * nights;
+            discountLabel = `活動專屬折扣 (每晚折抵 $${sysConfig.accDiscountValue})`;
+            total -= discountTotal;
+         }
+     }
+
+     total = Math.max(0, Math.round(total));
+
+     return { total, breakdown, discountTotal: Math.round(discountTotal), discountLabel, totalRoomCount };
+  }, [checkIn, nights, cart, sysConfig, context, courseStudents]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(isSubmitting) return;
+    if(isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone) return;
     setIsSubmitting(true);
     try {
       const finalDetails = {
-          ...f,
-          nights: parseInt(f.nights) || 1,
-          roomCount: parseInt(f.roomCount) || 1,
-          guests: parseInt(f.guests) || 1
+          name: f.name,
+          phone: f.phone,
+          checkIn: checkIn,
+          nights: nights,
+          roomCount: priceInfo.totalRoomCount,
+          guests: cart.reduce((sum, c) => sum + c.guests, 0),
+          extraBeds: cart.reduce((sum, c) => sum + c.extraBeds, 0),
+          breakdown: priceInfo.breakdown,
+          discountTotal: priceInfo.discountTotal,
+          discountLabel: priceInfo.discountLabel,
+          cart: cart
       };
 
       if (context?.type === 'course_upgrade') {
           finalDetails.courseStudents = courseStudents;
-          // 計算折抵晚數，最高不超過課程涵蓋的總晚數
-          finalDetails.discountNights = Math.min(finalDetails.nights, Math.max(1, context.days - 1));
-          finalDetails.courseDeductTotal = courseStudents * context.baseDeduct * finalDetails.discountNights;
+          finalDetails.courseDeductTotal = priceInfo.discountTotal;
       }
 
-      await onSubmit({ 
+      await onBook({ 
         type: 'accommodation', 
-        itemName: room.name, 
+        itemName: cart.map(c => `${c.room.name} × ${c.roomCount}`).join(' + '), 
+        price: priceInfo.total,
+        name: f.name,
+        phone: f.phone,
         details: finalDetails,
         appliedContext: context || null
       });
@@ -3975,76 +3371,169 @@ function AccommodationBookingForm({ room, onClose, onSubmit, sysConfig, context 
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-lg flex flex-col shadow-2xl relative animate-in zoom-in-95">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
-          <div>
-            <h2 className="text-xl font-black text-slate-800">預訂房型：{String(room.name)}</h2>
-            {context && <span className="inline-block mt-2 bg-amber-100 text-amber-700 text-xs font-black px-2 py-1 rounded shadow-sm">專屬配套訂房</span>}
-          </div>
-          <button onClick={onClose} disabled={isSubmitting} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors disabled:opacity-50"><X className="w-5 h-5" /></button>
+    <div className="relative animate-in fade-in duration-500 min-h-[calc(100vh-80px)] pb-24 lg:pb-12">
+      {/* 森林系/海洋背景 (Ocean Breeze Background) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
+         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-teal-100/50 via-cyan-50/30 to-transparent"></div>
+         <div className="absolute -top-20 right-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/60 to-transparent transform -rotate-[15deg] blur-3xl opacity-80"></div>
+         <div className="absolute top-10 right-[5%] text-teal-500/10 transform rotate-6"><Home className="w-80 h-80" /></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4 border-b border-teal-200/50 pb-5 mb-8 px-2">
+           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-teal-700 rounded-full hover:bg-white hover:shadow-md hover:text-teal-600 transition-all border border-white"><ChevronLeft className="w-6 h-6"/></button>
+           <div>
+             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
+             <div className="text-xs md:text-sm font-bold text-teal-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse"></div>輸入日期與資訊，即刻為您試算房價</div>
+           </div>
         </div>
-        
-        <form id="accForm" onSubmit={handleSubmit} className="p-6 space-y-5">
-          {context?.type === 'activity_discount' && (
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 mb-2">
-               <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-               <p className="text-sm font-bold text-amber-800">{getDiscountInfo()}<br/><span className="text-xs opacity-75">實際金額將由店家依照入住日平假日為您人工計算確認。</span></p>
-            </div>
-          )}
 
-          {context?.type === 'course_upgrade' && (
-             <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl space-y-4 mb-2 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="bg-amber-100 p-1.5 rounded-lg shrink-0 mt-0.5"><Info className="w-5 h-5 text-amber-700" /></div>
-                  <div>
-                    <p className="text-sm font-black text-amber-900">
-                      課程專屬配套：升級房型折抵
-                    </p>
-                    <p className="text-xs text-amber-700 mt-1 font-medium leading-relaxed">
-                      每位同行報名課程的學員，可折抵原有背包床位費 NT$ {context.baseDeduct} / 晚 (您的課程涵蓋 {Math.max(1, context.days - 1)} 晚)。
-                    </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* 左欄：日期、基本資料、購物車與結帳 */}
+          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24 scroll-mt-24">
+             <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(20,184,166,0.1)] relative overflow-hidden">
+               <h3 className="font-black text-xl text-slate-800 border-b border-teal-100/50 pb-3 mb-5 flex items-center gap-3">
+                  <div className="bg-teal-100 p-2 rounded-xl text-teal-600"><CalendarDays className="w-5 h-5"/></div>
+                  1. 入住資訊設定
+               </h3>
+
+               {/* 雙日曆與天數顯示 */}
+               <div className="flex items-center justify-between gap-2 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100 shadow-inner relative z-10">
+                   <div className="flex-1">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Check-in 入住日</span>
+                       <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-teal-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all shadow-sm" />
+                   </div>
+                   <div className="flex flex-col items-center shrink-0 px-2 relative z-10 pt-4">
+                       <div className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200 z-10">{nights} 晚</div>
+                       <div className="w-10 h-0.5 bg-slate-300 mt-[-10px] -z-0"></div>
+                   </div>
+                   <div className="flex-1">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 text-right">Check-out 退房日</span>
+                       <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all shadow-sm text-right" />
+                   </div>
+               </div>
+
+               {/* 滿房警告 */}
+               {hasFullDays && (
+                  <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 mb-6 shadow-sm animate-in slide-in-from-top-2 relative z-10">
+                     <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                     <div>
+                       <p className="text-sm font-black text-rose-800">區間包含已滿房日期</p>
+                       <p className="text-[10px] font-bold text-rose-600 mt-1 leading-relaxed">客滿日期：{fullDaysInRange.join(', ')}<br/>請調整入住/退房日期才能加入預訂清單。</p>
+                     </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
-                  <span className="text-sm font-bold text-amber-900">同行上課人數 (最多限 {maxStudents} 人)</span>
-                  <select 
-                    value={courseStudents} 
-                    onChange={e => setCourseStudents(Number(e.target.value))}
-                    className="p-1.5 border border-amber-200 rounded-md text-amber-900 font-bold outline-none bg-amber-50 focus:border-amber-400 focus:bg-white transition-colors cursor-pointer"
-                  >
-                    {Array.from({ length: maxStudents }, (_, i) => i + 1).map(num => (
-                      <option key={num} value={num}>{num} 位學員</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="text-right pt-1 border-t border-amber-100">
-                  <span className="text-xs text-amber-800 font-bold mr-2">
-                    系統試算折抵：
-                  </span>
-                  <span className="text-xl font-black text-rose-600">
-                    -NT$ {courseStudents * context.baseDeduct * Math.min(f.nights || 1, Math.max(1, context.days - 1))}
-                  </span>
-                  <p className="text-[10px] text-amber-600 mt-0.5">※ 總折抵金額將於最後結帳時由店家依平假日房價扣除</p>
-                </div>
+               )}
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                 <FormInput label="真實姓名 *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
+                 <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+               </div>
              </div>
-          )}
 
-          <FormInput label="預訂人姓名" required value={f.name} onChange={v => setF({...f, name: v})} />
-          <FormInput label="聯絡電話" required type="tel" value={f.phone} onChange={v => setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字 (例: 0912345678)" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FormInput label="入住日期" required type="date" value={f.checkIn} onChange={v => setF({...f, checkIn: v})} />
-            <FormInput label="預計晚數" required type="number" value={f.nights} onChange={v => setF({...f, nights: v === '' ? '' : Math.max(1, parseInt(v))})} />
-            <FormInput label="預訂房間數" required type="number" value={f.roomCount} onChange={v => setF({...f, roomCount: v === '' ? '' : Math.max(1, parseInt(v))})} />
+             {/* 結帳與購物車 */}
+             <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(20,184,166,0.15)] flex flex-col">
+               <h3 className="font-black text-xl text-slate-800 border-b border-teal-100/50 pb-4 mb-5 flex items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><ClipboardList className="w-5 h-5"/></div> 
+                  2. 預訂清單與費用
+               </h3>
+               
+               <div className="mb-6">
+                 <div className="text-[11px] font-black text-teal-600 uppercase tracking-widest mb-3 flex items-center justify-between">
+                   <span>已選房型清單 (Booking List)</span>
+                   <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-md shadow-sm">{cart.length} 筆</span>
+                 </div>
+                 
+                 {cart.length === 0 ? (
+                   <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-teal-200">
+                     <Home className="w-8 h-8 text-teal-200 mx-auto mb-2" />
+                     <div className="text-xs font-bold text-teal-700/50">請先於右側選擇需要的房型</div>
+                   </div>
+                 ) : (
+                   <div className="space-y-3 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
+                     {cart.map((item) => (
+                       <div key={item.id} className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm group hover:border-teal-300 hover:shadow-md transition-all">
+                          <div className="flex-1 min-w-0 pr-3">
+                            <div className="font-bold text-slate-800 text-sm truncate">{item.room.name}</div>
+                            <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                              <span className="text-[10px] font-black bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">{item.roomCount} 間</span>
+                              <span className="text-[10px] font-black bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">{item.guests} 人</span>
+                              {item.extraBeds > 0 && <span className="text-[10px] font-black bg-rose-50 px-2 py-0.5 rounded-md text-rose-600 border border-rose-100">加 {item.extraBeds} 床</span>}
+                            </div>
+                          </div>
+                          <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors shrink-0">
+                            <Trash2 className="w-4 h-4"/>
+                          </button>
+                       </div>
+                     ))}
+                   </div>
+                 )}
+               </div>
+
+               {/* 折扣資訊區 */}
+               {(context && cart.length > 0) && (
+                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-3 shadow-sm mb-6 animate-in slide-in-from-top-2">
+                     <div className="flex items-center gap-2">
+                       <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
+                       <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : '活動專屬優惠'}</p>
+                     </div>
+                     {context.type === 'course_upgrade' ? (
+                       <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                         <span className="text-xs font-bold text-amber-800 pl-2">套用折抵的同行學員</span>
+                         <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-1.5 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
+                           {Array.from({ length: maxStudents || 1 }, (_, i) => i + 1).map(num => (
+                             <option key={num} value={num}>{num} 位</option>
+                           ))}
+                         </select>
+                       </div>
+                     ) : (
+                       <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
+                     )}
+                  </div>
+               )}
+
+               <div className="pt-5 border-t-2 border-teal-100/50 mt-auto">
+                  <div className="flex justify-between items-end mb-5">
+                    <span className="text-sm font-bold text-slate-500">預估總額 / Total Amount</span>
+                    <div className="text-right">
+                      {priceInfo.discountTotal > 0 && <div className="text-[10px] text-teal-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
+                      <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-teal-700 to-cyan-500">NT$ {priceInfo.total}</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleSubmit} 
+                    disabled={isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone} 
+                    className="w-full py-4 bg-gradient-to-r from-teal-600 to-cyan-500 text-white rounded-2xl font-black shadow-[0_10px_20px_rgba(20,184,166,0.3)] hover:shadow-[0_15px_30px_rgba(20,184,166,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  >
+                     {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '請先選擇房型' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-5 h-5"/>確認送出預訂單</>}
+                  </button>
+               </div>
+             </div>
           </div>
-          <FormInput label="入住總人數" required type="number" value={f.guests} onChange={v => setF({...f, guests: v === '' ? '' : Math.max(1, parseInt(v))})} placeholder="計算房型差額使用" />
-        </form>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl shrink-0 flex gap-4">
-          <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-100 transition-colors disabled:opacity-50">取消</button>
-          <button type="submit" form="accForm" disabled={isSubmitting} className="flex-1 py-3.5 bg-teal-600 text-white rounded-xl font-black shadow-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-            {isSubmitting ? '處理中...' : '確認提交預訂'}
-          </button>
+          {/* 右欄：房型導覽區 */}
+          <div className="lg:col-span-7 space-y-6">
+             <div className="bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-white shadow-sm flex items-center gap-3">
+                 <div className="bg-teal-100 p-2 rounded-xl text-teal-600"><Home className="w-5 h-5"/></div>
+                 <div>
+                    <h3 className="font-black text-lg text-slate-800">3. 選擇預訂房型</h3>
+                    <p className="text-[10px] font-bold text-slate-500">依據您左側輸入的日期，以下為各房型資訊與計價</p>
+                 </div>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {accommodations.map(room => (
+                   <AccRoomCard 
+                       key={room.id} 
+                       room={room} 
+                       onAdd={handleAddToCart} 
+                       hasFullDays={hasFullDays} 
+                       nights={nights} 
+                   />
+                ))}
+             </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -4055,6 +3544,16 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
   return (
     <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
       <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl relative overflow-hidden text-center border border-white">
+        
+        {/* 海洋背景裝飾 */}
+        <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-cyan-50 to-transparent pointer-events-none"></div>
+        <div className="absolute -top-12 -right-10 text-cyan-500/10 rotate-12 pointer-events-none"><Fish className="w-48 h-48" /></div>
+        <div className="absolute bottom-0 -left-12 text-blue-500/5 -rotate-12 pointer-events-none"><Waves className="w-48 h-48" /></div>
+
+        {/* 動態氣泡 */}
+        <div className="absolute top-12 left-10 w-6 h-6 bg-cyan-200/30 rounded-full blur-[1px] animate-[bounce_3s_infinite]"></div>
+        <div className="absolute top-24 right-16 w-3 h-3 bg-blue-200/40 rounded-full animate-[bounce_4s_infinite_0.5s]"></div>
+
         <div className="relative z-10">
           <div className="mx-auto w-20 h-20 bg-gradient-to-br from-cyan-100 to-blue-100 text-blue-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner border border-white transform rotate-3 hover:rotate-0 transition-transform">
             <LifeBuoy className="w-10 h-10 -rotate-3" />
@@ -4075,40 +3574,21 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
             <button onClick={onGoAccommodations} className="w-full py-4 bg-white text-slate-600 rounded-2xl font-bold hover:bg-slate-50 border-2 border-slate-100 hover:border-blue-200 hover:text-blue-600 transition-colors">
               我只想單獨預訂住宿
             </button>
+            <button onClick={onClose} className="w-full py-2 mt-2 text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors">
+              取消返回
+            </button>
           </div>
         </div>
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-20">
-          <X className="w-5 h-5"/>
-        </button>
       </div>
     </div>
   );
 }
 
-function DeleteConfirmModal({ title, onConfirm, onCancel }) {
-  return (
-    <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl relative animate-in zoom-in-95">
-        <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-          <Trash2 className="w-8 h-8" />
-        </div>
-        <h3 className="text-xl font-black text-slate-800 mb-2">確認刪除</h3>
-        <p className="text-sm font-bold text-slate-500 mb-6">您確定要刪除「{title}」嗎？<br/>此動作無法復原 / This action cannot be undone.</p>
-        <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">取消 / Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-md shadow-red-200 transition-colors">確認刪除 / Delete</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function UserDashboard({ bookings, db, appId }) {
+function UserDashboard({ bookings }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
 
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
@@ -4125,29 +3605,25 @@ function UserDashboard({ bookings, db, appId }) {
     setTimeout(() => { setHasSearched(true); setIsSearching(false); }, 500);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!itemToDelete) return;
-    try {
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', itemToDelete.id));
-      setItemToDelete(null);
-    } catch (e) {
-      alert("刪除失敗");
-    }
-  };
-
   return (
-    <div className="relative animate-in fade-in duration-500 max-w-5xl mx-auto pb-20 pt-4 px-4">
-      <div className="relative z-10 max-w-4xl mx-auto">
+    <div className="relative animate-in fade-in duration-500 max-w-5xl mx-auto pb-20 pt-4">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[4rem]">
+         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-cyan-100/40 via-blue-50/20 to-transparent"></div>
+         <div className="absolute top-10 right-[5%] text-cyan-500/10 transform rotate-12"><Waves className="w-80 h-80" /></div>
+         <div className="absolute top-40 left-[5%] text-blue-500/5 transform -rotate-6"><Fish className="w-48 h-48" /></div>
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4">
         <div className="text-center mb-10 pt-4">
           <div className="mx-auto w-20 h-20 bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl border border-white transform -rotate-3 hover:rotate-0 transition-transform"><Search className="w-10 h-10" /></div>
           <h2 className="text-3xl md:text-4xl font-black text-slate-800 drop-shadow-sm mb-3">我的預約與報名查詢</h2>
           <div className="text-slate-500 font-bold">請輸入您報名時填寫的姓名與手機號碼 / Please enter your name and phone.</div>
         </div>
 
-        <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 shadow-sm p-8 mb-10">
+        <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-2xl p-8 mb-10">
           <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-5 gap-5">
             <div className="sm:col-span-2"><FormInput label="真實姓名 / Name" value={searchName} onChange={setSearchName} placeholder="王小明" required /></div>
-            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" type="tel" value={searchPhone} onChange={v => setSearchPhone(v.replace(/\D/g, ''))} placeholder="請輸入純數字 (例: 0912345678)" required /></div>
+            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" value={searchPhone} onChange={v => setSearchPhone(formatPhoneNumber(v))} placeholder="09xx-xxx-xxx" required /></div>
             <div className="sm:col-span-1 flex items-end">
               <button type="submit" disabled={isSearching} className="w-full py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black shadow-xl transition-all flex items-center justify-center gap-2">
                 {isSearching ? '...' : <Search className="w-5 h-5"/>}
@@ -4167,34 +3643,20 @@ function UserDashboard({ bookings, db, appId }) {
                             {b.type === 'activity' ? '活動報名 / Activity' : '住宿預約 / Accommodation'}
                           </span>
                           <span className="text-xs text-slate-400 font-bold">{formatTs(b.timestamp)}</span>
+                        </div>
+                        <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
                       </div>
-                      <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : b.status === 'cancelled' ? 'bg-slate-100 border-slate-300 text-slate-500' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
-                        {b.status === 'confirmed' ? '已確認 / Confirmed' : b.status === 'cancelled' ? '已取消 / Cancelled' : '處理中 / Pending'}
+                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
+                        {b.status === 'confirmed' ? '已確認 / Confirmed' : '處理中 / Pending'}
                       </div>
-                      <button onClick={() => setItemToDelete(b)} className="p-3 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all shadow-sm" title="取消並刪除此預約">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
                   </div>
               )) : <div className="bg-white rounded-[2rem] p-20 text-center shadow-inner font-black text-slate-300">查無相關預約紀錄 / No records found</div>}
            </div>
-        )}
-
-        {/* 顧客專用的刪除確認視窗 */}
-        {itemToDelete && (
-           <DeleteConfirmModal 
-              title={itemToDelete.itemName || '該筆預約'} 
-              onConfirm={handleDeleteConfirm} 
-              onCancel={() => setItemToDelete(null)} 
-           />
         )}
       </div>
     </div>
@@ -4309,12 +3771,20 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
 
   return (
     <div className="relative animate-in fade-in duration-500 min-h-[calc(100vh-80px)] pb-24 lg:pb-12">
+      {/* 陽光灑落海洋背景 (Sunlight Ocean Background) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
+         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-cyan-100/60 via-blue-50/30 to-transparent"></div>
+         <div className="absolute -top-20 left-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/70 to-transparent transform rotate-[15deg] blur-3xl opacity-80"></div>
+         <div className="absolute top-10 right-[5%] text-cyan-500/10 transform rotate-12"><Waves className="w-80 h-80" /></div>
+         <div className="absolute top-40 left-[5%] text-blue-500/5 transform -rotate-6"><Fish className="w-48 h-48" /></div>
+      </div>
+
       <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 border-b border-cyan-200/50 pb-5 mb-8 px-2">
-           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-cyan-700 rounded-full hover:bg-white hover:shadow-md hover:text-cyan-600 transition-all border border-slate-200"><ChevronLeft className="w-6 h-6"/></button>
+           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-cyan-700 rounded-full hover:bg-white hover:shadow-md hover:text-cyan-600 transition-all border border-white"><ChevronLeft className="w-6 h-6"/></button>
            <div>
              <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-blue-700 drop-shadow-sm">專業裝備預留 / Equipment Prep</h2>
-             <div className="text-xs md:text-sm font-bold text-cyan-800/60 mt-1.5 flex items-center gap-2">線上選取裝備並預約，到店即可快速取件下水</div>
+             <div className="text-xs md:text-sm font-bold text-cyan-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></div>線上選取裝備並預約，到店即可快速取件下水</div>
            </div>
         </div>
 
@@ -4443,7 +3913,7 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
                    <FormInput label="天數 / Days *" required type="number" value={f.days} onChange={v=>setF({...f, days: v === '' ? '' : Math.max(1, parseInt(v))})} />
                  </div>
                  <FormInput label="真實姓名 / Full Name *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
-                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: v.replace(/\D/g, '')})} placeholder="請輸入純數字" />
+                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
                  
                  <label className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 rounded-xl cursor-pointer shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 mt-2 group">
                      <input type="checkbox" checked={isReturningCustomer} onChange={e => setIsReturningCustomer(e.target.checked)} className="w-5 h-5 text-orange-500 rounded border-orange-300 shrink-0" />
@@ -4490,7 +3960,7 @@ function App() {
   const [accommodations, setAccommodations] = useState([]);
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [sysConfig, setSysConfig] = useState({
-    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
+    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200, footerText: "© 2026 鯊墾丁 SHARKENTING . HUANG."
   });
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -4506,22 +3976,11 @@ function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
-    const initAuth = async (retryCount = 0) => {
+    const initAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) { 
-        console.error(`Auth error (attempt ${retryCount + 1}):`, err); 
-        if (retryCount < 5) {
-          const delay = Math.pow(2, retryCount) * 1000;
-          setTimeout(() => initAuth(retryCount + 1), delay);
-        } else {
-          setIsLoading(false);
-        }
-      }
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+        else await signInAnonymously(auth);
+      } catch (err) { console.error("Auth error:", err); }
     };
     initAuth();
     const unsubscribe = onAuthStateChanged(auth, (u) => { setUser(u); setIsLoading(false); });
@@ -4687,109 +4146,139 @@ function App() {
           <>
             {currentView === 'home' && (
               <div className="space-y-10 animate-in fade-in duration-500">
-                <div className="rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-800 text-white p-10 md:p-20 shadow-[0_20px_50px_rgba(8,145,178,0.25)] relative group">
-                  {/* 陽光灑落海面漸層光暈 */}
-                  <div className="absolute -top-32 -left-32 w-96 h-96 bg-yellow-200/50 rounded-full blur-[80px] pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
-                  <div className="absolute top-0 left-[20%] w-[150%] h-full bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.4)_0%,rgba(255,255,255,0)_50%)] pointer-events-none transform -translate-x-1/2"></div>
-                  <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-indigo-900/30 rounded-full blur-[100px] pointer-events-none"></div>
-
-                  {/* 漂動的波浪圖示與氣泡 */}
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-                     {/* 透過不同的時長與延遲，營造自然的漂浮感 */}
-                     <Waves className="absolute top-12 right-[15%] w-24 h-24 text-white/20 animate-[bounce_6s_infinite_ease-in-out]" />
-                     <Waves className="absolute bottom-16 right-[30%] w-16 h-16 text-white/10 animate-[bounce_5s_infinite_1s_ease-in-out]" />
-                     <Waves className="absolute top-1/3 left-2/3 w-32 h-32 text-cyan-200/10 animate-[pulse_7s_infinite]" />
-                     <Waves className="absolute bottom-[-20px] left-[10%] w-40 h-40 text-blue-300/10 animate-[bounce_8s_infinite_2s_ease-in-out]" />
-                     
-                     {/* 點綴氣泡 */}
-                     <div className="absolute bottom-[20%] left-[20%] w-4 h-4 bg-white/30 rounded-full animate-[ping_4s_infinite]"></div>
-                     <div className="absolute top-[30%] right-[40%] w-6 h-6 bg-white/20 rounded-full animate-[bounce_4s_infinite]"></div>
-                     <div className="absolute bottom-[40%] left-[40%] w-3 h-3 bg-white/20 rounded-full animate-[ping_5s_infinite_2s]"></div>
-                  </div>
-
-                  <div className="max-w-2xl relative z-10 backdrop-blur-[2px]">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight drop-shadow-lg text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-50">
-                      {String(sysConfig.title || '')}
-                    </h1>
-                    <p className="text-lg md:text-xl text-blue-50/90 mb-10 leading-relaxed drop-shadow-md font-medium">
-                      {String(sysConfig.subtitle || '')}
-                    </p>
-                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-800 px-10 py-4 rounded-2xl font-black shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_15px_40px_rgba(255,255,255,0.4)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
-                      活動及課程報名 <ArrowRight className="w-5 h-5" />
-                    </button>
+                <div className="rounded-3xl overflow-hidden bg-gradient-to-b from-sky-400 to-blue-900 text-white p-10 md:p-20 relative shadow-xl border border-blue-800/30">
+                  <div className="absolute top-0 right-0 p-10 opacity-20 text-sky-100"><Waves className="w-80 h-80" /></div>
+                  <div className="relative z-10 max-w-2xl">
+                    <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight drop-shadow-md">{String(sysConfig.title || '')}</h1>
+                    <p className="text-lg md:text-xl text-blue-50 mb-10 leading-relaxed drop-shadow-sm">{String(sysConfig.subtitle || '')}</p>
+                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-800 px-10 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all flex items-center gap-2">活動及課程報名 <ArrowRight className="w-5 h-5" /></button>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-                  <QuickCard icon={<Home />} colorTheme="teal" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} bgIcon={<SeaweedBg />} />
-                  <QuickCard icon={<LifeBuoy />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} bgIcon={<SingleTankBg />} />
-                  <QuickCard icon={<Search />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} bgIcon={<AnchorBg />} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20 mt-2">
+                  <QuickCard icon={<Home />} colorTheme="teal" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} bgIcon={<Home />} />
+                  <QuickCard icon={<LifeBuoy />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} bgIcon={<Waves />} />
+                  <QuickCard icon={<Search />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} bgIcon={<Fish />} />
                 </div>
                 
-                <div className="mt-24 mb-12 bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-14 relative z-0 overflow-hidden">
-                   {/* 注入專屬繪製的鯨鯊背景動畫 */}
-                   <ContactWhaleSharkBg />
-                   
-                   <div className="text-center max-w-2xl mx-auto mb-12 relative z-10">
-                      <h3 className="text-3xl md:text-5xl font-black text-slate-800 flex items-center justify-center gap-4 tracking-tight drop-shadow-sm">
-                         聯絡與門市資訊
-                      </h3>
-                      <p className="text-slate-600 font-bold mt-5 leading-relaxed text-sm md:text-base">
-                         無論是課程諮詢、裝備預留，還是想了解最新的潛水行程，<br className="hidden sm:block"/>歡迎透過以下方式與我們聯繫！
-                      </p>
+                <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
+                   {/* 沉浸式清透海洋背景裝飾 (Clear Ocean Immersion) */}
+                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-blue-50 rounded-[4rem] -z-10 overflow-hidden border border-white">
+                       {/* 海底光影 (Sunrays) */}
+                       <div className="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-b from-cyan-100/30 via-white/10 to-transparent blur-3xl transform skew-x-12 pointer-events-none"></div>
+                       <div className="absolute top-0 right-1/4 w-1/3 h-full bg-gradient-to-b from-blue-100/30 via-white/10 to-transparent blur-3xl transform -skew-x-12 pointer-events-none"></div>
+                       
+                       {/* 潛水主題點綴元素 (清透魚群與波浪) */}
+                       <div className="absolute top-10 left-10 text-cyan-500/10 transform -rotate-12 pointer-events-none animate-[pulse_6s_ease-in-out_infinite]"><Fish className="w-64 h-64" /></div>
+                       <div className="absolute bottom-0 right-0 text-blue-500/10 pointer-events-none transform rotate-6 translate-x-1/4 translate-y-1/4"><Waves className="w-96 h-96" /></div>
+                       
+                       {/* 清透浮游氣泡 */}
+                       <div className="absolute top-1/4 right-[10%] w-12 h-12 bg-cyan-200/30 rounded-full blur-[1px] animate-[bounce_4s_infinite] shadow-[0_0_20px_rgba(255,255,255,0.5)]"></div>
+                       <div className="absolute top-1/3 right-[25%] w-6 h-6 bg-blue-200/40 rounded-full blur-[0.5px] animate-[bounce_5s_infinite_1s]"></div>
+                       <div className="absolute bottom-1/4 left-[15%] w-16 h-16 bg-white/60 rounded-full blur-[2px] animate-[bounce_7s_infinite_reverse] shadow-[0_0_30px_rgba(255,255,255,0.8)]"></div>
+                       <div className="absolute top-1/2 left-[5%] w-3 h-3 bg-cyan-300/50 rounded-full animate-ping opacity-80"></div>
                    </div>
                    
-                   <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12 items-stretch relative z-10">
-                      <div className="xl:col-span-5 flex flex-col gap-5">
-                         <ContactItem 
-                           highlight="line"
-                           label="官方 LINE 客服 (快速預約/諮詢)" 
-                           value={sysConfig.line} 
-                           icon={<MessageCircle className="w-7 h-7"/>} 
-                           href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
-                           animal="octopus"
-                         />
-                         <ContactItem 
-                           label="實體門市位置" 
-                           value={sysConfig.address} 
-                           subValue={sysConfig.transport} 
-                           icon={<MapPin className="w-6 h-6"/>} 
-                           animal="lobster"
-                         />
-                         <ContactItem 
-                           highlight="blue"
-                           label="潛水服務專線" 
-                           value={sysConfig.phoneDiving} 
-                           subValue={`服務時間: ${sysConfig.serviceHoursDiving || '08:00 - 18:00'}`} 
-                           href={`tel:${sysConfig.phoneDiving}`} 
-                           icon={<Waves className="w-6 h-6"/>} 
-                           animal="manta"
-                         />
-                         <ContactItem 
-                           label="住宿管家專線" 
-                           value={sysConfig.phoneAcc} 
-                           subValue={`進房: ${sysConfig.checkInAcc || '15:00'}\n退房: ${sysConfig.checkOutAcc || '11:00'}`} 
-                           href={`tel:${sysConfig.phoneAcc}`} 
-                           icon={<Home className="w-6 h-6"/>} 
-                           animal="shark"
-                         />
+                   <div className="bg-white/40 backdrop-blur-2xl p-8 md:p-14 rounded-[3.8rem] relative z-10">
+                      <div className="text-center max-w-2xl mx-auto mb-12">
+                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-100 mb-4 shadow-sm">
+                           <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
+                           <span className="text-cyan-700 font-black tracking-widest text-[10px] uppercase">Explore the Ocean</span>
+                         </div>
+                         <h3 className="text-3xl md:text-5xl font-black text-slate-800 flex items-center justify-center gap-4 tracking-tight drop-shadow-sm">
+                            聯絡與門市資訊
+                         </h3>
+                         <p className="text-slate-600 font-bold mt-5 leading-relaxed text-sm md:text-base">
+                            無論是課程諮詢、裝備預留，還是想了解最新的潛水行程，<br className="hidden sm:block"/>歡迎透過以下方式與我們聯繫！
+                         </p>
                       </div>
                       
-                      <div className="xl:col-span-7 relative min-h-[400px] lg:min-h-[500px] h-full bg-slate-50 p-3 md:p-4 rounded-3xl border border-slate-200">
-                         <iframe 
-                           title="門市位置地圖" 
-                           className="w-full h-full rounded-2xl bg-slate-100" 
-                           style={{ border: 0, minHeight: '400px' }} 
-                           loading="lazy" 
-                           src={`https://maps.google.com/maps?q=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}>
-                         </iframe>
+                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+                         {/* 左側資訊區 */}
+                         <div className="xl:col-span-5 flex flex-col gap-5">
+                            <ContactItem 
+                              highlight="line"
+                              label="官方 LINE 客服 (快速預約/諮詢)" 
+                              value={sysConfig.line} 
+                              icon={<MessageCircle className="w-7 h-7"/>} 
+                              href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                              copyable={true}
+                            />
+                            <ContactItem 
+                              label="實體門市位置" 
+                              value={sysConfig.address} 
+                              subValue={sysConfig.transport} 
+                              icon={<MapPin className="w-6 h-6"/>} 
+                              copyable={true}
+                            />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-5">
+                               <ContactItem 
+                                 highlight="blue"
+                                 label="潛水服務專線" 
+                                 value={sysConfig.phoneDiving} 
+                                 subValue={`服務時間: ${sysConfig.serviceHoursDiving || '08:00 - 18:00'}`} 
+                                 href={`tel:${sysConfig.phoneDiving}`} 
+                                 icon={<Waves className="w-6 h-6"/>} 
+                                 copyable={true}
+                               />
+                               <ContactItem 
+                                 highlight="blue"
+                                 label="住宿管家專線" 
+                                 value={sysConfig.phoneAcc} 
+                                 subValue={`進房: ${sysConfig.checkInAcc || '15:00'}\n退房: ${sysConfig.checkOutAcc || '11:00'}`} 
+                                 href={`tel:${sysConfig.phoneAcc}`} 
+                                 icon={<Home className="w-6 h-6"/>} 
+                                 copyable={true}
+                               />
+                            </div>
+                         </div>
+                         
+                         {/* 右側地圖區 (清透風格) */}
+                         <div className="xl:col-span-7 relative min-h-[400px] lg:min-h-[500px] h-full bg-white/60 p-3 md:p-4 rounded-[3rem] shadow-[0_15px_40px_rgba(6,182,212,0.1)] border border-white group overflow-hidden">
+                            <iframe 
+                              title="門市位置地圖" 
+                              className="w-full h-full rounded-[2.5rem] bg-slate-50 transition-all duration-700 opacity-90 group-hover:opacity-100 shadow-inner relative z-10" 
+                              style={{ border: 0, minHeight: '400px' }} 
+                              loading="lazy" 
+                              src={`https://maps.google.com/maps?q=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}>
+                            </iframe>
+                            
+                            {/* 定位 UI 標示 */}
+                            <div className="absolute top-8 right-8 bg-white/95 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center gap-3 pointer-events-none group-hover:border-cyan-200 transition-colors duration-500 z-20">
+                               <div className="relative flex items-center justify-center">
+                                  <div className="absolute w-6 h-6 bg-cyan-400/30 rounded-full animate-ping"></div>
+                                  <div className="w-2.5 h-2.5 bg-cyan-500 rounded-full shadow-[0_0_12px_rgba(6,182,212,0.6)]"></div>
+                               </div>
+                               <span className="text-xs font-black text-slate-700 tracking-widest uppercase">實體門市位置</span>
+                            </div>
+
+                            {/* Google Maps 開啟按鈕 (懸浮) */}
+                            <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0">
+                               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}`} target="_blank" rel="noreferrer" className="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl font-black shadow-[0_10px_25px_rgba(0,0,0,0.3)] hover:bg-cyan-600 transition-all flex items-center gap-2 hover:scale-105 border border-white/10">
+                                  <MapPin className="w-5 h-5"/> 在 Google Maps 中開啟
+                               </a>
+                            </div>
+                         </div>
                       </div>
                    </div>
                 </div>
+
+                {/* 頁尾版權宣告 */}
+                <footer className="text-center text-slate-400 text-[11px] font-bold mt-16 pb-4 tracking-wider uppercase">
+                   {sysConfig.footerText || "© 2026 鯊墾丁 SHARKENTING . HUANG."}
+                </footer>
+
               </div>
             )}
             {currentView === 'activities' && <ServiceSection title="潛水課程與活動" items={activities} type="activity" onBook={(item) => { setSelectedActivity(item); setIsRegModalOpen(true); }} sysConfig={sysConfig} />}
-            {currentView === 'accommodations' && <ServiceSection title="住宿房型預訂" items={accommodations} type="accommodation" onBook={(item) => { setSelectedAcc(item); setIsAccModalOpen(true); }} pendingAction={pendingAccAction} sysConfig={sysConfig} />}
+            {currentView === 'accommodations' && <AccommodationBookingPage accommodations={accommodations} sysConfig={sysConfig} context={pendingAccAction} onBook={async (data) => {
+                try {
+                   await submitRegistration(data);
+                   setPendingAccAction(null);
+                   setCurrentView('dashboard');
+                   window.scrollTo(0,0);
+                } catch(e) { alert("送出失敗"); }
+            }} onBack={() => { setPendingAccAction(null); setCurrentView('home'); }} />}
             {currentView === 'equipments' && <EquipmentRentalPage equipments={equipmentsList} sysConfig={sysConfig} onBook={async (data) => {
                 try {
                    await submitRegistration(data);
@@ -4797,7 +4286,7 @@ function App() {
                    window.scrollTo(0,0);
                 } catch(e) { alert("送出失敗"); }
             }} onBack={() => setCurrentView('home')} />}
-            {currentView === 'dashboard' && <UserDashboard bookings={bookings} db={db} appId={appId} />}
+            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
           </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
@@ -4850,24 +4339,6 @@ function App() {
                }
                window.scrollTo(0,0);
             }}
-         />
-      )}
-
-      {isAccModalOpen && selectedAcc && (
-         <AccommodationBookingForm 
-            room={selectedAcc} 
-            onClose={() => setIsAccModalOpen(false)} 
-            context={pendingAccAction}
-            onSubmit={async (data) => {
-               try {
-                  await submitRegistration(data);
-                  setIsAccModalOpen(false);
-                  setPendingAccAction(null); // 清除 Context
-                  setCurrentView('dashboard');
-                  window.scrollTo(0,0);
-               } catch(e) { alert("送出失敗"); }
-            }} 
-            sysConfig={sysConfig} 
          />
       )}
 
