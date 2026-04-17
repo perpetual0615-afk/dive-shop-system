@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, Copy, Moon as MoonMoon } from 'lucide-react';
+import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc } from 'firebase/firestore';
@@ -497,32 +497,16 @@ function BirthdaySelect({ label, required, value, onChange, dark = false }) {
   );
 }
 
-function ContactItem({ label, value, subValue, icon, href, highlight = false, copyable = false }) {
-  const [copied, setCopied] = useState(false);
+function ContactItem({ label, value, subValue, icon, href, highlight = false }) {
   const isLine = highlight === 'line';
   const isBlue = highlight === true || highlight === 'blue';
 
+  // 清新明亮海洋風格 (Clear Ocean Theme) 的卡片配置
   const bgClasses = isLine
     ? 'bg-gradient-to-br from-[#F4FFF4] to-[#E6FFE6] border border-[#00C300]/30 hover:border-[#00C300]/60 hover:shadow-[0_10px_30px_rgba(0,195,0,0.15)]'
     : isBlue
     ? 'bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 hover:border-cyan-400 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)]'
     : 'bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-slate-200/50';
-
-  const handleCopy = (e) => {
-    if (e) e.preventDefault();
-    const textArea = document.createElement("textarea");
-    textArea.value = value;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-      document.execCommand('copy');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Copy failed', err);
-    }
-    document.body.removeChild(textArea);
-  };
 
   return (
     <div className={`flex items-start gap-4 p-5 sm:p-6 rounded-[2rem] transition-all duration-500 group relative overflow-hidden hover:-translate-y-1.5 ${bgClasses}`}>
@@ -541,22 +525,14 @@ function ContactItem({ label, value, subValue, icon, href, highlight = false, co
       <div className="flex-1 min-w-0 pt-0.5 z-10 relative">
         <h4 className={`text-[11px] sm:text-xs font-black mb-1.5 tracking-wider uppercase transition-colors ${isLine ? 'text-[#009E00]' : isBlue ? 'text-cyan-700' : 'text-slate-400 group-hover:text-blue-400'}`}>{String(label || '')}</h4>
         
-        <div className="flex items-center gap-2 flex-wrap">
-          {href ? (
-            <a href={href} target="_blank" rel="noreferrer" className={`text-lg sm:text-xl font-black break-words transition-colors flex items-center flex-wrap gap-2.5 text-slate-900 group-hover:${isLine ? 'text-[#009E00]' : 'text-cyan-700'}`}>
-              <span>{String(value || '')}</span>
-              {isLine && <span className="text-[10px] bg-white text-[#00A000] border border-[#00A000]/30 px-2.5 py-1 rounded-full font-black shadow-sm shrink-0 leading-none flex items-center gap-1 group-hover:bg-[#00A000] group-hover:text-white transition-colors"><Plus className="w-3 h-3" /> 加入好友</span>}
-            </a>
-          ) : (
-            <p className="text-lg sm:text-xl font-black break-words text-slate-900">{String(value || '')}</p>
-          )}
-          
-          {copyable && (
-            <button onClick={handleCopy} title="複製資訊" className={`p-1.5 rounded-lg border transition-all ml-1 ${copied ? 'bg-green-100 border-green-300 text-green-700 shadow-inner' : 'bg-white/60 border-slate-200 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 shadow-sm'}`}>
-               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            </button>
-          )}
-        </div>
+        {href ? (
+          <a href={href} target="_blank" rel="noreferrer" className={`text-lg sm:text-xl font-black block break-words transition-colors flex items-center flex-wrap gap-2.5 text-slate-900 group-hover:${isLine ? 'text-[#009E00]' : 'text-cyan-700'}`}>
+            <span>{String(value || '')}</span>
+            {isLine && <span className="text-[10px] bg-white text-[#00A000] border border-[#00A000]/30 px-2.5 py-1 rounded-full font-black shadow-sm shrink-0 leading-none flex items-center gap-1 group-hover:bg-[#00A000] group-hover:text-white transition-colors"><Plus className="w-3 h-3" /> 加入好友</span>}
+          </a>
+        ) : (
+          <p className="text-lg sm:text-xl font-black break-words text-slate-900">{String(value || '')}</p>
+        )}
         
         {subValue && (
           <div className="mt-3 flex flex-wrap gap-2 items-start">
@@ -602,6 +578,13 @@ function BookingCard({ booking: b, type, db, appId }) {
     catch (e) { alert("狀態更新失敗"); }
   };
 
+  const handleDelete = async () => {
+    if (window.confirm("確定要永久刪除此筆預約紀錄嗎？此動作無法撤回。")) {
+       try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)); }
+       catch (e) { alert("刪除失敗，請檢查權限"); }
+    }
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-4">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -613,6 +596,7 @@ function BookingCard({ booking: b, type, db, appId }) {
              <div className="flex items-center gap-2 mb-1">
                <h4 className="font-bold text-lg text-slate-900">{String(b.itemName || '未知')}</h4>
                {b.isReturningCustomer && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-black">回客優惠</span>}
+               {type === 'accommodation' && b.details?.breakdown && <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded text-[10px] font-black">系統試算</span>}
              </div>
              <div className="flex gap-3 text-sm text-slate-500 font-medium">
                <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" /> {bName}</span>
@@ -625,10 +609,19 @@ function BookingCard({ booking: b, type, db, appId }) {
               <div className="font-black text-lg text-blue-600">NT$ {String(b.price || 0)}</div>
               <div className="text-xs text-slate-400">{submitDate}</div>
             </div>
-            <div className="flex bg-slate-100 rounded-lg p-1" onClick={e => e.stopPropagation()}>
-               <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
-               <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
-               <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
+            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+               <div className="flex bg-slate-100 rounded-lg p-1">
+                  <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
+                  <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
+                  <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
+               </div>
+               
+               {/* 在「住宿預約表」與「裝備租借表」中顯示刪除按鈕 */}
+               {(type === 'accommodation' || type === 'equipment') && (
+                 <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="永久刪除此筆紀錄">
+                    <Trash2 className="w-4 h-4" />
+                 </button>
+               )}
             </div>
             <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
          </div>
@@ -2272,7 +2265,6 @@ function SystemAdminPanel({ config, onSave }) {
                <label className="text-sm font-bold text-slate-700">副標題描述</label>
                <textarea value={f.subtitle || ''} onChange={e => setF({ ...f, subtitle: e.target.value })} className="w-full p-3 border border-slate-300 bg-white rounded-xl h-24 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
             </div>
-            <FormInput label="頁尾版權宣告" value={f.footerText || ''} onChange={v => setF({ ...f, footerText: v })} placeholder="例如：© 2026 鯊墾丁 SHARKENTING . HUANG." />
           </div>
         </ControlPanelCard>
 
@@ -3960,7 +3952,7 @@ function App() {
   const [accommodations, setAccommodations] = useState([]);
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [sysConfig, setSysConfig] = useState({
-    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200, footerText: "© 2026 鯊墾丁 SHARKENTING . HUANG."
+    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
   });
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -4202,42 +4194,36 @@ function App() {
                               value={sysConfig.line} 
                               icon={<MessageCircle className="w-7 h-7"/>} 
                               href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
-                              copyable={true}
                             />
                             <ContactItem 
                               label="實體門市位置" 
                               value={sysConfig.address} 
                               subValue={sysConfig.transport} 
                               icon={<MapPin className="w-6 h-6"/>} 
-                              copyable={true}
                             />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-5">
-                               <ContactItem 
-                                 highlight="blue"
-                                 label="潛水服務專線" 
-                                 value={sysConfig.phoneDiving} 
-                                 subValue={`服務時間: ${sysConfig.serviceHoursDiving || '08:00 - 18:00'}`} 
-                                 href={`tel:${sysConfig.phoneDiving}`} 
-                                 icon={<Waves className="w-6 h-6"/>} 
-                                 copyable={true}
-                               />
-                               <ContactItem 
-                                 highlight="blue"
-                                 label="住宿管家專線" 
-                                 value={sysConfig.phoneAcc} 
-                                 subValue={`進房: ${sysConfig.checkInAcc || '15:00'}\n退房: ${sysConfig.checkOutAcc || '11:00'}`} 
-                                 href={`tel:${sysConfig.phoneAcc}`} 
-                                 icon={<Home className="w-6 h-6"/>} 
-                                 copyable={true}
-                               />
-                            </div>
+                            <ContactItem 
+                              highlight="blue"
+                              label="潛水服務專線" 
+                              value={sysConfig.phoneDiving} 
+                              subValue={`服務時間: ${sysConfig.serviceHoursDiving || '08:00 - 18:00'}`} 
+                              href={`tel:${sysConfig.phoneDiving}`} 
+                              icon={<Waves className="w-6 h-6"/>} 
+                            />
+                            <ContactItem 
+                              label="住宿管家專線" 
+                              value={sysConfig.phoneAcc} 
+                              subValue={`進房: ${sysConfig.checkInAcc || '15:00'}\n退房: ${sysConfig.checkOutAcc || '11:00'}`} 
+                              href={`tel:${sysConfig.phoneAcc}`} 
+                              icon={<Home className="w-6 h-6"/>} 
+                            />
                          </div>
                          
                          {/* 右側地圖區 (清透風格) */}
-                         <div className="xl:col-span-7 relative min-h-[400px] lg:min-h-[500px] h-full bg-white/60 p-3 md:p-4 rounded-[3rem] shadow-[0_15px_40px_rgba(6,182,212,0.1)] border border-white group overflow-hidden">
+                         <div className="xl:col-span-7 relative min-h-[400px] lg:min-h-[500px] h-full bg-white/60 p-3 md:p-4 rounded-[3rem] shadow-[0_15px_40px_rgba(6,182,212,0.1)] border border-white group">
+                            {/* 移除濾鏡，恢復 Google Map 原色 */}
                             <iframe 
                               title="門市位置地圖" 
-                              className="w-full h-full rounded-[2.5rem] bg-slate-50 transition-all duration-700 opacity-90 group-hover:opacity-100 shadow-inner relative z-10" 
+                              className="w-full h-full rounded-[2.5rem] bg-slate-50 transition-all duration-700 opacity-90 group-hover:opacity-100 shadow-inner" 
                               style={{ border: 0, minHeight: '400px' }} 
                               loading="lazy" 
                               src={`https://maps.google.com/maps?q=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}>
@@ -4251,23 +4237,10 @@ function App() {
                                </div>
                                <span className="text-xs font-black text-slate-700 tracking-widest uppercase">實體門市位置</span>
                             </div>
-
-                            {/* Google Maps 開啟按鈕 (懸浮) */}
-                            <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0">
-                               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}`} target="_blank" rel="noreferrer" className="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl font-black shadow-[0_10px_25px_rgba(0,0,0,0.3)] hover:bg-cyan-600 transition-all flex items-center gap-2 hover:scale-105 border border-white/10">
-                                  <MapPin className="w-5 h-5"/> 在 Google Maps 中開啟
-                               </a>
-                            </div>
                          </div>
                       </div>
                    </div>
                 </div>
-
-                {/* 頁尾版權宣告 */}
-                <footer className="text-center text-slate-400 text-[11px] font-bold mt-16 pb-4 tracking-wider uppercase">
-                   {sysConfig.footerText || "© 2026 鯊墾丁 SHARKENTING . HUANG."}
-                </footer>
-
               </div>
             )}
             {currentView === 'activities' && <ServiceSection title="潛水課程與活動" items={activities} type="activity" onBook={(item) => { setSelectedActivity(item); setIsRegModalOpen(true); }} sysConfig={sysConfig} />}
