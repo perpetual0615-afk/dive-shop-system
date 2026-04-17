@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1075,8 +1076,7 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
         activityId: activity.id || ''
       };
 
-      // 【核心修復點】: 執行深層過濾，將所有可能殘留的 undefined 轉換為安全值
-      // Firestore 不允許巢狀物件內含有 undefined 屬性。
+      // 執行深層過濾，將所有可能殘留的 undefined 轉換為安全值
       const safeData = JSON.parse(JSON.stringify(submitData));
 
       await onSubmit(safeData);
@@ -1733,6 +1733,44 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
   );
 }
 
+// --------------------------------------------------------
+// 站位與建置中頁面模組 (避免空白跳轉)
+// --------------------------------------------------------
+function AccommodationBookingPage({ onBack }) {
+  return (
+    <div className="max-w-4xl mx-auto p-8 mt-10 bg-white rounded-[2rem] border border-slate-200 shadow-sm text-center animate-in fade-in zoom-in-95">
+      <div className="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Home className="w-10 h-10" />
+      </div>
+      <h2 className="text-2xl font-black text-slate-800 mb-4">住宿預約模組 (建置中)</h2>
+      <p className="text-slate-500 mb-8 font-bold leading-relaxed">
+        您的活動報名單已成功送出！<br/>
+        專屬的住宿預訂與房控系統目前正在準備中，稍後將開放使用。
+      </p>
+      <button onClick={onBack} className="px-8 py-3.5 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:bg-blue-700 transition-all flex items-center justify-center gap-2 mx-auto">
+        <Search className="w-5 h-5" /> 返回查詢我的預約紀錄
+      </button>
+    </div>
+  );
+}
+
+function EquipmentRentalPage({ onBack }) {
+  return (
+    <div className="max-w-4xl mx-auto p-8 mt-10 bg-white rounded-[2rem] border border-slate-200 shadow-sm text-center animate-in fade-in zoom-in-95">
+      <div className="w-20 h-20 bg-cyan-100 text-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <LifeBuoy className="w-10 h-10" />
+      </div>
+      <h2 className="text-2xl font-black text-slate-800 mb-4">單獨裝備租借 (建置中)</h2>
+      <p className="text-slate-500 mb-8 font-bold leading-relaxed">
+        單獨的裝備租借與 AI 身型測繪系統目前正在準備中，敬請期待！
+      </p>
+      <button onClick={onBack} className="px-8 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold shadow-sm hover:bg-slate-200 transition-all mx-auto">
+        返回首頁
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -1899,6 +1937,19 @@ function App() {
     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), { userId: user.uid, ...data, status: 'pending', timestamp: serverTimestamp() });
   };
 
+  const saveSysConfig = async (cfg) => { 
+    try { 
+      // 自動清理物件中可能造成 Firebase 報錯的 undefined 值
+      const cleanCfg = JSON.parse(JSON.stringify(cfg));
+      // 加上 merge: true，確保只更新有異動的欄位，不破壞既有資料
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'systemConfig'), cleanCfg, { merge: true }); 
+      alert("已儲存設定"); 
+    } catch (e) { 
+      console.error("儲存設定失敗:", e);
+      alert("儲存失敗"); 
+    } 
+  };
+
   if (isLoading) return <div className="flex h-screen items-center justify-center bg-slate-100 font-black text-slate-400 tracking-widest animate-pulse">SYSTEM LOADING...</div>;
 
   return (
@@ -1909,7 +1960,7 @@ function App() {
             <div className="bg-blue-600 p-2 rounded-lg transition-transform group-hover:scale-110"><Waves className="h-5 w-5 text-white" /></div>
             <span className="ml-3 text-xl font-black text-slate-900 tracking-tight">鯊墾丁 (SHARKENTING)</span>
           </div>
-          <button onClick={() => { if (!isAdminMode) setShowLoginModal(true); else setIsAdminMode(false); }} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+          <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
             <Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">營運管理中心</span>
           </button>
         </div>
@@ -2038,7 +2089,14 @@ function App() {
 
               </div>
             )}
+            
+            {/* 動態頁面渲染區 */}
             {currentView === 'activities' && <ServiceSection title="潛水課程與活動" items={activities} type="activity" onBook={(item) => { setSelectedActivity(item); setIsRegModalOpen(true); }} sysConfig={sysConfig} bookings={bookings} />}
+            
+            {/* 修復空白畫面：加入了原本遺失的 accommodations 與 equipments 對應的組件 */}
+            {currentView === 'accommodations' && <AccommodationBookingPage onBack={() => setCurrentView('dashboard')} />}
+            {currentView === 'equipments' && <EquipmentRentalPage onBack={() => setCurrentView('home')} />}
+            
             {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
           </>
         ) : (
