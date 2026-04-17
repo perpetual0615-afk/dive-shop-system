@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -64,7 +63,7 @@ function formatDateTs(ts) {
   return JSON.stringify(ts);
 }
 
-// 手機號碼自動格式化輔助函數 (四碼-三碼-三碼)
+// 手機號碼自動格式化輔助函數
 function formatPhoneNumber(value) {
   if (!value) return '';
   const numbers = value.replace(/[^\d]/g, '');
@@ -73,7 +72,7 @@ function formatPhoneNumber(value) {
   return `${numbers.slice(0, 4)}-${numbers.slice(4, 7)}-${numbers.slice(7, 10)}`;
 }
 
-// 匯出 CSV 輔助函數 (加入 BOM 確保 Excel 中文不亂碼)
+// 匯出 CSV 輔助函數
 function exportToCSV(filename, rows) {
   const processRow = function (row) {
     let finalVal = '';
@@ -140,7 +139,6 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
   if (!h || !w) return null;
 
   const bmi = w / ((h / 100) ** 2);
-  // 計算變形比例，基準值以 h=170, BMI=22 為主
   const scaleY = Math.max(0.85, Math.min(1.15, h / 170));
   const scaleX = Math.max(0.75, Math.min(1.4, bmi / 22));
   
@@ -157,31 +155,21 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
 
        {/* Visualizer: 科技感 AI 體型模擬艙 */}
        <div className="relative w-40 h-48 flex items-end justify-center bg-slate-900 rounded-2xl border border-indigo-900/50 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] overflow-hidden shrink-0">
-          {/* 背景網格 */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none"></div>
-          
-          {/* 掃描線動畫 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
              <div className="w-full h-[2px] bg-cyan-400/80 shadow-[0_0_15px_rgba(34,211,238,1)] absolute animate-[scan_2.5s_ease-in-out_infinite]"></div>
           </div>
           
-          {/* 變形潛水員主體 */}
           <div className="flex flex-col items-center origin-bottom transition-transform duration-700 ease-out z-10" style={{ transform: `scaleX(${scaleX}) scaleY(${scaleY})`, marginBottom: '12px' }}>
-             {/* 頭部與面鏡 */}
              <div className="w-9 h-9 bg-slate-700 rounded-full mb-1 relative border-2 border-slate-600 shadow-[0_0_10px_rgba(0,0,0,0.5)]">
                 <div className="absolute top-1.5 left-[4px] right-[4px] h-3.5 bg-cyan-400/90 rounded-[3px] backdrop-blur-sm border border-cyan-200/50 shadow-[0_0_8px_rgba(34,211,238,0.6)]"></div>
              </div>
-             {/* 軀幹與裝備 */}
              <div className="w-[56px] h-[76px] bg-slate-700 rounded-t-xl relative border-2 border-slate-600 shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-                {/* 防寒衣拉鍊紋路 */}
                 <div className="absolute top-1 left-1/2 -translate-x-1/2 w-0.5 h-14 bg-slate-600/50 rounded-full"></div>
-                
-                {/* BCD Overlay */}
                 <div className="absolute top-3 -left-2.5 -right-2.5 h-12 bg-slate-800 rounded-lg border border-slate-500 flex justify-center items-center shadow-lg">
                    <div className="w-2 h-full bg-blue-500/80 rounded-full shadow-[0_0_6px_rgba(59,130,246,0.8)]"></div>
-                   <div className="absolute -right-1.5 top-2 w-2.5 h-2.5 bg-slate-400 rounded-full border border-slate-500"></div> {/* 充氣閥示意 */}
+                   <div className="absolute -right-1.5 top-2 w-2.5 h-2.5 bg-slate-400 rounded-full border border-slate-500"></div>
                 </div>
-                {/* 配重帶 (模擬) */}
                 {showWeight && (
                    <div className="absolute bottom-1 -left-1.5 -right-1.5 h-3 bg-slate-900 border border-slate-500 rounded flex items-center justify-center gap-1 shadow-md">
                       <div className="w-2 h-2 bg-slate-300 rounded-[1px]"></div>
@@ -189,28 +177,21 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
                    </div>
                 )}
              </div>
-             {/* 雙腿 */}
              <div className="flex gap-[2px] w-[56px]">
                <div className="w-[27px] h-14 bg-slate-700 rounded-b-lg border-2 border-slate-600 border-t-0 shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
                <div className="w-[27px] h-14 bg-slate-700 rounded-b-lg border-2 border-slate-600 border-t-0 shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
              </div>
           </div>
 
-          {/* HUD 資訊標籤 (不受外層縮放影響以保持清晰，精準指向模擬裝備) */}
           <div className="absolute inset-0 pointer-events-none z-30">
-             {/* BCD 指示線與標籤 */}
              <div className="absolute top-[35%] left-[2%] flex items-center">
                 <div className="bg-slate-800/90 backdrop-blur-sm text-cyan-300 text-[10px] font-black px-1.5 py-1 rounded shadow-md border border-cyan-500/50 leading-none">BCD {recSize}</div>
                 <div className="w-4 h-[1px] bg-cyan-500/70"></div>
              </div>
-             
-             {/* 防寒衣 指示線與標籤 */}
              <div className="absolute top-[55%] right-[2%] flex items-center flex-row-reverse">
                 <div className="bg-slate-800/90 backdrop-blur-sm text-indigo-300 text-[10px] font-black px-1.5 py-1 rounded shadow-md border border-indigo-500/50 leading-none">防寒衣 {recSize}</div>
                 <div className="w-4 h-[1px] bg-indigo-500/70"></div>
              </div>
-
-             {/* 套鞋/蛙鞋 指示線與標籤 */}
              {shoeSize && (
                 <div className="absolute bottom-[2%] right-[2%] flex items-center flex-row-reverse">
                     <div className="bg-slate-800/90 backdrop-blur-sm text-teal-300 text-[10px] font-black px-1.5 py-1 rounded shadow-md border border-teal-500/50 flex flex-col items-center leading-none gap-0.5">
@@ -220,8 +201,6 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
                     <div className="w-4 h-[1px] bg-teal-500/70"></div>
                 </div>
              )}
-
-             {/* 配重 指示線與標籤 */}
              {showWeight && (
                 <div className="absolute bottom-[16%] left-[2%] flex items-center">
                     <div className="bg-slate-800/90 backdrop-blur-sm text-blue-300 text-[10px] font-black px-1.5 py-1 rounded shadow-md border border-blue-500/50 flex items-center gap-0.5 leading-none">
@@ -615,19 +594,23 @@ function WeightControl({ label, value, onAdd, onSub }) {
 
 function BookingCard({ booking: b, type, db, appId }) {
   const [expanded, setExpanded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const bName = String(b.name || b.details?.name || '未知');
   const bPhone = String(b.phone || b.details?.phone || '未知');
   const submitDate = formatTs(b.timestamp);
 
   const updateStatus = async (status) => {
     try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), { status }); }
-    catch (e) { alert("狀態更新失敗"); }
+    catch (e) { console.error(e); }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm("確定要永久刪除此筆預約紀錄嗎？此動作無法撤回。")) {
-       try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)); }
-       catch (e) { alert("刪除失敗，請檢查權限"); }
+  const executeDelete = async (e) => {
+    e.stopPropagation();
+    try { 
+       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)); 
+    } catch (e) { 
+       console.error("刪除失敗", e); 
     }
   };
 
@@ -662,10 +645,18 @@ function BookingCard({ booking: b, type, db, appId }) {
                   <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
                </div>
                
-               {/* 在所有預約表（潛水、住宿、裝備）中皆顯示刪除按鈕 */}
-               <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="永久刪除此紀錄">
-                  <Trash2 className="w-4 h-4" />
-               </button>
+               {/* 內聯確認刪除機制，取代 window.confirm */}
+               {confirmDelete ? (
+                 <div className="flex items-center gap-1 bg-rose-50 p-1 rounded-lg animate-in fade-in">
+                    <span className="text-[10px] text-rose-600 font-bold px-1">刪除?</span>
+                    <button onClick={executeDelete} className="px-2 py-1 bg-rose-600 text-white rounded text-xs font-bold">是</button>
+                    <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }} className="px-2 py-1 bg-slate-300 text-slate-700 rounded text-xs font-bold">否</button>
+                 </div>
+               ) : (
+                 <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="永久刪除此紀錄">
+                    <Trash2 className="w-4 h-4" />
+                 </button>
+               )}
             </div>
             <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
          </div>
@@ -907,6 +898,8 @@ function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }
 function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, equipments = [] }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(''); // 新增: 內嵌錯誤訊息狀態
+
   const isTrip = activity.diveCategory === '潛旅';
   const isDSD = activity.diveCategory === '體驗潛水';
   const isCourse = activity.isCourse;
@@ -1024,10 +1017,13 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
   });
 
   const handleSubmit = async () => {
+    setErrorMsg(''); // 清除先前的錯誤訊息
+
     if (step < totalSteps) { setStep(step + 1); return; }
     
     if (!isMedicalComplete) {
-      alert("請完成所有展開的醫療聲明選項 (包含各項子題目)"); return;
+      setErrorMsg("⚠️ 請完成所有展開的醫療聲明選項 (包含各項子題目)！"); 
+      return;
     }
 
     if(isSubmitting) return;
@@ -1079,14 +1075,11 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
         activityId: activity.id || ''
       };
 
-      // 清理 undefined 屬性，避免 Firebase addDoc 報錯
-      Object.keys(submitData).forEach(key => {
-        if (submitData[key] === undefined) {
-           delete submitData[key];
-        }
-      });
+      // 【核心修復點】: 執行深層過濾，將所有可能殘留的 undefined 轉換為安全值
+      // Firestore 不允許巢狀物件內含有 undefined 屬性。
+      const safeData = JSON.parse(JSON.stringify(submitData));
 
-      await onSubmit(submitData);
+      await onSubmit(safeData);
       
       let gotoAcc = false;
       let accContext = null;
@@ -1102,7 +1095,7 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
       onSuccess({ gotoAcc, accContext });
     } catch (error) {
       console.error(error);
-      alert("表單送出失敗，請稍後再試。");
+      setErrorMsg("⚠️ 表單送出失敗，請檢查網路連線或稍後再試。");
       setIsSubmitting(false);
     }
   };
@@ -1709,24 +1702,31 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
         </div>
 
         {/* Footer Navigation */}
-        <div className="bg-white p-6 border-t border-slate-100 shrink-0 flex gap-4">
-          {step > 1 ? (
-             <button type="button" disabled={isSubmitting} onClick={() => setStep(step - 1)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-               <ChevronLeft className="w-5 h-5" /> 上一步
-             </button>
-          ) : (
-             <button type="button" disabled={isSubmitting} onClick={onClose} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
+        <div className="bg-white p-6 border-t border-slate-100 shrink-0 flex flex-col gap-4">
+          {errorMsg && (
+             <div className="bg-rose-50 text-rose-600 font-bold p-4 rounded-xl flex items-center gap-2 animate-in fade-in shadow-sm border border-rose-100">
+                <AlertTriangle className="w-5 h-5 shrink-0" /> {errorMsg}
+             </div>
           )}
-          
-          <button 
-             type="button" 
-             disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
-             onClick={handleSubmit} 
-             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? '處理中...' : step < totalSteps ? '下一步，繼續填寫' : '確認無誤，送出報名單'}
-            {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
-          </button>
+          <div className="flex gap-4">
+            {step > 1 ? (
+               <button type="button" disabled={isSubmitting} onClick={() => {setErrorMsg(''); setStep(step - 1);}} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                 <ChevronLeft className="w-5 h-5" /> 上一步
+               </button>
+            ) : (
+               <button type="button" disabled={isSubmitting} onClick={onClose} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
+            )}
+            
+            <button 
+               type="button" 
+               disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
+               onClick={handleSubmit} 
+               className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? '處理中...' : step < totalSteps ? '下一步，繼續填寫' : '確認無誤，送出報名單'}
+              {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1899,19 +1899,6 @@ function App() {
     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), { userId: user.uid, ...data, status: 'pending', timestamp: serverTimestamp() });
   };
 
-  const saveSysConfig = async (cfg) => { 
-    try { 
-      // 自動清理物件中可能造成 Firebase 報錯的 undefined 值
-      const cleanCfg = JSON.parse(JSON.stringify(cfg));
-      // 加上 merge: true，確保只更新有異動的欄位，不破壞既有資料
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'systemConfig'), cleanCfg, { merge: true }); 
-      alert("已儲存設定"); 
-    } catch (e) { 
-      console.error("儲存設定失敗:", e);
-      alert("儲存失敗"); 
-    } 
-  };
-
   if (isLoading) return <div className="flex h-screen items-center justify-center bg-slate-100 font-black text-slate-400 tracking-widest animate-pulse">SYSTEM LOADING...</div>;
 
   return (
@@ -1922,7 +1909,7 @@ function App() {
             <div className="bg-blue-600 p-2 rounded-lg transition-transform group-hover:scale-110"><Waves className="h-5 w-5 text-white" /></div>
             <span className="ml-3 text-xl font-black text-slate-900 tracking-tight">鯊墾丁 (SHARKENTING)</span>
           </div>
-          <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+          <button onClick={() => { if (!isAdminMode) setShowLoginModal(true); else setIsAdminMode(false); }} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
             <Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">營運管理中心</span>
           </button>
         </div>
@@ -2052,21 +2039,6 @@ function App() {
               </div>
             )}
             {currentView === 'activities' && <ServiceSection title="潛水課程與活動" items={activities} type="activity" onBook={(item) => { setSelectedActivity(item); setIsRegModalOpen(true); }} sysConfig={sysConfig} bookings={bookings} />}
-            {currentView === 'accommodations' && <AccommodationBookingPage accommodations={accommodations} sysConfig={sysConfig} context={pendingAccAction} onBook={async (data) => {
-                try {
-                   await submitRegistration(data);
-                   setPendingAccAction(null);
-                   setCurrentView('dashboard');
-                   window.scrollTo(0,0);
-                } catch(e) { alert("送出失敗"); }
-            }} onBack={() => { setPendingAccAction(null); setCurrentView('home'); }} />}
-            {currentView === 'equipments' && <EquipmentRentalPage equipments={equipmentsList} sysConfig={sysConfig} onBook={async (data) => {
-                try {
-                   await submitRegistration(data);
-                   setCurrentView('dashboard');
-                   window.scrollTo(0,0);
-                } catch(e) { alert("送出失敗"); }
-            }} onBack={() => setCurrentView('home')} />}
             {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
           </>
         ) : (
@@ -2077,24 +2049,14 @@ function App() {
                 <div className="flex flex-col">
                   <div className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 border-t border-slate-50 pt-4">顧客預約管理</div>
                   <AdminTabBtn active={adminSection === 'book-activities'} onClick={() => setAdminSection('book-activities')} icon={<ClipboardList className="w-5 h-5"/>} label="潛水報名表" />
-                  <AdminTabBtn active={adminSection === 'book-accommodations'} onClick={() => setAdminSection('book-accommodations')} icon={<CalendarDays className="w-5 h-5"/>} label="住宿預約表" />
-                  <AdminTabBtn active={adminSection === 'book-equipments'} onClick={() => setAdminSection('book-equipments')} icon={<ShoppingCart className="w-5 h-5"/>} label="裝備租借表" />
                   <div className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 border-t border-slate-50 pt-4">系統資源設定</div>
                   <AdminTabBtn active={adminSection === 'activities'} onClick={() => {setAdminSection('activities'); setAdminSubTab('list');}} icon={<Waves className="w-5 h-5"/>} label="活動上架" />
-                  <AdminTabBtn active={adminSection === 'accommodations'} onClick={() => {setAdminSection('accommodations'); setAdminSubTab('rooms');}} icon={<Home className="w-5 h-5"/>} label="住宿與房控" />
-                  <AdminTabBtn active={adminSection === 'equipments'} onClick={() => {setAdminSection('equipments'); setAdminSubTab('inventory');}} icon={<LifeBuoy className="w-5 h-5"/>} label="庫存與收費" />
-                  <AdminTabBtn active={adminSection === 'system'} onClick={() => setAdminSection('system')} icon={<PenTool className="w-5 h-5"/>} label="基礎文案設定" />
                 </div>
               </div>
             </div>
             <div className="flex-1 min-h-[700px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 {adminSection === 'book-activities' && <BookingAdminPanel db={db} appId={appId} bookings={bookings} type="activity" title="潛水課程與活動報名表" />}
-                {adminSection === 'book-accommodations' && <BookingAdminPanel db={db} appId={appId} bookings={bookings} type="accommodation" title="住宿預約表" />}
-                {adminSection === 'book-equipments' && <BookingAdminPanel db={db} appId={appId} bookings={bookings} type="equipment" title="裝備租借紀錄表" />}
-                {adminSection === 'activities' && <ActivityAdminPanel db={db} appId={appId} activities={activities} courseTemplates={courseTemplates} sysConfig={sysConfig} saveSysConfig={saveSysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} />}
-                {adminSection === 'accommodations' && <AccommodationAdminPanel db={db} appId={appId} accommodations={accommodations} sysConfig={sysConfig} saveSysConfig={saveSysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} />}
-                {adminSection === 'equipments' && <EquipmentAdminPanel db={db} appId={appId} equipments={equipmentsList} sysConfig={sysConfig} saveSysConfig={saveSysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} />}
-                {adminSection === 'system' && <SystemAdminPanel config={sysConfig} onSave={saveSysConfig} />}
+                {adminSection === 'activities' && <ActivityAdminPanel db={db} appId={appId} activities={activities} courseTemplates={courseTemplates} sysConfig={sysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} bookings={bookings} />}
             </div>
           </div>
         )}
@@ -2124,7 +2086,6 @@ function App() {
          />
       )}
 
-      {showAccPromptModal && <AccPromptModal sysConfig={sysConfig} onClose={() => setShowAccPromptModal(false)} onGoActivities={()=>{setShowAccPromptModal(false); setCurrentView('activities'); window.scrollTo(0,0);}} onGoAccommodations={()=>{setShowAccPromptModal(false); setCurrentView('accommodations'); window.scrollTo(0,0);}} />}
     </div>
   );
 }
