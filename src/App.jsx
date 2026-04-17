@@ -616,12 +616,10 @@ function BookingCard({ booking: b, type, db, appId }) {
                   <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
                </div>
                
-               {/* 在「住宿預約表」與「裝備租借表」中顯示刪除按鈕 */}
-               {(type === 'accommodation' || type === 'equipment') && (
-                 <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="永久刪除此筆紀錄">
-                    <Trash2 className="w-4 h-4" />
-                 </button>
-               )}
+               {/* 在所有預約表（潛水、住宿、裝備）中皆顯示刪除按鈕 */}
+               <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="永久刪除此紀錄">
+                  <Trash2 className="w-4 h-4" />
+               </button>
             </div>
             <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
          </div>
@@ -3585,9 +3583,13 @@ function UserDashboard({ bookings }) {
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
     const name = searchName.trim();
-    const phone = searchPhone.trim();
-    return bookings.filter(b => (b.name === name || b.details?.name === name) && (b.phone === phone || b.details?.phone === phone))
-                   .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+    const phoneQuery = searchPhone.replace(/[^\d]/g, ''); // 移除非數字字符，進行高容錯精準備對
+    return bookings.filter(b => {
+        const matchName = b.name === name || b.details?.name === name;
+        const bPhone = String(b.phone || b.details?.phone || '').replace(/[^\d]/g, '');
+        const matchPhone = bPhone === phoneQuery;
+        return matchName && matchPhone;
+    }).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
   }, [bookings, searchName, searchPhone, hasSearched]);
 
   const handleSearch = (e) => {
@@ -3609,13 +3611,13 @@ function UserDashboard({ bookings }) {
         <div className="text-center mb-10 pt-4">
           <div className="mx-auto w-20 h-20 bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl border border-white transform -rotate-3 hover:rotate-0 transition-transform"><Search className="w-10 h-10" /></div>
           <h2 className="text-3xl md:text-4xl font-black text-slate-800 drop-shadow-sm mb-3">我的預約與報名查詢</h2>
-          <div className="text-slate-500 font-bold">請輸入您報名時填寫的姓名與手機號碼 / Please enter your name and phone.</div>
+          <div className="text-slate-500 font-bold">請輸入您預約活動、住宿或裝備時填寫的姓名與手機號碼。</div>
         </div>
 
         <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-2xl p-8 mb-10">
           <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-5 gap-5">
             <div className="sm:col-span-2"><FormInput label="真實姓名 / Name" value={searchName} onChange={setSearchName} placeholder="王小明" required /></div>
-            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" value={searchPhone} onChange={v => setSearchPhone(formatPhoneNumber(v))} placeholder="09xx-xxx-xxx" required /></div>
+            <div className="sm:col-span-2"><FormInput label="聯絡手機 / Phone" type="tel" value={searchPhone} onChange={v => setSearchPhone(formatPhoneNumber(v))} placeholder="09xx-xxx-xxx" required /></div>
             <div className="sm:col-span-1 flex items-end">
               <button type="submit" disabled={isSearching} className="w-full py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black shadow-xl transition-all flex items-center justify-center gap-2">
                 {isSearching ? '...' : <Search className="w-5 h-5"/>}
@@ -3631,12 +3633,18 @@ function UserDashboard({ bookings }) {
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6 border-b-2 border-slate-50 pb-6 mb-6">
                       <div>
                         <div className="flex gap-2 items-center mb-2">
-                          <span className="px-3 py-1 text-[10px] font-black rounded-full bg-blue-50 border border-blue-100 text-blue-700">
-                            {b.type === 'activity' ? '活動報名 / Activity' : '住宿預約 / Accommodation'}
+                          <span className={`px-3 py-1 text-[10px] font-black rounded-full border ${b.type === 'activity' ? 'bg-blue-50 border-blue-100 text-blue-700' : b.type === 'accommodation' ? 'bg-teal-50 border-teal-100 text-teal-700' : 'bg-cyan-50 border-cyan-100 text-cyan-700'}`}>
+                            {b.type === 'activity' ? '活動課程 / Activity' : b.type === 'accommodation' ? '住宿預約 / Accommodation' : '裝備租借 / Equipment'}
                           </span>
                           <span className="text-xs text-slate-400 font-bold">{formatTs(b.timestamp)}</span>
                         </div>
                         <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
+                        
+                        <div className="mt-2 text-sm font-bold text-slate-500 flex items-center gap-2">
+                           {b.type === 'activity' && b.date && <><CalendarDays className="w-4 h-4 text-blue-400"/> 活動日期: {b.date}</>}
+                           {b.type === 'accommodation' && b.details?.checkIn && <><CalendarDays className="w-4 h-4 text-teal-400"/> 入住日期: {b.details.checkIn} ({b.details.nights}晚)</>}
+                           {b.type === 'equipment' && b.details?.date && <><CalendarDays className="w-4 h-4 text-cyan-400"/> 取件日期: {b.details.date} ({b.details.days}天)</>}
+                        </div>
                       </div>
                       <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
                         {b.status === 'confirmed' ? '已確認 / Confirmed' : '處理中 / Pending'}
