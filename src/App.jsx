@@ -283,6 +283,52 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
 }
 
 // --------------------------------------------------------
+// 全域自訂圖示 (Custom Icons)
+// --------------------------------------------------------
+
+const DivingTankIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M7 12V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v7" />
+    <path d="M5 12v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7H5z" />
+    <path d="M12 3v-1" />
+    <path d="M10 2h4" />
+  </svg>
+);
+
+const CoralIcon = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M22 22H2" />
+    <path d="M12 22v-8" />
+    <path d="M12 16c-2-2-3-2-5-4-1-1-2-1-2-3a2 2 0 0 1 4 0c0 1 1 2 3 3M12 14c2-1 3-2 5-4 1-1 2-2 2-4a2 2 0 0 0-4 0c0 1-1 2-3 4" />
+    <path d="M7 22v-3" />
+    <path d="M7 19c-1-1-2-1-3-2a1 1 0 0 1 2-1c1 0 1 1 2 2" />
+    <path d="M17 22v-4" />
+    <path d="M17 18c1-1 2-1 3-2a1 1 0 0 0-2-1c-1 0-1 1-2 2" />
+  </svg>
+);
+
+const CoralReefIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <g transform="translate(30, 20) scale(1.6)">
+        <path d="M12 22v-8M12 16c-2-2-3-2-5-4-1-1-2-1-2-3a2 2 0 0 1 4 0c0 1 1 2 3 3M12 14c2-1 3-2 5-4 1-1 2-2 2-4a2 2 0 0 0-4 0c0 1-1 2-3 4M7 22v-3M7 19c-1-1-2-1-3-2a1 1 0 0 1 2-1c1 0 1 1 2 2M17 22v-4M17 18c1-1 2-1 3-2a1 1 0 0 0-2-1c-1 0-1 1-2 2" />
+    </g>
+    <g transform="translate(0, 45) scale(0.8) rotate(-10)">
+        <path d="M10 22 Q 10 10 25 5 M10 22 Q 5 12 0 8 M10 22 Q 15 15 20 12" strokeWidth="1.5" />
+        <circle cx="25" cy="5" r="1.5" fill="currentColor" opacity="0.5" />
+        <circle cx="0" cy="8" r="1.5" fill="currentColor" opacity="0.5" />
+        <circle cx="20" cy="12" r="1.5" fill="currentColor" opacity="0.5" />
+    </g>
+    <g transform="translate(65, 55) scale(0.7) rotate(15)">
+        <path d="M12 22v-10M12 15 L5 8 M12 12 L20 5 M12 18 L18 15" strokeWidth="2" />
+    </g>
+    <circle cx="15" cy="85" r="2" fill="currentColor" opacity="0.3" />
+    <circle cx="85" cy="75" r="1.5" fill="currentColor" opacity="0.2" />
+    <circle cx="50" cy="90" r="1" fill="currentColor" opacity="0.4" />
+    <path d="M5 95 Q 50 90 95 95" strokeWidth="1" opacity="0.3" />
+  </svg>
+);
+
+// --------------------------------------------------------
 // 基礎 UI 組件
 // --------------------------------------------------------
 
@@ -372,7 +418,7 @@ function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", bgIcon }) 
       <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-150 ${theme.glow}`}></div>
       
       {/* 水下波紋/海洋生物 浮水印裝飾 */}
-      <div className={`absolute -bottom-6 -right-6 opacity-[0.04] group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${theme.watermark}`}>
+      <div className={`absolute -bottom-10 -right-10 opacity-[0.05] group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 pointer-events-none [&>svg]:w-48 [&>svg]:h-48 rotate-12 ${theme.watermark}`}>
          {bgIcon || icon}
       </div>
       
@@ -856,7 +902,7 @@ function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }
 }
 
 // --------------------------------------------------------
-// 報名表單實作
+// 報名表單實作 (修復無法送出表單問題)
 // --------------------------------------------------------
 function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, equipments = [] }) {
   const [step, setStep] = useState(1);
@@ -945,8 +991,8 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
 
   // 總計金額計算 (活動基底 + 裝備 + 簽證 + 選修 + 強制必修)
   const calculateTotal = () => {
-    let total = activity.price + calculateEqPrice();
-    if (isCourse && activity.certFee) total += activity.certFee;
+    let total = (parseInt(activity.price) || 0) + calculateEqPrice();
+    if (isCourse && activity.certFee) total += (parseInt(activity.certFee) || 0);
     if (isCourse && activity.compulsories?.length > 0) {
        activity.compulsories.forEach(comp => {
           if (typeof comp === 'object' && comp.price > 0) total += comp.price;
@@ -960,15 +1006,16 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
     return total;
   };
 
-  // Step 3: 住宿 (僅課程)
-  const [accOption, setAccOption] = useState('included'); 
+  // Step 3: 住宿 (僅課程預設為 included，一般 Fun Dive 預設為 self)
+  const [accOption, setAccOption] = useState(isCourse ? 'included' : 'self'); 
 
   // Step 4: 醫療聲明
+  const formQuestions = sysConfig?.medicalForm || DEFAULT_MEDICAL_FORM;
   const [medicalAnswers, setMedicalAnswers] = useState({});
   const hasMedicalIssue = Object.values(medicalAnswers).some(val => val === true);
 
   // 驗證醫療問卷是否填寫完畢 (母題勾是才需檢查子題)
-  const isMedicalComplete = sysConfig.medicalForm.every(q => {
+  const isMedicalComplete = formQuestions.every(q => {
     if (medicalAnswers[q.id] === undefined) return false;
     if (medicalAnswers[q.id] === true && q.subItems && q.subItems.length > 0) {
       return q.subItems.every(sub => medicalAnswers[sub.id] !== undefined);
@@ -992,7 +1039,7 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
 
       // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
       const medicalIssues = [];
-      sysConfig.medicalForm.forEach(q => {
+      formQuestions.forEach(q => {
         if (medicalAnswers[q.id] === true) {
            medicalIssues.push(q.text);
            if (q.subItems && q.subItems.length > 0) {
@@ -1007,23 +1054,38 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
 
       const submitData = {
         type: 'activity', 
-        itemName: activity.name || activity.courseName, 
-        price: calculateTotal(), 
-        ...f,
-        weights,
-        rentals,
-        selectedElectives: finalElectives,
+        itemName: activity.name || activity.courseName || '未命名項目', 
+        price: calculateTotal() || 0, 
+        name: f.name || '',
+        nickname: f.nickname || '',
+        phone: f.phone || '',
+        idNumber: f.idNumber || '',
+        birthday: f.birthday || '',
+        height: f.height || '',
+        weight: f.weight || '',
+        shoeSize: f.shoeSize || '',
+        weights: weights || { w1: 0, w2: 0, w25: 0, w3: 0 },
+        rentals: rentals || [],
+        selectedElectives: finalElectives || [],
         certFee: activity.certFee || 0,
         certSystem: activity.certSystem || '',
-        useLocalShopEq,
-        isReturningCustomer,
-        accOption: isTrip ? 'trip' : accOption,
-        divingExperience: exp,
-        medicalAnswers,
-        medicalIssues,
+        useLocalShopEq: !!useLocalShopEq,
+        isReturningCustomer: !!isReturningCustomer,
+        accOption: isTrip ? 'trip' : (accOption || 'self'),
+        divingExperience: exp || {},
+        medicalAnswers: medicalAnswers || {},
+        medicalIssues: medicalIssues || [],
         hasMedicalIssue: medicalIssues.length > 0,
-        activityId: activity.id
+        activityId: activity.id || ''
       };
+
+      // 清理 undefined 屬性，避免 Firebase addDoc 報錯
+      Object.keys(submitData).forEach(key => {
+        if (submitData[key] === undefined) {
+           delete submitData[key];
+        }
+      });
+
       await onSubmit(submitData);
       
       let gotoAcc = false;
@@ -1034,12 +1096,13 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
         accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; 
       } else if (!isCourse && !isTrip && accOption !== 'self') {
         gotoAcc = true;
-        accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue };
+        accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType || 'fixed', discountVal: sysConfig.accDiscountValue || 0 };
       }
 
       onSuccess({ gotoAcc, accContext });
     } catch (error) {
       console.error(error);
+      alert("表單送出失敗，請稍後再試。");
       setIsSubmitting(false);
     }
   };
@@ -1275,7 +1338,7 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
                          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
                              <h4 className="font-black text-slate-800 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-500"/> 課程選修加購與強制費用</h4>
-                             <span className="text-xl font-black text-blue-600">小計: NT$ {calculateTotal() - activity.price - calculateEqPrice()}</span>
+                             <span className="text-xl font-black text-blue-600">小計: NT$ {calculateTotal() - (parseInt(activity.price)||0) - calculateEqPrice()}</span>
                            </div>
                            
                            <div className="space-y-3">
@@ -1587,7 +1650,7 @@ function RegistrationForm({ activity, onClose, onSubmit, sysConfig, onSuccess, e
             {isStepMedical && (
               <div className="space-y-6 pb-20">
                  <div className="space-y-4">
-                   {sysConfig.medicalForm.map((q, idx) => (
+                   {formQuestions.map((q, idx) => (
                      <div key={q.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                         <div className="mb-2">
                            <p className="font-bold text-slate-800 mb-3">{String(q.text)}</p>
@@ -2040,6 +2103,7 @@ function App() {
       {/* --- 全域視窗 Modals --- */}
       {showLoginModal && <AdminLoginModal onVerify={verifyAdmin} onClose={() => setShowLoginModal(false)} />}
       
+      {/* 傳遞 equipments 參數給 RegistrationForm */}
       {isRegModalOpen && selectedActivity && (
          <RegistrationForm 
             activity={selectedActivity} 
