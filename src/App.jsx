@@ -648,6 +648,19 @@ function BookingCard({ booking: b, type, db, appId }) {
                    {b.useLocalShopEq && <p className="text-indigo-600 font-bold">※ 使用潛旅當地潛店裝備</p>}
                 </div>
                 <div className="col-span-1 md:col-span-2 mt-2">
+                   <p className="font-bold text-slate-700 border-b pb-1 mb-2">個人潛水經驗</p>
+                   {b.divingExperience ? (
+                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <p><span className="text-slate-400 w-24 inline-block">證照級別</span> {b.divingExperience.certSystem} / {b.divingExperience.certLevel}</p>
+                        <p><span className="text-slate-400 w-24 inline-block">總潛水支數</span> {b.divingExperience.loggedDives ? `${b.divingExperience.loggedDives} 支` : '未填寫'}</p>
+                        <p className="md:col-span-2"><span className="text-slate-400 w-24 inline-block">特殊專長</span> {b.divingExperience.specialties?.length > 0 ? b.divingExperience.specialties.join('、') : '無'}</p>
+                        {b.divingExperience.personalNotes && <p className="md:col-span-2 mt-2 text-sm text-slate-600 bg-white p-3 rounded-lg border border-slate-100 shadow-sm"><span className="font-bold text-slate-400 block mb-1">備註提醒：</span>{b.divingExperience.personalNotes}</p>}
+                     </div>
+                   ) : (
+                     <p className="text-slate-400 text-sm font-bold">無紀錄資料</p>
+                   )}
+                </div>
+                <div className="col-span-1 md:col-span-2 mt-2">
                    <p className="font-bold text-slate-700 border-b pb-1 mb-2">健康聲明與風險評估</p>
                    {b.hasMedicalIssue ? (
                       <div className="bg-rose-50 p-4 rounded-xl border border-rose-200">
@@ -715,14 +728,16 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
     let rows = [];
 
     if (type === 'activity') {
-      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備'];
+      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
       rows = typeBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
         const accStr = b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '維持背包房床位' : b.accOption === 'upgrade' ? '升級獨立房型' : b.accOption === 'release' ? '釋出床位' : '住宿自理';
         const electivesStr = b.selectedElectives?.length > 0 ? b.selectedElectives.map(e=>e.name).join('、 ') : '無';
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
-        return [statusStr, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否'];
+        const exp = b.divingExperience || {};
+        const specStr = exp.specialties?.length > 0 ? exp.specialties.join('、') : '無';
+        return [statusStr, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || ''];
       });
     } else if (type === 'accommodation') {
       headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
@@ -2316,7 +2331,7 @@ function SystemAdminPanel({ config, onSave }) {
 // 前台：顧客服務與預約表單組件 (補齊缺失功能)
 // --------------------------------------------------------
 
-function ServiceSection({ title, items, type, onBook, sysConfig }) {
+function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }) {
   return (
     <div className="animate-in fade-in duration-300">
       <h2 className="text-2xl font-black mb-6 text-slate-800 border-b border-slate-200 pb-4">{title}</h2>
@@ -2326,8 +2341,21 @@ function ServiceSection({ title, items, type, onBook, sysConfig }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map(item => (
-            <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full relative overflow-hidden">
+          {items.map(item => {
+            let totalSlots = 0;
+            let bookedCount = 0;
+            let remainingSlots = 0;
+            let isFull = false;
+
+            if (type === 'activity') {
+              totalSlots = parseInt(item.capacity) || 0;
+              bookedCount = bookings.filter(b => b.type === 'activity' && b.activityId === item.id && b.status !== 'cancelled').length;
+              remainingSlots = Math.max(0, totalSlots - bookedCount);
+              isFull = remainingSlots === 0;
+            }
+
+            return (
+            <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full relative overflow-hidden group">
               {/* 活動屬性標籤 */}
               {type === 'activity' && (
                 <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-xs font-black px-3 py-1.5 rounded-bl-xl shadow-sm">
@@ -2336,7 +2364,7 @@ function ServiceSection({ title, items, type, onBook, sysConfig }) {
               )}
               
               <div className="flex-1 mt-2">
-                <h3 className="font-bold text-xl text-slate-900 mb-2 pr-16">{String(item.name || item.courseName || '未命名項目')}</h3>
+                <h3 className="font-bold text-xl text-slate-900 mb-2 pr-16 group-hover:text-blue-700 transition-colors">{String(item.name || item.courseName || '未命名項目')}</h3>
                 
                 {type === 'activity' && (
                   <div className="space-y-1.5 mb-4 mt-3">
@@ -2349,6 +2377,13 @@ function ServiceSection({ title, items, type, onBook, sysConfig }) {
                     <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
                       <User className="w-4 h-4 text-indigo-500" /> 教練：{String(item.coach || '依店內安排')}
                     </p>
+
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                       <span className="text-[11px] font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">總額: {totalSlots} 人</span>
+                       <span className={`text-[11px] font-black px-2 py-1 rounded-md ${remainingSlots > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                         剩餘: {remainingSlots} 人
+                       </span>
+                    </div>
                   </div>
                 )}
 
@@ -2365,16 +2400,22 @@ function ServiceSection({ title, items, type, onBook, sysConfig }) {
               </div>
               
               <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-blue-600 font-black text-lg">NT$ {Number(item.price || item.priceLowWeekday || 0)}</span>
+                <div>
+                   {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
+                   <span className={`${type === 'accommodation' ? 'text-teal-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
+                      NT$ {Number(item.price || item.priceLowWeekday || 0)}
+                   </span>
+                </div>
                 <button 
                   onClick={() => onBook(item)} 
-                  className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                  disabled={type === 'activity' ? isFull : false}
+                  className={`px-5 py-2.5 text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-1.5 ${(type === 'activity' && isFull) ? 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none' : type === 'accommodation' ? 'bg-teal-600 hover:bg-teal-700 hover:shadow-teal-500/30' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30'}`}
                 >
-                  {type === 'activity' ? '立即報名' : '立即預約'}
+                  {type === 'activity' ? (isFull ? '已額滿' : '立即報名') : <><CalendarDays className="w-4 h-4"/> 選擇日期</>}
                 </button>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>
@@ -2393,11 +2434,13 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     { num: 2, title: '水面整備', sub: '基本與保險資料' },
     { num: 3, title: '海底探索', sub: '裝備配置與加購' },
     { num: 4, title: '5米停留', sub: '住宿房型選擇' },
-    { num: 5, title: '平安升水', sub: '醫療健康聲明' }
+    { num: 5, title: '潛水日誌', sub: '個人潛水經驗' },
+    { num: 6, title: '平安升水', sub: '醫療健康聲明' }
   ] : [
     { num: 1, title: '水面整備', sub: '基本與保險資料' },
     { num: 2, title: '5米停留', sub: '裝備需求配置' },
-    { num: 3, title: '平安升水', sub: '醫療健康聲明' }
+    { num: 3, title: '潛水日誌', sub: '個人潛水經驗' },
+    { num: 4, title: '平安升水', sub: '醫療健康聲明' }
   ];
   const totalSteps = stepTitles.length;
   
@@ -2405,12 +2448,16 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   const isStepBasic = (isCourse && step === 2) || (!isCourse && step === 1);
   const isStepEq = (isCourse && step === 3) || (!isCourse && step === 2);
   const isStepAcc = isCourse && step === 4;
-  const isStepMedical = (isCourse && step === 5) || (!isCourse && step === 3);
+  const isStepExp = (isCourse && step === 5) || (!isCourse && step === 3);
+  const isStepMedical = (isCourse && step === 6) || (!isCourse && step === 4);
 
   // Step 1 / 2: 基礎與保險
   const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '' });
   const [weights, setWeights] = useState({ w1: 0, w2: 0, w25: 0, w3: 0 });
   const totalWeight = (weights.w1*1) + (weights.w2*2) + (weights.w25*2.5) + (weights.w3*3);
+
+  // 新增: 潛水經驗
+  const [exp, setExp] = useState({ certSystem: '無/不適用', certLevel: '無/不適用', loggedDives: '', specialties: [], personalNotes: '' });
 
   // Step 2: 裝備租借 與 選修加購
   const [useLocalShopEq, setUseLocalShopEq] = useState(false);
@@ -2534,6 +2581,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         useLocalShopEq,
         isReturningCustomer,
         accOption: isTrip ? 'trip' : accOption,
+        divingExperience: exp,
         medicalAnswers,
         medicalIssues,
         hasMedicalIssue: medicalIssues.length > 0,
@@ -3026,6 +3074,75 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                      <span className="text-sm font-bold text-slate-500 mt-1 block">朋友已升級房型，我不需要額外的背包床位了。</span>
                    </div>
                  </label>
+              </div>
+            )}
+
+            {/* STEP: Diving Experience */}
+            {isStepExp && (
+              <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                 <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-6">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-2">
+                       <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><ClipboardList className="w-5 h-5"/></div>
+                       <div>
+                          <h4 className="font-black text-lg text-slate-800">潛水經驗調查</h4>
+                          <p className="text-xs font-bold text-slate-500 mt-1">幫助教練更了解您的潛水狀況，以便安排合適的行程與配對。</p>
+                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                       <div className="space-y-2">
+                         <label className="text-sm font-bold text-slate-700 ml-1">持有證照系統</label>
+                         <select value={exp.certSystem} onChange={e => setExp({...exp, certSystem: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-bold bg-slate-50 hover:bg-white transition-colors cursor-pointer">
+                            <option value="無/不適用">無 / 不適用 (初學或體驗)</option>
+                            <option value="PADI">PADI</option>
+                            <option value="SSI">SSI</option>
+                            <option value="AIDA">AIDA</option>
+                            <option value="Molchanovs">Molchanovs</option>
+                            <option value="SDI">SDI</option>
+                            <option value="TDI">TDI</option>
+                            <option value="CMAS">CMAS</option>
+                            <option value="NAUI">NAUI</option>
+                            <option value="其他">其他系統</option>
+                         </select>
+                       </div>
+                       <div className="space-y-2">
+                         <label className="text-sm font-bold text-slate-700 ml-1">證照等級</label>
+                         <select value={exp.certLevel} onChange={e => setExp({...exp, certLevel: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-bold bg-slate-50 hover:bg-white transition-colors cursor-pointer">
+                            <option value="無/不適用">無 / 不適用</option>
+                            <option value="OWD (初階)">OWD (初階)</option>
+                            <option value="AOWD (進階)">AOWD (進階)</option>
+                            <option value="Rescue (救援)">Rescue (救援)</option>
+                            <option value="Divemaster (潛水長)">Divemaster (潛水長)</option>
+                            <option value="Instructor (教練)">Instructor (教練)</option>
+                            <option value="其他">其他等級</option>
+                         </select>
+                       </div>
+                    </div>
+                    
+                    <div className="w-full md:w-1/2 pr-2">
+                       <FormInput label="大約總潛水支數 (Log)" type="number" value={exp.loggedDives} onChange={v => setExp({...exp, loggedDives: v})} placeholder="例：25" />
+                    </div>
+
+                    <div className="space-y-3 pt-4 border-t border-slate-100">
+                       <label className="text-sm font-bold text-slate-700 ml-1">擁有特殊潛水專長 (可複選)</label>
+                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                         {['高氧 Nitrox', '深潛 Deep', '船潛 Boat', '夜潛 Night', '頂尖中性浮力 PPB', '水下攝影', '乾衣 Dry Suit', '洞穴/沉船'].map(spec => (
+                            <label key={spec} className="flex items-center gap-2 cursor-pointer p-1">
+                              <input type="checkbox" checked={exp.specialties.includes(spec)} onChange={(e) => {
+                                  if(e.target.checked) setExp({...exp, specialties: [...exp.specialties, spec]});
+                                  else setExp({...exp, specialties: exp.specialties.filter(s => s !== spec)});
+                              }} className="w-4 h-4 text-blue-600 rounded border-slate-300" />
+                              <span className="text-sm font-bold text-slate-700">{spec}</span>
+                            </label>
+                         ))}
+                       </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2">
+                       <label className="text-sm font-bold text-slate-700 ml-1">個人備註提醒事項 (選填)</label>
+                       <textarea value={exp.personalNotes} onChange={e => setExp({...exp, personalNotes: e.target.value})} className="w-full p-4 border border-slate-200 rounded-2xl h-28 text-sm font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white transition-colors" placeholder="例如：容易暈船、特別怕冷、曾有一段時間未下水...等，讓教練能更了解您的狀況。" />
+                    </div>
+                 </div>
               </div>
             )}
 
@@ -4272,13 +4389,26 @@ function App() {
                                </div>
                                <span className="text-xs font-black text-slate-700 tracking-widest uppercase">實體門市位置</span>
                             </div>
+
+                            {/* Google Maps 開啟按鈕 (懸浮) */}
+                            <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0">
+                               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}`} target="_blank" rel="noreferrer" className="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl font-black shadow-[0_10px_25px_rgba(0,0,0,0.3)] hover:bg-cyan-600 transition-all flex items-center gap-2 hover:scale-105 border border-white/10">
+                                  <MapPin className="w-5 h-5"/> 在 Google Maps 中開啟
+                               </a>
+                            </div>
                          </div>
                       </div>
                    </div>
                 </div>
+
+                {/* 頁尾版權宣告 */}
+                <footer className="text-center text-slate-400 text-[11px] font-bold mt-16 pb-4 tracking-wider uppercase">
+                   {sysConfig.footerText || "© 2026 鯊墾丁 SHARKENTING . HUANG."}
+                </footer>
+
               </div>
             )}
-            {currentView === 'activities' && <ServiceSection title="潛水課程與活動" items={activities} type="activity" onBook={(item) => { setSelectedActivity(item); setIsRegModalOpen(true); }} sysConfig={sysConfig} />}
+            {currentView === 'activities' && <ServiceSection title="潛水課程與活動" items={activities} type="activity" onBook={(item) => { setSelectedActivity(item); setIsRegModalOpen(true); }} sysConfig={sysConfig} bookings={bookings} />}
             {currentView === 'accommodations' && <AccommodationBookingPage accommodations={accommodations} sysConfig={sysConfig} context={pendingAccAction} onBook={async (data) => {
                 try {
                    await submitRegistration(data);
