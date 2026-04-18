@@ -40,6 +40,71 @@ const DEFAULT_SERVICES = [
 ];
 
 // --------------------------------------------------------
+// 卡片專屬圖示
+// --------------------------------------------------------
+const CoralIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M40 90 C 40 60 20 50 20 30 C 20 15 35 15 35 30 C 35 50 50 60 50 90" fill="#FB7185" opacity="0.8"/>
+    <path d="M60 90 C 60 70 80 60 80 40 C 80 25 65 25 65 40 C 65 60 50 70 50 90" fill="#F472B6" opacity="0.8"/>
+    <path d="M30 90 C 30 75 15 65 15 50 C 15 40 25 40 25 50 C 25 65 40 75 40 90" fill="#FDA4AF" opacity="0.9"/>
+    <circle cx="70" cy="30" r="4" fill="#67E8F9" opacity="0.8"/>
+    <circle cx="80" cy="20" r="2" fill="#67E8F9" opacity="0.6"/>
+  </svg>
+);
+
+const AnchorIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="50" cy="20" r="8" stroke="#64748B" strokeWidth="6"/>
+    <path d="M50 28 V 80" stroke="#64748B" strokeWidth="6" strokeLinecap="round"/>
+    <path d="M30 40 H 70" stroke="#64748B" strokeWidth="6" strokeLinecap="round"/>
+    <path d="M25 60 C 25 85 75 85 75 60" stroke="#64748B" strokeWidth="6" fill="none" strokeLinecap="round"/>
+    <path d="M20 60 L 30 50 V 65 Z" fill="#64748B"/>
+    <path d="M80 60 L 70 50 V 65 Z" fill="#64748B"/>
+  </svg>
+);
+
+const LighthouseIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M35 90 L 45 30 H 55 L 65 90 Z" fill="#EF4444"/>
+    <path d="M37 70 L 42 50 H 58 L 63 70 Z" fill="#F8FAFC"/>
+    <rect x="42" y="20" width="16" height="10" fill="#FEF08A" stroke="#334155" strokeWidth="3"/>
+    <path d="M38 20 H 62" stroke="#334155" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M45 20 L 50 10 L 55 20 Z" fill="#EF4444"/>
+    <path d="M50 25 L 15 40 M 50 25 L 85 40" stroke="#FEF08A" strokeWidth="6" strokeLinecap="round" opacity="0.6"/>
+  </svg>
+);
+
+const CardLifeBuoyIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <circle cx="50" cy="50" r="30" stroke="#F8FAFC" strokeWidth="16"/>
+    <path d="M50 20 A 30 30 0 0 1 71.2 28.8 L 85.3 14.7 A 50 50 0 0 0 50 0 Z" fill="#EF4444" />
+    <path d="M50 80 A 30 30 0 0 1 28.8 71.2 L 14.7 85.3 A 50 50 0 0 0 50 100 Z" fill="#EF4444" />
+    <path d="M80 50 A 30 30 0 0 1 71.2 71.2 L 85.3 85.3 A 50 50 0 0 0 100 50 Z" fill="#EF4444" />
+    <path d="M20 50 A 30 30 0 0 1 28.8 28.8 L 14.7 14.7 A 50 50 0 0 0 0 50 Z" fill="#EF4444" />
+    <circle cx="50" cy="50" r="42" stroke="#FBBF24" strokeWidth="1.5" strokeDasharray="6 4" fill="none"/>
+  </svg>
+);
+
+const CardDivingMaskIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect x="20" y="35" width="60" height="30" rx="12" fill="#BAE6FD" stroke="#0284C7" strokeWidth="5"/>
+    <path d="M50 35 V 65" stroke="#0284C7" strokeWidth="5"/>
+    <path d="M20 50 H 10 M 80 50 H 90" stroke="#334155" strokeWidth="4" strokeLinecap="round"/>
+    <path d="M85 70 Q 95 70 95 50 L 90 20" stroke="#F97316" strokeWidth="5" fill="none" strokeLinecap="round" />
+  </svg>
+);
+
+const CardDivingTankIcon = ({ className }) => (
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect x="35" y="30" width="30" height="55" rx="15" fill="#FBBF24"/>
+    <rect x="35" y="75" width="30" height="10" fill="#334155"/>
+    <path d="M45 20 H55 V30 H45 Z" fill="#94A3B8"/>
+    <circle cx="50" cy="15" r="5" fill="#64748B"/>
+    <path d="M50 15 Q 20 15 20 40" stroke="#334155" strokeWidth="3" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
+// --------------------------------------------------------
 // 輔助工具 (Helpers)
 // --------------------------------------------------------
 function formatTs(ts) {
@@ -339,7 +404,7 @@ function AdminLoginModal({ onVerify, onClose }) {
   );
 }
 
-function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", bgIcon }) {
+function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", variant, bgIcon }) {
   const themeMap = {
     teal: {
       wrapper: "border-teal-100 hover:border-teal-300 hover:shadow-[0_15px_30px_rgba(20,184,166,0.15)]",
@@ -347,6 +412,13 @@ function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", bgIcon }) 
       titleHover: "group-hover:text-teal-700",
       watermark: "text-teal-400",
       glow: "bg-teal-400/10"
+    },
+    rose: {
+      wrapper: "border-rose-100 hover:border-rose-300 hover:shadow-[0_15px_30px_rgba(244,63,94,0.15)]",
+      iconBg: "bg-gradient-to-br from-rose-50 to-rose-100 text-rose-600 group-hover:from-rose-400 group-hover:to-rose-500 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]",
+      titleHover: "group-hover:text-rose-700",
+      watermark: "text-rose-400",
+      glow: "bg-rose-400/10"
     },
     cyan: {
       wrapper: "border-cyan-100 hover:border-cyan-300 hover:shadow-[0_15px_30px_rgba(6,182,212,0.15)]",
@@ -367,20 +439,55 @@ function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", bgIcon }) 
   const theme = themeMap[colorTheme] || themeMap.cyan;
   
   return (
-    <div onClick={onClick} className={`bg-white/90 backdrop-blur-xl p-8 rounded-[2rem] border transition-all duration-500 cursor-pointer group hover:-translate-y-2 relative overflow-hidden ${theme.wrapper}`}>
+    <div onClick={onClick} className={`bg-white/90 backdrop-blur-xl p-8 rounded-[2rem] border transition-all duration-500 cursor-pointer group hover:-translate-y-2 relative overflow-hidden ${theme.wrapper} h-full flex flex-col`}>
       {/* 沉浸式光暈 */}
       <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-150 ${theme.glow}`}></div>
       
-      {/* 水下波紋/海洋生物 浮水印裝飾 */}
-      <div className={`absolute -bottom-6 -right-6 opacity-[0.04] group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${theme.watermark}`}>
-         {bgIcon || icon}
+      {/* 各大廳卡片專屬背景元素渲染區 (提升不透明度，展現全彩圖案) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[2rem] z-0">
+        {/* 2. 住宿預訂：珊瑚群礁元素 */}
+        {variant === 'accommodations' && (
+          <>
+             <CoralIcon className={`absolute -bottom-6 -right-4 w-40 h-40 opacity-30 rotate-12 transition-transform duration-700 group-hover:scale-110`} />
+             <CoralIcon className={`absolute bottom-12 -left-8 w-24 h-24 opacity-25 -rotate-12 transition-transform duration-700 group-hover:scale-110 group-hover:-translate-y-2`} />
+             <Fish className={`absolute top-8 right-16 w-10 h-10 opacity-20 text-rose-400 transition-all duration-1000 group-hover:-translate-x-6 group-hover:-translate-y-2`} />
+          </>
+        )}
+        {/* 3. 專業裝備：潛水裝備素材 (氣瓶、面鏡) */}
+        {variant === 'equipments' && (
+          <>
+             <CardDivingTankIcon className={`absolute -bottom-8 -right-2 w-36 h-36 opacity-30 rotate-12 transition-transform duration-700 group-hover:scale-110`} />
+             <CardDivingMaskIcon className={`absolute top-10 right-20 w-16 h-16 opacity-[0.25] -rotate-12 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-0`} />
+             <Waves className={`absolute bottom-6 -left-6 w-24 h-24 opacity-20 text-cyan-400 transition-transform duration-700 group-hover:scale-110`} />
+          </>
+        )}
+        {/* 4. 我的預約查詢：岸邊港口元素 (燈塔、船錨、救生圈) */}
+        {variant === 'dashboard' && (
+          <>
+             <LighthouseIcon className={`absolute -bottom-2 -left-6 w-32 h-32 opacity-[0.25] rotate-6 transition-transform duration-700 group-hover:-translate-y-2`} />
+             <AnchorIcon className={`absolute -bottom-6 -right-4 w-32 h-32 opacity-30 -rotate-12 transition-transform duration-700 group-hover:scale-110`} />
+             <CardLifeBuoyIcon className={`absolute top-6 right-20 w-14 h-14 opacity-30 rotate-12 transition-transform duration-1000 group-hover:-rotate-45`} />
+          </>
+        )}
+        {/* 預設活動卡片元素 */}
+        {variant === 'activities' && (
+          <>
+             <Waves className={`absolute -bottom-6 -right-6 w-32 h-32 opacity-[0.04] rotate-12 transition-transform duration-700 group-hover:scale-110 ${theme.watermark}`} />
+             <Fish className={`absolute top-12 right-12 w-12 h-12 opacity-[0.03] transition-all duration-1000 group-hover:-translate-x-6 ${theme.watermark}`} />
+          </>
+        )}
+        {!['accommodations', 'equipments', 'dashboard', 'activities'].includes(variant) && (
+          <div className={`absolute -bottom-4 -right-4 opacity-[0.04] group-hover:scale-125 transition-transform duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${theme.watermark}`}>
+             {bgIcon || icon}
+          </div>
+        )}
       </div>
       
       <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] relative z-10 ${theme.iconBg}`}>
         {icon}
       </div>
       
-      <div className="relative z-10">
+      <div className="relative z-10 mt-auto">
          <h3 className={`text-xl font-black text-slate-800 mb-2 transition-colors ${theme.titleHover}`}>{String(title)}</h3>
          <p className="text-slate-500 text-sm font-bold leading-relaxed">{String(desc)}</p>
       </div>
@@ -2449,8 +2556,8 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
       return [
         { num: 1, icon: BookOpen, title: '行前簡報', sub: '課程資訊總覽' },
         { num: 2, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
-        { num: 3, icon: Fish, title: '海底探索', sub: '裝備配置與加購' },
-        { num: 4, icon: LifeBuoy, title: '5米停留', sub: '住宿房型選擇' },
+        { num: 3, icon: LifeBuoy, title: '海底探索', sub: '裝備配置與加購' },
+        { num: 4, icon: Home, title: '5米停留', sub: '住宿房型選擇' },
         { num: 5, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
         { num: 6, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
       ];
@@ -4321,19 +4428,44 @@ function App() {
           <>
             {currentView === 'home' && (
               <div className="space-y-10 animate-in fade-in duration-500">
-                <div className="rounded-3xl overflow-hidden bg-gradient-to-b from-sky-400 to-blue-900 text-white p-10 md:p-20 relative shadow-xl border border-blue-800/30">
-                  <div className="absolute top-0 right-0 p-10 opacity-20 text-sky-100"><Waves className="w-80 h-80" /></div>
-                  <div className="relative z-10 max-w-2xl">
-                    <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight drop-shadow-md">{String(sysConfig.title || '')}</h1>
-                    <p className="text-lg md:text-xl text-blue-50 mb-10 leading-relaxed drop-shadow-sm">{String(sysConfig.subtitle || '')}</p>
-                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-800 px-10 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all flex items-center gap-2">活動及課程報名 <ArrowRight className="w-5 h-5" /></button>
+                {/* 1. 陽光海面 HERO 區塊 */}
+                <div className="rounded-[3rem] overflow-hidden text-white p-10 md:p-24 relative shadow-2xl min-h-[450px] flex items-center group border border-blue-800/30 bg-blue-900">
+                  {/* 陽光灑落海面的漸層色彩 */}
+                  <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_center,#cffafe_0%,#06b6d4_35%,#0284c7_65%,#1e3a8a_100%)]"></div>
+                  {/* 水面高光修飾 */}
+                  <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-white/40 via-white/10 to-transparent pointer-events-none z-0"></div>
+                  {/* 光束 (Sunrays) */}
+                  <div className="absolute inset-0 z-0 opacity-60 pointer-events-none overflow-hidden">
+                    <div className="absolute top-[-30%] left-[5%] w-[60%] h-[200%] bg-gradient-to-b from-white/40 via-white/5 to-transparent blur-[80px] transform rotate-[25deg] animate-[pulse_8s_ease-in-out_infinite]"></div>
+                    <div className="absolute top-[-40%] right-[10%] w-[40%] h-[200%] bg-gradient-to-b from-white/30 via-transparent to-transparent blur-[60px] transform -rotate-[15deg] animate-[pulse_10s_ease-in-out_infinite_1s]"></div>
+                  </div>
+                  {/* 新增海浪元素 (Wave Elements) - 更明顯的層次 */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    {/* 頂部波光粼粼 */}
+                    <svg className="absolute top-0 w-full h-24 text-white/30 animate-[wave_12s_linear_infinite]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,64L48,80C96,96,192,128,288,122.7C384,117,480,75,576,85.3C672,96,768,160,864,170.7C960,181,1056,139,1152,117.3C1248,96,1344,96,1392,96L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>
+                    <svg className="absolute top-0 w-full h-32 text-cyan-100/20 animate-[wave_18s_linear_infinite_reverse]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,128L48,112C96,96,192,64,288,74.7C384,85,480,139,576,149.3C672,160,768,128,864,112C960,96,1056,96,1152,112C1248,128,1344,160,1392,176L1440,192L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>
+                    
+                    {/* 底部深海波浪 */}
+                    <svg className="absolute bottom-0 w-full h-48 text-blue-900/40 animate-[wave_15s_linear_infinite]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,122.7C672,128,768,192,864,202.7C960,213,1056,171,1152,144C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
+                    <svg className="absolute bottom-0 w-full h-32 text-blue-800/50 animate-[wave_10s_linear_infinite_reverse]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,128L48,138.7C96,149,192,171,288,165.3C384,160,480,128,576,133.3C672,139,768,181,864,192C960,203,1056,181,1152,154.7C1248,128,1344,96,1392,80L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
+                  </div>
+                  
+                  <div className="relative z-10 max-w-2xl bg-white/5 backdrop-blur-[1px] p-6 rounded-3xl border border-white/10">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-200 animate-pulse"></div>
+                      Sunlight Ocean Experience
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">{String(sysConfig.title || '')}</h1>
+                    <p className="text-lg md:text-xl font-bold mb-10 text-cyan-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">{String(sysConfig.subtitle || '')}</p>
+                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-10 py-4 rounded-2xl font-black shadow-xl hover:bg-cyan-50 transition-all flex items-center gap-2 group">活動及課程報名 <ArrowRight className="group-hover:translate-x-2 transition-transform"/></button>
                   </div>
                 </div>
                 
+                {/* 保持 3 區塊大小，修改 variant 顯示專屬圖示 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20 mt-2">
-                  <QuickCard icon={<Home />} colorTheme="teal" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} bgIcon={<Home />} />
-                  <QuickCard icon={<LifeBuoy />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} bgIcon={<Waves />} />
-                  <QuickCard icon={<Search />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} bgIcon={<Fish />} />
+                  <QuickCard variant="accommodations" icon={<CoralIcon className="w-8 h-8" />} colorTheme="rose" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} />
+                  <QuickCard variant="equipments" icon={<CardDivingTankIcon className="w-8 h-8" />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} />
+                  <QuickCard variant="dashboard" icon={<Search className="w-8 h-8" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
                 </div>
                 
                 <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
@@ -4512,6 +4644,11 @@ function App() {
       )}
 
       {showAccPromptModal && <AccPromptModal sysConfig={sysConfig} onClose={() => setShowAccPromptModal(false)} onGoActivities={()=>{setShowAccPromptModal(false); setCurrentView('activities'); window.scrollTo(0,0);}} onGoAccommodations={()=>{setShowAccPromptModal(false); setCurrentView('accommodations'); window.scrollTo(0,0);}} />}
+      
+      {/* 補充全域背景波浪動畫 (支援 HERO 區塊水面動態) */}
+      <style>{`
+        @keyframes wave { 0% { transform: translateX(0); } 50% { transform: translateX(-3%) scaleY(1.05); } 100% { transform: translateX(0); } }
+      `}</style>
     </div>
   );
 }
