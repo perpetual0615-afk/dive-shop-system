@@ -2428,34 +2428,56 @@ function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }
   );
 }
 
+// 專屬客製化：潛水面鏡圖示
+const DivingMaskIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 11c0-3.87 3.13-7 7-7h4c3.87 0 7 3.13 7 7v3c0 2.21-1.79 4-4 4h-1.5l-1.5 2h-4l-1.5-2H7c-2.21 0-4-1.79-4-4v-3z" />
+    <path d="M12 11v6" />
+  </svg>
+);
+
 function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, onSuccess }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isTrip = activity.diveCategory === '潛旅';
   const isCourse = activity.isCourse;
+  const isDSD = activity.diveCategory === '體驗潛水'; // 判定是否為體驗潛水
 
-  // 決定流程步驟
-  const stepTitles = isCourse ? [
-    { num: 1, title: '行前簡報', sub: '課程資訊總覽' },
-    { num: 2, title: '水面整備', sub: '基本與保險資料' },
-    { num: 3, title: '海底探索', sub: '裝備配置與加購' },
-    { num: 4, title: '5米停留', sub: '住宿房型選擇' },
-    { num: 5, title: '潛水日誌', sub: '個人潛水經驗' },
-    { num: 6, title: '平安升水', sub: '醫療健康聲明' }
-  ] : [
-    { num: 1, title: '水面整備', sub: '基本與保險資料' },
-    { num: 2, title: '5米停留', sub: '裝備需求配置' },
-    { num: 3, title: '潛水日誌', sub: '個人潛水經驗' },
-    { num: 4, title: '平安升水', sub: '醫療健康聲明' }
-  ];
+  // 動態決定流程步驟：加入潛水圖示，並為體驗潛水略過經驗步驟
+  const stepTitles = useMemo(() => {
+    if (isCourse) {
+      return [
+        { num: 1, icon: BookOpen, title: '行前簡報', sub: '課程資訊總覽' },
+        { num: 2, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
+        { num: 3, icon: Fish, title: '海底探索', sub: '裝備配置與加購' },
+        { num: 4, icon: LifeBuoy, title: '5米停留', sub: '住宿房型選擇' },
+        { num: 5, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
+        { num: 6, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
+      ];
+    }
+    if (isDSD) {
+      return [
+        { num: 1, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
+        { num: 2, icon: LifeBuoy, title: '5米停留', sub: '裝備需求配置' },
+        { num: 3, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' } // DSD 只有 3 步，略過經驗填寫
+      ];
+    }
+    return [
+      { num: 1, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
+      { num: 2, icon: LifeBuoy, title: '5米停留', sub: '裝備需求配置' },
+      { num: 3, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
+      { num: 4, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
+    ];
+  }, [isCourse, isDSD]);
+
   const totalSteps = stepTitles.length;
   
   const isStepOverview = isCourse && step === 1;
   const isStepBasic = (isCourse && step === 2) || (!isCourse && step === 1);
   const isStepEq = (isCourse && step === 3) || (!isCourse && step === 2);
   const isStepAcc = isCourse && step === 4;
-  const isStepExp = (isCourse && step === 5) || (!isCourse && step === 3);
-  const isStepMedical = (isCourse && step === 6) || (!isCourse && step === 4);
+  const isStepExp = (isCourse && step === 5) || (!isCourse && !isDSD && step === 3);
+  const isStepMedical = (isCourse && step === 6) || (isDSD && step === 3) || (!isCourse && !isDSD && step === 4);
 
   // Step 1 / 2: 基礎與保險
   const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '' });
@@ -2587,7 +2609,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         useLocalShopEq,
         isReturningCustomer,
         accOption: isTrip ? 'trip' : accOption,
-        divingExperience: exp,
+        divingExperience: isDSD ? null : exp, // 若為體驗潛水，則不傳送潛水經驗資料
         medicalAnswers,
         medicalIssues,
         hasMedicalIssue: medicalIssues.length > 0,
@@ -2629,14 +2651,17 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
           </div>
           
           <div className="relative z-10 flex justify-between items-center px-2">
-            {stepTitles.map((s, idx) => (
-              <div key={s.num} className="flex flex-col items-center relative z-10">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all ${step >= s.num ? 'bg-blue-500 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
-                  {step > s.num ? <Check className="w-5 h-5" /> : s.num}
+            {stepTitles.map((s, idx) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.num} className="flex flex-col items-center relative z-10">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all ${step >= s.num ? 'bg-blue-500 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+                    {step > s.num ? <Check className="w-5 h-5" /> : <Icon className="w-4 h-4" />}
+                  </div>
+                  <span className={`text-[10px] font-bold mt-2 tracking-widest text-center ${step >= s.num ? 'text-blue-200' : 'text-slate-500'}`}>{s.title}</span>
                 </div>
-                <span className={`text-[10px] font-bold mt-2 tracking-widest ${step >= s.num ? 'text-blue-200' : 'text-slate-500'}`}>{s.title}</span>
-              </div>
-            ))}
+              );
+            })}
             {/* Progress Line */}
             <div className="absolute top-5 left-10 right-10 h-0.5 bg-slate-800 z-0">
                <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }}></div>
@@ -3084,7 +3109,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
             )}
 
             {/* STEP: Diving Experience */}
-            {isStepExp && (
+            {isStepExp && !isDSD && (
               <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
                  <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-6">
                     <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-2">
