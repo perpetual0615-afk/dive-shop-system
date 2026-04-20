@@ -2776,10 +2776,10 @@ function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }
 
                 {type === 'accommodation' && (
                   <div className="flex flex-wrap gap-2 mb-2 mt-3">
-                    <span className="text-sm font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
-                      <Home className="w-4 h-4" /> 房間數: {Number(item.quantity || 1)} 間
+                    <span className="text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
+                      <CoralIcon className="w-4 h-4" /> 房間數: {Number(item.quantity || 1)} 間
                     </span>
-                    <span className="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-pink-700 bg-pink-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
                       <User className="w-4 h-4" /> 每間容納: {Number(item.bedCount || 1)} 人/床
                     </span>
                   </div>
@@ -2789,14 +2789,14 @@ function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }
               <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                 <div>
                    {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
-                   <span className={`${type === 'accommodation' ? 'text-teal-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
+                   <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
                       NT$ {Number(item.price || item.priceLowWeekday || 0)}
                    </span>
                 </div>
                 <button 
                   onClick={() => onBook(item)} 
                   disabled={type === 'activity' ? isFull : false}
-                  className={`px-5 py-2.5 text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-1.5 ${(type === 'activity' && isFull) ? 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none' : type === 'accommodation' ? 'bg-teal-600 hover:bg-teal-700 hover:shadow-teal-500/30' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30'}`}
+                  className={`px-5 py-2.5 text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-1.5 ${(type === 'activity' && isFull) ? 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none' : type === 'accommodation' ? 'bg-rose-600 hover:bg-rose-700 hover:shadow-rose-500/30' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30'}`}
                 >
                   {type === 'activity' ? (isFull ? '已額滿' : '立即報名') : <><CalendarDays className="w-4 h-4"/> 選擇日期</>}
                 </button>
@@ -2831,7 +2831,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         { num: 1, icon: BookOpen, title: '行前簡報', sub: '課程資訊總覽' },
         { num: 2, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
         { num: 3, icon: LifeBuoy, title: '海底探索', sub: '裝備配置與加購' },
-        { num: 4, icon: Home, title: '5米停留', sub: '住宿房型選擇' },
+        { num: 4, icon: CoralIcon, title: '5米停留', sub: '住宿房型選擇' },
         { num: 5, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
         { num: 6, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
       ];
@@ -3187,16 +3187,16 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                 </div>
                 
                 {!isCourse && !isTrip && (
-                  <div className="bg-teal-50 p-5 rounded-2xl border border-teal-100 mt-4">
-                     <label className="text-sm font-black text-teal-800 block mb-3">需要我們為您安排住宿嗎？</label>
+                  <div className="bg-rose-50 p-5 rounded-2xl border border-rose-100 mt-4">
+                     <label className="text-sm font-black text-rose-800 block mb-3">需要我們為您安排住宿嗎？</label>
                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-teal-200">
-                           <input type="radio" checked={accOption === 'upgrade'} onChange={() => setAccOption('upgrade')} className="w-4 h-4 text-teal-600" />
-                           <span className="font-bold text-sm text-teal-900">需要，請幫我預訂</span>
+                        <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-rose-200">
+                           <input type="radio" checked={accOption === 'upgrade'} onChange={() => setAccOption('upgrade')} className="w-4 h-4 text-rose-600" />
+                           <span className="font-bold text-sm text-rose-900">需要，請幫我預訂</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-teal-200">
-                           <input type="radio" checked={accOption === 'self'} onChange={() => setAccOption('self')} className="w-4 h-4 text-teal-600" />
-                           <span className="font-bold text-sm text-teal-900">不需要，我已自理</span>
+                        <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-rose-200">
+                           <input type="radio" checked={accOption === 'self'} onChange={() => setAccOption('self')} className="w-4 h-4 text-rose-600" />
+                           <span className="font-bold text-sm text-rose-900">不需要，我已自理</span>
                         </label>
                      </div>
                   </div>
@@ -3661,37 +3661,43 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
   const isOverCap = (parseInt(g) || 0) > maxCap;
 
   return (
-      <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-[1.5rem] shadow-sm border border-slate-200 hover:border-teal-300 hover:shadow-[0_10px_30px_rgba(20,184,166,0.15)] transition-all duration-300 flex flex-col h-full relative group">
-          <div className="flex justify-between items-start mb-2">
-              <h3 className="font-black text-xl text-slate-900 group-hover:text-teal-700 transition-colors pr-2">{room.name}</h3>
+      <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-[1.5rem] shadow-sm border border-slate-200 hover:border-rose-300 hover:shadow-[0_10px_30px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col h-full relative group overflow-hidden">
+          
+          {/* 珊瑚主題房型專屬背景浮水印 */}
+          <div className="absolute -bottom-6 -right-6 w-36 h-36 opacity-[0.05] group-hover:scale-110 group-hover:opacity-[0.12] transition-all duration-500 pointer-events-none transform -rotate-6">
+              <StaghornCoralWatermark className="w-full h-full text-rose-600" />
+          </div>
+
+          <div className="flex justify-between items-start mb-2 relative z-10">
+              <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors pr-2">{room.name}</h3>
               <div className="text-right shrink-0">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">淡季平日起</span>
-                  <span className="text-teal-600 font-black text-lg">NT$ {room.priceLowWeekday}</span>
+                  <span className="text-rose-600 font-black text-lg">NT$ {room.priceLowWeekday}</span>
               </div>
           </div>
           
-          <div className="flex flex-wrap gap-2 mb-4 mt-1">
+          <div className="flex flex-wrap gap-2 mb-4 mt-1 relative z-10">
               <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-slate-200">
-                <Home className="w-3.5 h-3.5" /> 實體 {room.quantity} 間
+                <CoralIcon className="w-3.5 h-3.5" /> 實體 {room.quantity} 間
               </span>
-              <span className="text-[11px] font-black text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-teal-100">
+              <span className="text-[11px] font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-rose-100">
                 <User className="w-3.5 h-3.5" /> 容納 {room.bedCount} 人/間
               </span>
               {room.priceExtraBed > 0 && maxEbPerRoom > 0 && (
-                 <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1.5 bg-rose-50 w-fit px-2 py-1 rounded-md border border-rose-100">
+                 <span className="text-[11px] font-bold text-orange-600 flex items-center gap-1.5 bg-orange-50 w-fit px-2 py-1 rounded-md border border-orange-100">
                     <Plus className="w-3 h-3" /> 最多加 {maxEbPerRoom} 床 (+${room.priceExtraBed})
                  </span>
               )}
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5 mt-auto bg-slate-50/80 p-3 rounded-xl border border-slate-100 shadow-inner">
+          <div className="grid grid-cols-3 gap-2.5 mt-auto bg-slate-50/80 p-3 rounded-xl border border-slate-100 shadow-inner relative z-10">
               <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">房間/床位</label>
-                  <input type="number" min="1" max={room.quantity} value={rc} onChange={e => setRc(e.target.value)} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all" />
+                  <input type="number" min="1" max={room.quantity} value={rc} onChange={e => setRc(e.target.value)} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all" />
               </div>
               <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">入住人數</label>
-                  <input type="number" min="1" value={g} onChange={e => setG(e.target.value)} className={`w-full p-2 text-center rounded-lg border text-sm font-bold outline-none transition-all ${isOverCap ? 'border-rose-500 bg-rose-50 text-rose-600 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20' : 'border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20'}`} />
+                  <input type="number" min="1" value={g} onChange={e => setG(e.target.value)} className={`w-full p-2 text-center rounded-lg border text-sm font-bold outline-none transition-all ${isOverCap ? 'border-red-500 bg-red-50 text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'}`} />
               </div>
               <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">加床數</label>
@@ -3701,11 +3707,11 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
                      if (val > maxEbAllowed) val = maxEbAllowed;
                      if (val < 0) val = 0;
                      setEb(val);
-                  }} disabled={!(room.priceExtraBed > 0) || maxEbPerRoom <= 0} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
+                  }} disabled={!(room.priceExtraBed > 0) || maxEbPerRoom <= 0} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
               </div>
           </div>
           
-          {isOverCap && <p className="text-[10px] font-bold text-rose-500 mt-2 text-center animate-pulse"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>人數超過容量上限 (最大 {maxCap} 人)</p>}
+          {isOverCap && <p className="text-[10px] font-bold text-red-500 mt-2 text-center animate-pulse relative z-10"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>人數超過容量上限 (最大 {maxCap} 人)</p>}
 
           <button 
               onClick={() => {
@@ -3713,7 +3719,7 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
                   setRc(1); setG(1); setEb(0);
               }} 
               disabled={hasFullDays || isOverCap || nights <= 0}
-              className="w-full mt-4 py-3 bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-xl font-bold shadow-sm hover:from-teal-500 hover:to-teal-400 hover:shadow-teal-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+              className="w-full mt-4 py-3 bg-gradient-to-r from-rose-600 to-rose-500 text-white rounded-xl font-bold shadow-sm hover:from-rose-500 hover:to-rose-400 hover:shadow-rose-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
           >
               <Plus className="w-4 h-4"/> {nights <= 0 ? '請先於左側選擇日期' : '加入預訂清單'}
           </button>
@@ -3918,19 +3924,26 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
 
   return (
     <div className="relative animate-in fade-in duration-500 min-h-[calc(100vh-80px)] pb-24 lg:pb-12">
-      {/* 森林系/海洋背景 (Ocean Breeze Background) */}
+      {/* 珊瑚礁度假背景 (Coral Reef Resort Background) */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
-         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-teal-100/50 via-cyan-50/30 to-transparent"></div>
+         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-rose-100/50 via-pink-50/30 to-transparent"></div>
          <div className="absolute -top-20 right-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/60 to-transparent transform -rotate-[15deg] blur-3xl opacity-80"></div>
-         <div className="absolute top-10 right-[5%] text-teal-500/10 transform rotate-6"><Home className="w-80 h-80" /></div>
+         
+         {/* 優雅的大型珊瑚浮水印 */}
+         <div className="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] opacity-[0.15] pointer-events-none text-rose-400">
+            <StaghornCoralWatermark className="w-full h-full" />
+         </div>
+         <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[400px] opacity-[0.1] pointer-events-none transform -rotate-45 text-pink-500">
+            <StaghornCoralWatermark className="w-full h-full" />
+         </div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 border-b border-teal-200/50 pb-5 mb-8 px-2">
-           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-teal-700 rounded-full hover:bg-white hover:shadow-md hover:text-teal-600 transition-all border border-white"><ChevronLeft className="w-6 h-6"/></button>
+        <div className="flex items-center gap-4 border-b border-rose-200/50 pb-5 mb-8 px-2">
+           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-rose-700 rounded-full hover:bg-white hover:shadow-md hover:text-rose-600 transition-all border border-white"><ChevronLeft className="w-6 h-6"/></button>
            <div>
-             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
-             <div className="text-xs md:text-sm font-bold text-teal-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse"></div>輸入日期與資訊，即刻為您試算房價</div>
+             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
+             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>輸入日期與資訊，即刻為您試算房價</div>
            </div>
         </div>
 
@@ -3938,9 +3951,9 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
           
           {/* 左欄：日期、基本資料、購物車與結帳 */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24 scroll-mt-24">
-             <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(20,184,166,0.1)] relative overflow-hidden">
-               <h3 className="font-black text-xl text-slate-800 border-b border-teal-100/50 pb-3 mb-5 flex items-center gap-3">
-                  <div className="bg-teal-100 p-2 rounded-xl text-teal-600"><CalendarDays className="w-5 h-5"/></div>
+             <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)] relative overflow-hidden">
+               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-5 flex items-center gap-3">
+                  <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CalendarDays className="w-5 h-5"/></div>
                   1. 入住資訊設定
                </h3>
 
@@ -3948,7 +3961,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                <div className="flex items-center justify-between gap-2 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100 shadow-inner relative z-10">
                    <div className="flex-1">
                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Check-in 入住日</span>
-                       <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-teal-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all shadow-sm" />
+                       <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-rose-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm" />
                    </div>
                    <div className="flex flex-col items-center shrink-0 px-2 relative z-10 pt-4">
                        <div className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200 z-10">{nights} 晚</div>
@@ -3956,7 +3969,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                    </div>
                    <div className="flex-1">
                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 text-right">Check-out 退房日</span>
-                       <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all shadow-sm text-right" />
+                       <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm text-right" />
                    </div>
                </div>
 
@@ -3978,33 +3991,35 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
              </div>
 
              {/* 結帳與購物車 */}
-             <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(20,184,166,0.15)] flex flex-col">
-               <h3 className="font-black text-xl text-slate-800 border-b border-teal-100/50 pb-4 mb-5 flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><ClipboardList className="w-5 h-5"/></div> 
+             <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.15)] flex flex-col">
+               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-5 flex items-center gap-3">
+                  <div className="bg-pink-100 p-2 rounded-xl text-pink-600"><ClipboardList className="w-5 h-5"/></div> 
                   2. 預訂清單與費用
                </h3>
                
                <div className="mb-6">
-                 <div className="text-[11px] font-black text-teal-600 uppercase tracking-widest mb-3 flex items-center justify-between">
+                 <div className="text-[11px] font-black text-rose-600 uppercase tracking-widest mb-3 flex items-center justify-between">
                    <span>已選房型清單 (Booking List)</span>
-                   <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-md shadow-sm">{cart.length} 筆</span>
+                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md shadow-sm">{cart.length} 筆</span>
                  </div>
                  
                  {cart.length === 0 ? (
-                   <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-teal-200">
-                     <Home className="w-8 h-8 text-teal-200 mx-auto mb-2" />
-                     <div className="text-xs font-bold text-teal-700/50">請先於右側選擇需要的房型</div>
+                   <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-rose-200">
+                     <div className="w-8 h-8 text-rose-300 mx-auto mb-2 flex items-center justify-center">
+                        <CoralIcon className="w-full h-full" />
+                     </div>
+                     <div className="text-xs font-bold text-rose-700/50">請先於右側選擇需要的房型</div>
                    </div>
                  ) : (
                    <div className="space-y-3 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
                      {cart.map((item) => (
-                       <div key={item.id} className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm group hover:border-teal-300 hover:shadow-md transition-all">
+                       <div key={item.id} className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm group hover:border-rose-300 hover:shadow-md transition-all">
                           <div className="flex-1 min-w-0 pr-3">
                             <div className="font-bold text-slate-800 text-sm truncate">{item.room.name}</div>
                             <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
                               <span className="text-[10px] font-black bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">{item.roomCount} 間</span>
                               <span className="text-[10px] font-black bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">{item.guests} 人</span>
-                              {item.extraBeds > 0 && <span className="text-[10px] font-black bg-rose-50 px-2 py-0.5 rounded-md text-rose-600 border border-rose-100">加 {item.extraBeds} 床</span>}
+                              {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-0.5 rounded-md text-orange-600 border border-orange-100">加 {item.extraBeds} 床</span>}
                             </div>
                           </div>
                           <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors shrink-0">
@@ -4038,18 +4053,18 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   </div>
                )}
 
-               <div className="pt-5 border-t-2 border-teal-100/50 mt-auto">
+               <div className="pt-5 border-t-2 border-rose-100/50 mt-auto">
                   <div className="flex justify-between items-end mb-5">
                     <span className="text-sm font-bold text-slate-500">預估總額 / Total Amount</span>
                     <div className="text-right">
-                      {priceInfo.discountTotal > 0 && <div className="text-[10px] text-teal-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
-                      <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-teal-700 to-cyan-500">NT$ {priceInfo.total}</span>
+                      {priceInfo.discountTotal > 0 && <div className="text-[10px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
+                      <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-rose-700 to-pink-500">NT$ {priceInfo.total}</span>
                     </div>
                   </div>
                   <button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone} 
-                    className="w-full py-4 bg-gradient-to-r from-teal-600 to-cyan-500 text-white rounded-2xl font-black shadow-[0_10px_20px_rgba(20,184,166,0.3)] hover:shadow-[0_15px_30px_rgba(20,184,166,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full py-4 bg-gradient-to-r from-rose-600 to-pink-500 text-white rounded-2xl font-black shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:shadow-[0_15px_30px_rgba(244,63,94,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                      {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '請先選擇房型' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-5 h-5"/>確認送出預訂單</>}
                   </button>
@@ -4060,7 +4075,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
           {/* 右欄：房型導覽區 */}
           <div className="lg:col-span-7 space-y-6">
              <div className="bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-white shadow-sm flex items-center gap-3">
-                 <div className="bg-teal-100 p-2 rounded-xl text-teal-600"><Home className="w-5 h-5"/></div>
+                 <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CoralIcon className="w-5 h-5"/></div>
                  <div>
                     <h3 className="font-black text-lg text-slate-800">3. 選擇預訂房型</h3>
                     <p className="text-[10px] font-bold text-slate-500">依據您左側輸入的日期，以下為各房型資訊與計價</p>
@@ -4079,7 +4094,6 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                 ))}
              </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -4091,25 +4105,29 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
     <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
       <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl relative overflow-hidden text-center border border-white">
         
-        {/* 海洋背景裝飾 */}
-        <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-cyan-50 to-transparent pointer-events-none"></div>
-        <div className="absolute -top-12 -right-10 text-cyan-500/10 rotate-12 pointer-events-none"><Fish className="w-48 h-48" /></div>
-        <div className="absolute bottom-0 -left-12 text-blue-500/5 -rotate-12 pointer-events-none"><Waves className="w-48 h-48" /></div>
+        {/* 珊瑚主題背景裝飾 */}
+        <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-rose-50 to-transparent pointer-events-none"></div>
+        <div className="absolute -top-10 -right-10 w-56 h-56 opacity-[0.12] pointer-events-none transform rotate-12">
+           <StaghornCoralWatermark className="w-full h-full text-rose-400" />
+        </div>
+        <div className="absolute bottom-[-10%] -left-10 w-48 h-48 opacity-[0.08] pointer-events-none transform -rotate-45">
+           <StaghornCoralWatermark className="w-full h-full text-pink-500" />
+        </div>
 
-        {/* 動態氣泡 */}
-        <div className="absolute top-12 left-10 w-6 h-6 bg-cyan-200/30 rounded-full blur-[1px] animate-[bounce_3s_infinite]"></div>
-        <div className="absolute top-24 right-16 w-3 h-3 bg-blue-200/40 rounded-full animate-[bounce_4s_infinite_0.5s]"></div>
+        {/* 動態氣泡 (暖色調) */}
+        <div className="absolute top-12 left-10 w-6 h-6 bg-rose-200/40 rounded-full blur-[1px] animate-[bounce_3s_infinite]"></div>
+        <div className="absolute top-24 right-16 w-3 h-3 bg-pink-200/50 rounded-full animate-[bounce_4s_infinite_0.5s]"></div>
 
         <div className="relative z-10">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-cyan-100 to-blue-100 text-blue-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner border border-white transform rotate-3 hover:rotate-0 transition-transform">
-            <LifeBuoy className="w-10 h-10 -rotate-3" />
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-100 to-pink-100 text-rose-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner border border-white transform rotate-3 hover:rotate-0 transition-transform">
+            <CoralIcon className="w-10 h-10 -rotate-3" />
           </div>
           
           <h2 className="text-2xl font-black text-slate-800 mb-4">專屬配套優惠提示</h2>
           
-          <div className="bg-blue-50/70 border border-blue-100 p-5 rounded-2xl mb-8 shadow-sm">
+          <div className="bg-rose-50/70 border border-rose-100 p-5 rounded-2xl mb-8 shadow-sm">
              <p className="text-slate-600 text-sm font-bold leading-relaxed">
-               若您有報名 <span className="text-blue-700 font-black">潛水活動</span> 或 <span className="text-blue-700 font-black">課程</span>，系統已內建專屬的住宿配套優惠，<br className="hidden sm:block"/>您不需要在此單獨預訂房間哦！
+               若您有報名 <span className="text-rose-700 font-black">潛水活動</span> 或 <span className="text-rose-700 font-black">課程</span>，系統已內建專屬的住宿配套優惠，<br className="hidden sm:block"/>您不需要在此單獨預訂房間哦！
              </p>
           </div>
           
@@ -4117,8 +4135,8 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
             <button onClick={onGoActivities} className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
               前往查看活動與課程 <ArrowRight className="w-5 h-5" />
             </button>
-            <button onClick={onGoAccommodations} className="w-full py-4 bg-white text-slate-600 rounded-2xl font-bold hover:bg-slate-50 border-2 border-slate-100 hover:border-blue-200 hover:text-blue-600 transition-colors">
-              我只想單獨預訂住宿
+            <button onClick={onGoAccommodations} className="w-full py-4 bg-white text-rose-600 rounded-2xl font-bold hover:bg-rose-50 border-2 border-rose-100 hover:border-rose-300 transition-colors flex items-center justify-center gap-2">
+              <CoralIcon className="w-5 h-5" /> 我只想單獨預訂住宿
             </button>
             <button onClick={onClose} className="w-full py-2 mt-2 text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors">
               取消返回
