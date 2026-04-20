@@ -40,67 +40,359 @@ const DEFAULT_SERVICES = [
 ];
 
 // --------------------------------------------------------
-// 卡片專屬圖示
+// 卡片專屬圖示與全新背景浮水印 (豐富細節與專屬動態)
 // --------------------------------------------------------
+const StaghornCoralWatermark = ({ className }) => (
+  <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="coralGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#BE123C" />
+        <stop offset="50%" stopColor="#F43F5E" />
+        <stop offset="100%" stopColor="#FDA4AF" />
+      </linearGradient>
+      <linearGradient id="coralAccent" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stopColor="#9D174D" />
+        <stop offset="100%" stopColor="#FBCFE8" />
+      </linearGradient>
+    </defs>
+    
+    {/* 背景層：海扇珊瑚 (Sea Fan Webbing) */}
+    <g style={{ transformOrigin: '60px 120px' }} stroke="#FDA4AF" strokeLinecap="round" opacity="0.4">
+      <animateTransform attributeName="transform" type="rotate" values="-4; 4; -4" dur="7s" repeatCount="indefinite" ease="ease-in-out" />
+      <path d="M60 120 Q 35 90 10 50 M60 120 Q 45 70 25 15 M60 120 Q 75 70 95 15 M60 120 Q 85 90 110 50" strokeWidth="3" />
+      {/* 橫向連接網紋 */}
+      <path d="M22 80 Q 60 65 98 80 M13 55 Q 60 30 107 55 M27 30 Q 60 10 93 30" strokeWidth="2" strokeDasharray="3 5" />
+    </g>
+
+    {/* 中層：鹿角主幹 (Main Branches) */}
+    <g style={{ transformOrigin: '60px 110px' }} strokeLinecap="round" strokeLinejoin="round">
+      <animateTransform attributeName="transform" type="rotate" values="2; -2; 2" dur="5s" repeatCount="indefinite" ease="ease-in-out" />
+      
+      {/* 光暈外層 (增加層次厚度) */}
+      <path d="M60 120 C 50 80 20 60 15 25 M60 120 C 70 80 100 60 105 25 M60 120 C 55 70 35 40 45 10 M60 120 C 65 70 85 40 75 10 M60 120 V 30 M35 70 Q 20 50 5 45 M85 70 Q 100 50 115 45" stroke="#FFF" strokeWidth="12" opacity="0.25" filter="blur(2px)" />
+      
+      {/* 實體主幹 */}
+      <path d="M60 120 C 50 80 20 60 15 25" stroke="url(#coralGrad)" strokeWidth="8" opacity="0.95" />
+      <path d="M60 120 C 70 80 100 60 105 25" stroke="url(#coralGrad)" strokeWidth="8" opacity="0.95" />
+      <path d="M60 120 C 55 70 35 40 45 10" stroke="url(#coralAccent)" strokeWidth="7" opacity="0.9" />
+      <path d="M60 120 C 65 70 85 40 75 10" stroke="url(#coralAccent)" strokeWidth="7" opacity="0.9" />
+      <path d="M60 120 V 30" stroke="url(#coralGrad)" strokeWidth="9" opacity="0.95" />
+      
+      {/* 側分支 */}
+      <path d="M35 70 Q 20 50 5 45" stroke="url(#coralGrad)" strokeWidth="5.5" />
+      <path d="M85 70 Q 100 50 115 45" stroke="url(#coralGrad)" strokeWidth="5.5" />
+      <path d="M50 50 Q 30 30 25 15" stroke="url(#coralAccent)" strokeWidth="4.5" />
+      <path d="M70 50 Q 90 30 95 15" stroke="url(#coralAccent)" strokeWidth="4.5" />
+
+      {/* 內部珊瑚紋理 (虛線) */}
+      <g stroke="#FFF" strokeWidth="2.5" strokeDasharray="2 6" opacity="0.5">
+        <path d="M60 115 C 50 80 20 60 15 25 M60 115 C 70 80 100 60 105 25 M60 115 V 30" />
+      </g>
+
+      {/* 端點水螅體 (Polyps) */}
+      <g fill="#FFF" opacity="0.9">
+         <circle cx="15" cy="25" r="4.5" />
+         <circle cx="105" cy="25" r="4.5" />
+         <circle cx="45" cy="10" r="4" />
+         <circle cx="75" cy="10" r="4" />
+         <circle cx="60" cy="30" r="4.5" />
+         <circle cx="5" cy="45" r="3.5" />
+         <circle cx="115" cy="45" r="3.5" />
+         <circle cx="25" cy="15" r="3" />
+         <circle cx="95" cy="15" r="3" />
+      </g>
+
+      {/* 螢光點綴 (Bioluminescent Dots) */}
+      <g fill="#FFF">
+         <circle cx="35" cy="50" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle>
+         <circle cx="85" cy="50" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite"/></circle>
+         <circle cx="60" cy="65" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="2.5s" repeatCount="indefinite"/></circle>
+         <circle cx="20" cy="75" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/></circle>
+         <circle cx="100" cy="75" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="3.5s" repeatCount="indefinite"/></circle>
+         <circle cx="50" cy="35" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="2.8s" repeatCount="indefinite"/></circle>
+         <circle cx="70" cy="35" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="2.2s" repeatCount="indefinite"/></circle>
+      </g>
+    </g>
+
+    {/* 動態氣泡 */}
+    <circle cx="45" cy="50" r="4" fill="#FDA4AF" opacity="0.8">
+      <animate attributeName="cy" values="50; -10" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="cx" values="45; 35; 55; 45" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0; 0.8; 0" dur="4s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="80" cy="80" r="3" fill="#FBCFE8" opacity="0.7">
+      <animate attributeName="cy" values="80; 0" dur="5s" repeatCount="indefinite" begin="1s" />
+      <animate attributeName="cx" values="80; 90; 70; 80" dur="3s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0; 0.7; 0" dur="5s" repeatCount="indefinite" begin="1s" />
+    </circle>
+  </svg>
+);
+
+const DivingGearWatermark = ({ className }) => (
+  <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="tankGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#0891B2" />
+        <stop offset="50%" stopColor="#22D3EE" />
+        <stop offset="100%" stopColor="#164E63" />
+      </linearGradient>
+      <linearGradient id="bcdGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#334155" />
+        <stop offset="50%" stopColor="#1E293B" />
+        <stop offset="100%" stopColor="#0F172A" />
+      </linearGradient>
+      <linearGradient id="bcdHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38BDF8" />
+        <stop offset="100%" stopColor="#0284C7" />
+      </linearGradient>
+    </defs>
+    <g>
+      {/* 裝備微幅上下漂浮動態 */}
+      <animateTransform attributeName="transform" type="translate" values="0,3; 0,-3; 0,3" dur="5s" repeatCount="indefinite" ease="ease-in-out" />
+      
+      {/* 後方氣瓶 */}
+      <rect x="50" y="10" width="28" height="90" rx="14" fill="url(#tankGrad)" opacity="0.95" />
+      <path d="M58 4 H 70 V 10 H 58 Z" fill="#94A3B8" opacity="0.9" />
+      <rect x="61" y="0" width="6" height="4" rx="1" fill="#475569" />
+      <rect x="50" y="80" width="28" height="15" fill="#000000" opacity="0.5" />
+      
+      {/* 全新繪製的夾克式 BCD 背心 */}
+      <g opacity="0.95">
+        {/* 左肩帶 */}
+        <path d="M35 30 C 35 15, 50 15, 55 30 C 60 50, 40 60, 35 80" fill="none" stroke="url(#bcdGrad)" strokeWidth="12" strokeLinecap="round" />
+        {/* 右肩帶 */}
+        <path d="M93 30 C 93 15, 78 15, 73 30 C 68 50, 88 60, 93 80" fill="none" stroke="url(#bcdGrad)" strokeWidth="12" strokeLinecap="round" />
+        
+        {/* 腹部包覆與口袋區 */}
+        <path d="M25 70 C 25 60, 103 60, 103 70 V 95 C 103 105, 25 105, 25 95 Z" fill="url(#bcdGrad)" />
+        
+        {/* BCD 邊緣藍色裝飾線條 */}
+        <path d="M32 75 V 90 M 96 75 V 90" stroke="url(#bcdHighlight)" strokeWidth="3" strokeLinecap="round" />
+        <path d="M45 70 V 95 M 83 70 V 95" stroke="#000" strokeWidth="2" opacity="0.3" />
+        
+        {/* 胸前扣帶 */}
+        <line x1="45" y1="45" x2="83" y2="45" stroke="#0F172A" strokeWidth="4" strokeLinecap="round" />
+        
+        {/* 充氣波紋管 (左肩延伸) */}
+        <path d="M45 20 Q 30 35, 35 60" fill="none" stroke="#475569" strokeWidth="5" strokeDasharray="3 2" />
+        <circle cx="35" cy="62" r="4" fill="#0EA5E9" />
+        
+        {/* 備用二級頭 (掛載於右側) */}
+        <circle cx="85" cy="40" r="7" fill="#FBBF24" stroke="#D97706" strokeWidth="2" />
+        <path d="M85 33 Q 95 20, 70 10" fill="none" stroke="#64748B" strokeWidth="3" />
+      </g>
+    </g>
+
+    {/* 主二級頭呼吸產生的氣泡 */}
+    <circle cx="85" cy="30" r="4" fill="#BAE6FD" opacity="0.7">
+      <animate attributeName="cy" values="30; -10" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="cx" values="85; 80; 90; 85" dur="1.2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0; 0.7; 0" dur="2s" repeatCount="indefinite" />
+    </circle>
+  </svg>
+);
+
+// 3. 全新重繪：守望燈塔 (包含延伸至頂部的導引線與掃描燈火)
+const LighthouseWatermark = ({ className }) => (
+  <svg viewBox="0 0 120 400" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} preserveAspectRatio="xMidYMax slice">
+    <defs>
+      {/* 燈塔主體漸層 */}
+      <linearGradient id="towerBase" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#1E293B" />
+        <stop offset="50%" stopColor="#334155" />
+        <stop offset="100%" stopColor="#0F172A" />
+      </linearGradient>
+      {/* 高光與邊緣漸層 */}
+      <linearGradient id="towerHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#94A3B8" />
+        <stop offset="100%" stopColor="#475569" />
+      </linearGradient>
+      {/* 燈火光束漸層 */}
+      <radialGradient id="beamGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="0%" stopColor="#FDE047" stopOpacity="0.8" />
+        <stop offset="100%" stopColor="#FDE047" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    {/* 1. 垂直導引線：從卡片頂部直接相連至燈塔頂端，確保不截斷 */}
+    <line x1="60" y1="0" x2="60" y2="280" stroke="#94A3B8" strokeWidth="2" strokeDasharray="8 6" opacity="0.3" />
+
+    {/* 2. 燈塔掃描光束：動態旋轉動畫 */}
+    <g style={{ transformOrigin: '60px 285px' }}>
+      <animateTransform attributeName="transform" type="rotate" values="-35 60 285; 35 60 285; -35 60 285" dur="6s" repeatCount="indefinite" ease="ease-in-out" />
+      <path d="M60 285 L 0 200 L 120 200 Z" fill="url(#beamGrad)" opacity="0.4" />
+      <circle cx="60" cy="285" r="15" fill="#FDE047" opacity="0.2" />
+    </g>
+
+    {/* 3. 燈塔建築主體 */}
+    <g>
+      {/* 基座與岩石感 */}
+      <path d="M 20 395 Q 60 385, 100 395 V 400 H 20 Z" fill="#0F172A" />
+      
+      {/* 塔身 (由寬變窄的透視感) */}
+      <path d="M 40 290 L 30 395 H 90 L 80 290 Z" fill="url(#towerBase)" />
+      <path d="M 42 290 L 33 395" stroke="url(#towerHighlight)" strokeWidth="1" opacity="0.3" />
+      
+      {/* 塔身細節：觀景小窗 */}
+      <rect x="55" y="315" width="10" height="12" rx="2" fill="#0F172A" />
+      <rect x="55" y="345" width="10" height="12" rx="2" fill="#0F172A" />
+      <rect x="55" y="375" width="10" height="12" rx="2" fill="#0F172A" />
+
+      {/* 頂部護欄與平台 */}
+      <rect x="35" y="280" width="50" height="10" rx="2" fill="#1E293B" />
+      <line x1="38" y1="280" x2="38" y2="272" stroke="#475569" strokeWidth="2" />
+      <line x1="82" y1="280" x2="82" y2="272" stroke="#475569" strokeWidth="2" />
+      <line x1="60" y1="280" x2="60" y2="272" stroke="#475569" strokeWidth="2" />
+      <rect x="38" y="270" width="44" height="3" rx="1" fill="#475569" />
+
+      {/* 燈室 (發光核心) */}
+      <rect x="48" y="255" width="24" height="25" rx="4" fill="#334155" />
+      <rect x="52" y="258" width="16" height="18" rx="2" fill="#FEF08A" />
+      
+      {/* 尖頂 */}
+      <path d="M 48 255 L 60 235 L 72 255 Z" fill="#0F172A" />
+      <circle cx="60" cy="235" r="2" fill="#475569" />
+    </g>
+
+    {/* 周邊氣泡點綴 */}
+    <circle cx="25" cy="380" r="3" fill="#FFF" opacity="0.2">
+      <animate attributeName="cy" values="380; 250" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0; 0.4; 0" dur="4s" repeatCount="indefinite" />
+    </circle>
+  </svg>
+);
+
+// 4. 俯視鯨鯊 (Top-Down Whale Shark) - HERO 區塊陽光海面動態背景專用 (全彩細節版)
+const WhaleSharkTopDownIcon = ({ className }) => (
+  <svg viewBox="0 0 150 250" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      {/* 鯨鯊體色漸層 */}
+      <linearGradient id="wsBody" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#0F172A" />
+        <stop offset="40%" stopColor="#1E3A8A" />
+        <stop offset="100%" stopColor="#172554" />
+      </linearGradient>
+      {/* 胸鰭漸層 */}
+      <linearGradient id="wsFin" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#1E3A8A" />
+        <stop offset="100%" stopColor="#0F172A" />
+      </linearGradient>
+    </defs>
+    
+    {/* 寬大的胸鰭 (左/右) */}
+    <path d="M 35 60 C 10 70, -5 100, 5 110 C 20 95, 35 90, 45 85 Z" fill="url(#wsFin)" />
+    <path d="M 115 60 C 140 70, 155 100, 145 110 C 130 95, 115 90, 105 85 Z" fill="url(#wsFin)" />
+    
+    {/* 腹鰭 (Pelvic fins) */}
+    <path d="M 55 160 C 40 170, 35 185, 45 190 C 50 180, 55 175, 60 175 Z" fill="url(#wsFin)" />
+    <path d="M 95 160 C 110 170, 115 185, 105 190 C 100 180, 95 175, 90 175 Z" fill="url(#wsFin)" />
+
+    {/* 尾鰭 */}
+    <path d="M 75 220 C 50 230, 40 250, 45 245 C 60 235, 90 235, 105 245 C 110 250, 100 230, 75 220 Z" fill="url(#wsFin)" />
+
+    {/* 鯨鯊主軀幹 */}
+    <path d="M 40 20 C 30 30, 20 60, 45 140 C 60 200, 70 230, 75 240 C 80 230, 90 200, 105 140 C 130 60, 120 30, 110 20 C 95 5, 55 5, 40 20 Z" fill="url(#wsBody)" />
+
+    {/* 側邊立體高光 (反光) */}
+    <path d="M 40 20 C 30 30, 20 60, 45 140" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" opacity="0.3" fill="none" />
+    <path d="M 110 20 C 120 30, 130 60, 105 140" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" opacity="0.3" fill="none" />
+
+    {/* 鰓裂 (Gills) */}
+    <g stroke="#93C5FD" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" fill="none">
+      <path d="M 28 40 Q 32 45 27 50" /><path d="M 26 43 Q 30 48 25 53" />
+      <path d="M 24 46 Q 28 51 23 56" /><path d="M 22 49 Q 26 54 21 59" />
+      <path d="M 122 40 Q 118 45 123 50" /><path d="M 124 43 Q 120 48 125 53" />
+      <path d="M 126 46 Q 122 51 127 56" /><path d="M 128 49 Q 124 54 129 59" />
+    </g>
+
+    {/* 標誌性棋盤格橫紋 (Stripes) */}
+    <g stroke="#7DD3FC" strokeWidth="1" opacity="0.25" fill="none">
+      <path d="M 40 45 Q 75 55 110 45" /><path d="M 35 65 Q 75 75 115 65" />
+      <path d="M 35 85 Q 75 95 115 85" /><path d="M 40 105 Q 75 115 110 105" />
+      <path d="M 45 125 Q 75 135 105 125" /><path d="M 50 145 Q 75 155 100 145" />
+      <path d="M 55 165 Q 75 175 95 165" /><path d="M 60 185 Q 75 195 90 185" />
+      <path d="M 65 205 Q 75 210 85 205" />
+    </g>
+    
+    {/* 標誌性棋盤格直紋 */}
+    <g stroke="#7DD3FC" strokeWidth="1" opacity="0.2" fill="none">
+      <path d="M 50 30 Q 60 120 65 220" />
+      <path d="M 75 25 Q 75 120 75 230" />
+      <path d="M 100 30 Q 90 120 85 220" />
+    </g>
+
+    {/* 標誌性白斑 (Spots) - 混合大小 */}
+    <g fill="#FFFFFF" opacity="0.7">
+       <circle cx="75" cy="35" r="2.5" /><circle cx="60" cy="40" r="1.5" /><circle cx="90" cy="40" r="1.5" />
+       <circle cx="50" cy="50" r="2" /><circle cx="100" cy="50" r="2" /><circle cx="75" cy="55" r="3" />
+       <circle cx="60" cy="65" r="2" /><circle cx="90" cy="65" r="2" /><circle cx="45" cy="80" r="2.5" />
+       <circle cx="105" cy="80" r="2.5" /><circle cx="75" cy="85" r="2.5" /><circle cx="60" cy="95" r="1.5" />
+       <circle cx="90" cy="95" r="1.5" /><circle cx="75" cy="115" r="2.5" /><circle cx="55" cy="110" r="1.5" />
+       <circle cx="95" cy="110" r="1.5" /><circle cx="65" cy="135" r="2" /><circle cx="85" cy="135" r="2" />
+       <circle cx="75" cy="155" r="2" /><circle cx="68" cy="170" r="1.5" /><circle cx="82" cy="170" r="1.5" />
+       <circle cx="75" cy="185" r="1.5" /><circle cx="75" cy="210" r="1" />
+    </g>
+    
+    {/* 水藍色小斑 (層次感) */}
+    <g fill="#7DD3FC" opacity="0.5">
+       <circle cx="68" cy="30" r="1" /><circle cx="82" cy="30" r="1" /><circle cx="45" cy="40" r="1" />
+       <circle cx="105" cy="40" r="1" /><circle cx="85" cy="50" r="1.5" /><circle cx="65" cy="50" r="1.5" />
+       <circle cx="50" cy="65" r="1" /><circle cx="100" cy="65" r="1" /><circle cx="82" cy="75" r="1.5" />
+       <circle cx="68" cy="75" r="1.5" /><circle cx="50" cy="95" r="1" /><circle cx="100" cy="95" r="1" />
+       <circle cx="68" cy="105" r="1.5" /><circle cx="82" cy="105" r="1.5" /><circle cx="60" cy="125" r="1" />
+       <circle cx="90" cy="125" r="1" /><circle cx="75" cy="140" r="1" />
+    </g>
+
+    {/* 背鰭 (Dorsal fin) */}
+    <path d="M 75 115 C 65 130, 85 130, 75 155 C 75 155, 78 135, 75 115 Z" fill="#0EA5E9" opacity="0.3" />
+  </svg>
+);
+
 const CoralIcon = ({ className }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M40 90 C 40 60 20 50 20 30 C 20 15 35 15 35 30 C 35 50 50 60 50 90" fill="#FB7185" opacity="0.8"/>
-    <path d="M60 90 C 60 70 80 60 80 40 C 80 25 65 25 65 40 C 65 60 50 70 50 90" fill="#F472B6" opacity="0.8"/>
-    <path d="M30 90 C 30 75 15 65 15 50 C 15 40 25 40 25 50 C 25 65 40 75 40 90" fill="#FDA4AF" opacity="0.9"/>
-    <circle cx="70" cy="30" r="4" fill="#67E8F9" opacity="0.8"/>
-    <circle cx="80" cy="20" r="2" fill="#67E8F9" opacity="0.6"/>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 22v-7" />
+    <path d="M12 17c-2.5-1-3-3-3-5a3 3 0 0 1 2-2" />
+    <path d="M12 18c3-1 4.5-2 4.5-5 0-1.5-1-2.5-2-3" />
+    <path d="M7 22v-4" />
+    <path d="M7 19c-2-1-3-2-3-4" />
+    <path d="M17 22v-5" />
+    <path d="M17 19c2-.5 3-2 3-4" />
   </svg>
 );
 
 const AnchorIcon = ({ className }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <circle cx="50" cy="20" r="8" stroke="#64748B" strokeWidth="6"/>
-    <path d="M50 28 V 80" stroke="#64748B" strokeWidth="6" strokeLinecap="round"/>
-    <path d="M30 40 H 70" stroke="#64748B" strokeWidth="6" strokeLinecap="round"/>
-    <path d="M25 60 C 25 85 75 85 75 60" stroke="#64748B" strokeWidth="6" fill="none" strokeLinecap="round"/>
-    <path d="M20 60 L 30 50 V 65 Z" fill="#64748B"/>
-    <path d="M80 60 L 70 50 V 65 Z" fill="#64748B"/>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="5" r="3" />
+    <line x1="12" y1="8" x2="12" y2="22" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <path d="M9 10H5l-1 1c0 5 3.5 9 8 9s8-4 8-9l-1-1h-4" />
   </svg>
 );
 
 const LighthouseIcon = ({ className }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M35 90 L 45 30 H 55 L 65 90 Z" fill="#EF4444"/>
-    <path d="M37 70 L 42 50 H 58 L 63 70 Z" fill="#F8FAFC"/>
-    <rect x="42" y="20" width="16" height="10" fill="#FEF08A" stroke="#334155" strokeWidth="3"/>
-    <path d="M38 20 H 62" stroke="#334155" strokeWidth="3" strokeLinecap="round"/>
-    <path d="M45 20 L 50 10 L 55 20 Z" fill="#EF4444"/>
-    <path d="M50 25 L 15 40 M 50 25 L 85 40" stroke="#FEF08A" strokeWidth="6" strokeLinecap="round" opacity="0.6"/>
-  </svg>
-);
-
-const CardLifeBuoyIcon = ({ className }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <circle cx="50" cy="50" r="30" stroke="#F8FAFC" strokeWidth="16"/>
-    <path d="M50 20 A 30 30 0 0 1 71.2 28.8 L 85.3 14.7 A 50 50 0 0 0 50 0 Z" fill="#EF4444" />
-    <path d="M50 80 A 30 30 0 0 1 28.8 71.2 L 14.7 85.3 A 50 50 0 0 0 50 100 Z" fill="#EF4444" />
-    <path d="M80 50 A 30 30 0 0 1 71.2 71.2 L 85.3 85.3 A 50 50 0 0 0 100 50 Z" fill="#EF4444" />
-    <path d="M20 50 A 30 30 0 0 1 28.8 28.8 L 14.7 14.7 A 50 50 0 0 0 0 50 Z" fill="#EF4444" />
-    <circle cx="50" cy="50" r="42" stroke="#FBBF24" strokeWidth="1.5" strokeDasharray="6 4" fill="none"/>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8 9h8" />
+    <path d="M7 13h10" />
+    <path d="M6 17h12" />
+    <path d="M10 22V5l-2-2h8l-2 2v17" />
+    <path d="M12 2v1" />
+    <path d="M12 5h.01" />
   </svg>
 );
 
 const CardDivingMaskIcon = ({ className }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <rect x="20" y="35" width="60" height="30" rx="12" fill="#BAE6FD" stroke="#0284C7" strokeWidth="5"/>
-    <path d="M50 35 V 65" stroke="#0284C7" strokeWidth="5"/>
-    <path d="M20 50 H 10 M 80 50 H 90" stroke="#334155" strokeWidth="4" strokeLinecap="round"/>
-    <path d="M85 70 Q 95 70 95 50 L 90 20" stroke="#F97316" strokeWidth="5" fill="none" strokeLinecap="round" />
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 11c0-3.87 3.13-7 7-7h4c3.87 0 7 3.13 7 7v3c0 2.21-1.79 4-4 4h-1.5l-1.5 2h-4l-1.5-2H7c-2.21 0-4-1.79-4-4v-3z" />
+    <path d="M12 11v6" />
   </svg>
 );
 
 const CardDivingTankIcon = ({ className }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <rect x="35" y="30" width="30" height="55" rx="15" fill="#FBBF24"/>
-    <rect x="35" y="75" width="30" height="10" fill="#334155"/>
-    <path d="M45 20 H55 V30 H45 Z" fill="#94A3B8"/>
-    <circle cx="50" cy="15" r="5" fill="#64748B"/>
-    <path d="M50 15 Q 20 15 20 40" stroke="#334155" strokeWidth="3" fill="none" strokeLinecap="round"/>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M7 12V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v7" />
+    <path d="M5 12v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7H5z" />
+    <path d="M12 3v-1" />
+    <path d="M10 2h4" />
   </svg>
 );
 
@@ -443,41 +735,23 @@ function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", variant, b
       {/* 沉浸式光暈 */}
       <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-150 ${theme.glow}`}></div>
       
-      {/* 各大廳卡片專屬背景元素渲染區 (提升不透明度，展現全彩圖案) */}
+      {/* 重新設計的右下角背景浮水印 (完全顯示、細節豐富、原生動態) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[2rem] z-0">
-        {/* 2. 住宿預訂：珊瑚群礁元素 */}
         {variant === 'accommodations' && (
-          <>
-             <CoralIcon className={`absolute -bottom-6 -right-4 w-40 h-40 opacity-30 rotate-12 transition-transform duration-700 group-hover:scale-110`} />
-             <CoralIcon className={`absolute bottom-12 -left-8 w-24 h-24 opacity-25 -rotate-12 transition-transform duration-700 group-hover:scale-110 group-hover:-translate-y-2`} />
-             <Fish className={`absolute top-8 right-16 w-10 h-10 opacity-20 text-rose-400 transition-all duration-1000 group-hover:-translate-x-6 group-hover:-translate-y-2`} />
-          </>
+          <StaghornCoralWatermark className={`absolute bottom-0 right-2 w-44 h-44 opacity-[0.2] transition-all duration-700 group-hover:scale-105 group-hover:opacity-[0.35] ${theme.watermark}`} />
         )}
-        {/* 3. 專業裝備：潛水裝備素材 (氣瓶、面鏡) */}
         {variant === 'equipments' && (
-          <>
-             <CardDivingTankIcon className={`absolute -bottom-8 -right-2 w-36 h-36 opacity-30 rotate-12 transition-transform duration-700 group-hover:scale-110`} />
-             <CardDivingMaskIcon className={`absolute top-10 right-20 w-16 h-16 opacity-[0.25] -rotate-12 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-0`} />
-             <Waves className={`absolute bottom-6 -left-6 w-24 h-24 opacity-20 text-cyan-400 transition-transform duration-700 group-hover:scale-110`} />
-          </>
+          <DivingGearWatermark className={`absolute bottom-2 right-4 w-36 h-36 opacity-[0.2] transition-all duration-700 group-hover:-translate-y-2 group-hover:opacity-[0.35] ${theme.watermark}`} />
         )}
-        {/* 4. 我的預約查詢：岸邊港口元素 (燈塔、船錨、救生圈) */}
         {variant === 'dashboard' && (
-          <>
-             <LighthouseIcon className={`absolute -bottom-2 -left-6 w-32 h-32 opacity-[0.25] rotate-6 transition-transform duration-700 group-hover:-translate-y-2`} />
-             <AnchorIcon className={`absolute -bottom-6 -right-4 w-32 h-32 opacity-30 -rotate-12 transition-transform duration-700 group-hover:scale-110`} />
-             <CardLifeBuoyIcon className={`absolute top-6 right-20 w-14 h-14 opacity-30 rotate-12 transition-transform duration-1000 group-hover:-rotate-45`} />
-          </>
+          /* 燈塔專屬佈局：容器設為全高 h-full 且靠頂 top-0，配合 SVG 內 y=0 的路徑確保導引線銜接至卡片最上緣 */
+          <LighthouseWatermark className={`absolute top-0 right-0 w-44 h-full opacity-[0.25] transition-all duration-700 group-hover:opacity-[0.4] ${theme.watermark}`} />
         )}
-        {/* 預設活動卡片元素 */}
         {variant === 'activities' && (
-          <>
-             <Waves className={`absolute -bottom-6 -right-6 w-32 h-32 opacity-[0.04] rotate-12 transition-transform duration-700 group-hover:scale-110 ${theme.watermark}`} />
-             <Fish className={`absolute top-12 right-12 w-12 h-12 opacity-[0.03] transition-all duration-1000 group-hover:-translate-x-6 ${theme.watermark}`} />
-          </>
+          <Waves className={`absolute bottom-0 right-0 w-44 h-44 opacity-[0.15] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.25] ${theme.watermark}`} />
         )}
         {!['accommodations', 'equipments', 'dashboard', 'activities'].includes(variant) && (
-          <div className={`absolute -bottom-4 -right-4 opacity-[0.04] group-hover:scale-125 transition-transform duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${theme.watermark}`}>
+          <div className={`absolute bottom-0 right-0 opacity-[0.15] group-hover:scale-110 group-hover:opacity-[0.25] transition-all duration-700 pointer-events-none [&>svg]:w-44 [&>svg]:h-44 ${theme.watermark}`}>
              {bgIcon || icon}
           </div>
         )}
@@ -4428,44 +4702,55 @@ function App() {
           <>
             {currentView === 'home' && (
               <div className="space-y-10 animate-in fade-in duration-500">
-                {/* 1. 陽光海面 HERO 區塊 */}
-                <div className="rounded-[3rem] overflow-hidden text-white p-10 md:p-24 relative shadow-2xl min-h-[450px] flex items-center group border border-blue-800/30 bg-blue-900">
-                  {/* 陽光灑落海面的漸層色彩 */}
-                  <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_center,#cffafe_0%,#06b6d4_35%,#0284c7_65%,#1e3a8a_100%)]"></div>
-                  {/* 水面高光修飾 */}
-                  <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-white/40 via-white/10 to-transparent pointer-events-none z-0"></div>
-                  {/* 光束 (Sunrays) */}
-                  <div className="absolute inset-0 z-0 opacity-60 pointer-events-none overflow-hidden">
-                    <div className="absolute top-[-30%] left-[5%] w-[60%] h-[200%] bg-gradient-to-b from-white/40 via-white/5 to-transparent blur-[80px] transform rotate-[25deg] animate-[pulse_8s_ease-in-out_infinite]"></div>
-                    <div className="absolute top-[-40%] right-[10%] w-[40%] h-[200%] bg-gradient-to-b from-white/30 via-transparent to-transparent blur-[60px] transform -rotate-[15deg] animate-[pulse_10s_ease-in-out_infinite_1s]"></div>
-                  </div>
-                  {/* 新增海浪元素 (Wave Elements) - 更明顯的層次 */}
+                {/* 1. 陽光海面與鯨鯊 HERO 區塊 (俯視海面全新設計) */}
+                <div className="rounded-[3rem] overflow-hidden text-white p-10 md:p-20 relative shadow-[0_30px_60px_rgba(6,182,212,0.3)] bg-cyan-500 min-h-[450px] flex items-center group border border-cyan-300/50">
+                  
+                  {/* 俯視陽光海面漸層 (Top-down Sunlight Ocean) */}
+                  <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,#a5f3fc_0%,#06b6d4_40%,#0284c7_70%,#082f49_100%)] opacity-95"></div>
+                  
+                  {/* 陽光直射中心高光 */}
+                  <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.6)_0%,transparent_50%)] pointer-events-none mix-blend-overlay animate-[pulse_5s_ease-in-out_infinite]"></div>
+
+                  {/* 水面波紋動態 (Surface Ripples) */}
                   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                    {/* 頂部波光粼粼 */}
-                    <svg className="absolute top-0 w-full h-24 text-white/30 animate-[wave_12s_linear_infinite]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,64L48,80C96,96,192,128,288,122.7C384,117,480,75,576,85.3C672,96,768,160,864,170.7C960,181,1056,139,1152,117.3C1248,96,1344,96,1392,96L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>
-                    <svg className="absolute top-0 w-full h-32 text-cyan-100/20 animate-[wave_18s_linear_infinite_reverse]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,128L48,112C96,96,192,64,288,74.7C384,85,480,139,576,149.3C672,160,768,128,864,112C960,96,1056,96,1152,112C1248,128,1344,160,1392,176L1440,192L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>
-                    
-                    {/* 底部深海波浪 */}
-                    <svg className="absolute bottom-0 w-full h-48 text-blue-900/40 animate-[wave_15s_linear_infinite]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,122.7C672,128,768,192,864,202.7C960,213,1056,171,1152,144C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
-                    <svg className="absolute bottom-0 w-full h-32 text-blue-800/50 animate-[wave_10s_linear_infinite_reverse]" preserveAspectRatio="none" viewBox="0 0 1440 320"><path fill="currentColor" d="M0,128L48,138.7C96,149,192,171,288,165.3C384,160,480,128,576,133.3C672,139,768,181,864,192C960,203,1056,181,1152,154.7C1248,128,1344,96,1392,80L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
+                     <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] -ml-[400px] -mt-[400px] bg-[radial-gradient(circle_at_center,transparent_40%,rgba(255,255,255,0.2)_45%,transparent_50%)] rounded-full animate-[ripple_8s_ease-out_infinite]"></div>
+                     <div className="absolute top-1/3 left-2/3 w-[600px] h-[600px] -ml-[300px] -mt-[300px] bg-[radial-gradient(circle_at_center,transparent_40%,rgba(255,255,255,0.15)_45%,transparent_50%)] rounded-full animate-[ripple_6s_ease-out_infinite_2s]"></div>
+                     <div className="absolute top-2/3 left-1/4 w-[1000px] h-[1000px] -ml-[500px] -mt-[500px] bg-[radial-gradient(circle_at_center,transparent_45%,rgba(255,255,255,0.1)_50%,transparent_55%)] rounded-full animate-[ripple_10s_ease-out_infinite_4s]"></div>
+                  </div>
+
+                  {/* 俯視鯨鯊群 (Top-down Whale Sharks) */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                     {/* 鯨鯊 1 (深水層，較小較模糊) */}
+                     <div className="absolute top-[10%] opacity-30 animate-[swim-diagonal-1_28s_linear_infinite]">
+                        <WhaleSharkTopDownIcon className="w-[180px] h-[300px] transform rotate-[135deg] blur-[2px]" />
+                     </div>
+                     {/* 鯨鯊 2 (淺水層，較大較清晰) */}
+                     <div className="absolute top-[50%] opacity-60 animate-[swim-diagonal-1_22s_linear_infinite_5s]">
+                        <WhaleSharkTopDownIcon className="w-[300px] h-[500px] transform rotate-[120deg] blur-[0.5px]" />
+                     </div>
+                     {/* 鯨鯊 3 (另一方向) */}
+                     <div className="absolute bottom-[20%] opacity-20 animate-[swim-diagonal-2_35s_linear_infinite_2s]">
+                        <WhaleSharkTopDownIcon className="w-[240px] h-[400px] transform -rotate-[45deg] blur-[1px]" />
+                     </div>
                   </div>
                   
-                  <div className="relative z-10 max-w-2xl bg-white/5 backdrop-blur-[1px] p-6 rounded-3xl border border-white/10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-200 animate-pulse"></div>
-                      Sunlight Ocean Experience
+                  <div className="relative z-10 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-cyan-50 text-[10px] font-black uppercase tracking-widest mb-6 shadow-lg">
+                      <div className="w-2 h-2 rounded-full bg-yellow-300 animate-ping"></div>
+                      Top-Down Ocean View & Whale Sharks
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">{String(sysConfig.title || '')}</h1>
-                    <p className="text-lg md:text-xl font-bold mb-10 text-cyan-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">{String(sysConfig.subtitle || '')}</p>
-                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-10 py-4 rounded-2xl font-black shadow-xl hover:bg-cyan-50 transition-all flex items-center gap-2 group">活動及課程報名 <ArrowRight className="group-hover:translate-x-2 transition-transform"/></button>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-white">{String(sysConfig.title || '')}</h1>
+                    <p className="text-lg md:text-xl text-cyan-50 mb-10 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] font-bold">{String(sysConfig.subtitle || '')}</p>
+                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-10 py-4 rounded-xl font-black shadow-[0_10px_30px_rgba(0,182,212,0.4)] hover:bg-cyan-50 hover:scale-105 transition-all flex items-center gap-2 group">
+                      展開潛水旅程 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </button>
                   </div>
                 </div>
                 
-                {/* 保持 3 區塊大小，修改 variant 顯示專屬圖示 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20 mt-2">
-                  <QuickCard variant="accommodations" icon={<CoralIcon className="w-8 h-8" />} colorTheme="rose" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} />
-                  <QuickCard variant="equipments" icon={<CardDivingTankIcon className="w-8 h-8" />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} />
-                  <QuickCard variant="dashboard" icon={<Search className="w-8 h-8" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
+                  <QuickCard variant="accommodations" icon={<CoralIcon className="w-6 h-6" />} colorTheme="rose" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} />
+                  <QuickCard variant="equipments" icon={<CardDivingTankIcon className="w-6 h-6" />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} />
+                  <QuickCard variant="dashboard" icon={<Search className="w-6 h-6" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
                 </div>
                 
                 <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
@@ -4645,9 +4930,38 @@ function App() {
 
       {showAccPromptModal && <AccPromptModal sysConfig={sysConfig} onClose={() => setShowAccPromptModal(false)} onGoActivities={()=>{setShowAccPromptModal(false); setCurrentView('activities'); window.scrollTo(0,0);}} onGoAccommodations={()=>{setShowAccPromptModal(false); setCurrentView('accommodations'); window.scrollTo(0,0);}} />}
       
-      {/* 補充全域背景波浪動畫 (支援 HERO 區塊水面動態) */}
+      {/* 補充全域背景動態 (支援 HERO 俯視海面動畫) */}
       <style>{`
         @keyframes wave { 0% { transform: translateX(0); } 50% { transform: translateX(-3%) scaleY(1.05); } 100% { transform: translateX(0); } }
+        @keyframes float-up {
+          0% { transform: translateY(50px) scale(0.8); opacity: 0; }
+          20% { opacity: 0.7; }
+          80% { opacity: 0.7; }
+          100% { transform: translateY(-400px) scale(1.5); opacity: 0; }
+        }
+        @keyframes swim-across {
+          0% { left: -30%; opacity: 0; transform: translateY(10%) scale(0.8); }
+          10% { opacity: 0.6; }
+          90% { opacity: 0.6; }
+          100% { left: 120%; opacity: 0; transform: translateY(-10%) scale(1.2); }
+        }
+        @keyframes ripple {
+          0% { transform: scale(0.2); opacity: 0; }
+          20% { opacity: 0.3; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes swim-diagonal-1 {
+          0% { top: -20%; left: -20%; opacity: 0; }
+          10% { opacity: 0.6; }
+          90% { opacity: 0.6; }
+          100% { top: 120%; left: 120%; opacity: 0; }
+        }
+        @keyframes swim-diagonal-2 {
+          0% { top: 120%; right: -20%; opacity: 0; }
+          10% { opacity: 0.4; }
+          90% { opacity: 0.4; }
+          100% { top: -20%; right: 120%; opacity: 0; }
+        }
       `}</style>
     </div>
   );
