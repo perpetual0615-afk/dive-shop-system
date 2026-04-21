@@ -4832,6 +4832,9 @@ function App() {
 
   // 自動清理因 React StrictMode 導致的重複初始資料
   useEffect(() => {
+    // 💡 新增：只有管理員才執行清理動作，避免觸發 Firebase 權限報錯
+    if (!isAdminMode) return; 
+
     const cleanDuplicates = (list, collectionName, keyFn) => {
       const seen = new Set();
       const duplicates = [];
@@ -4848,7 +4851,7 @@ function App() {
     if (equipmentsList.length > 0) cleanDuplicates(equipmentsList, 'equipments', eq => `${eq.name}-${eq.category}`);
     if (accommodations.length > 0) cleanDuplicates(accommodations, 'accommodations', acc => acc.name);
     if (courseTemplates.length > 0) cleanDuplicates(courseTemplates, 'courseTemplates', c => c.courseName);
-  }, [equipmentsList, accommodations, courseTemplates]);
+  }, [equipmentsList, accommodations, courseTemplates, isAdminMode]);
 
   // 閒置自動登出 (15分鐘)
   useEffect(() => {
@@ -4869,7 +4872,9 @@ function App() {
 
   useEffect(() => {
     const seed = async () => {
-      if (!user || hasSeeded.current || sysConfig.isSeeded) return;
+      // 💡 新增 isAdminMode 判斷：只有管理員登入後，才允許執行預設資料的建立 (Seed)
+      if (!isAdminMode || !user || hasSeeded.current || sysConfig.isSeeded) return;
+      
       hasSeeded.current = true;
       try {
         const cRef = collection(db, 'artifacts', appId, 'public', 'data', 'courseTemplates');
