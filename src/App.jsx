@@ -1359,7 +1359,8 @@ function CourseTemplateModal({ editingCourse, db, appId, onClose, sysConfig }) {
             }} />
             <div className="space-y-2">
                <label className="text-sm font-bold text-slate-700">教材系統</label>
-               <select value={f.materialSystem} onChange={e=>setF({...f, materialSystem: e.target.value})} className="w-full p-3.5 border border-slate-300 rounded-xl font-bold outline-none focus:border-blue-500">
+               {/* 💡 修正：當教材系統改變時，同步連動更新簽證系統 (certSystem) */}
+               <select value={f.materialSystem} onChange={e=>setF({...f, materialSystem: e.target.value, certSystem: e.target.value})} className="w-full p-3.5 border border-slate-300 rounded-xl font-bold outline-none focus:border-blue-500">
                   <option value="PADI">PADI</option>
                   <option value="SSI">SSI</option>
                   <option value="SDI">SDI</option>
@@ -1869,7 +1870,8 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <h5 className="font-black text-slate-900 text-lg leading-tight mb-1.5">{String(c.courseName)}</h5>
-                        <p className="text-sm text-slate-600 font-medium"><span className="font-black text-slate-800">{String(c.certSystem || c.materialSystem)}</span> • {Number(c.days)} 天安排 • NT$ {Number(c.price)}</p>
+                        {/* 💡 修正：卡片優先顯示教材系統 materialSystem */}
+                        <p className="text-sm text-slate-600 font-medium"><span className="font-black text-slate-800">{String(c.materialSystem || c.certSystem)}</span> • {Number(c.days)} 天安排 • NT$ {Number(c.price)}</p>
                         {(c.certFee > 0 || c.electives?.length > 0) && (
                            <div className="flex flex-wrap gap-2 mt-3">
                              {c.certFee > 0 && <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-bold shadow-sm">+ 簽證費 ${c.certFee}</span>}
