@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc } from 'firebase/firestore';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 
 // --- Firebase 基礎配置 (加上安全防護) ---
 const firebaseConfig = {
@@ -676,48 +676,92 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
 // --------------------------------------------------------
 
 function AdminLoginModal({ onVerify, onClose }) {
-  const [code, setCode] = useState('');
-  const [error, setError] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutTime, setLockoutTime] = useState(0);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    let timer;
+    if (lockoutTime > 0) timer = setInterval(() => setLockoutTime(prev => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [lockoutTime]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    onVerify(code, (success) => {
-      setIsSubmitting(false);
-      if (!success) {
-        setError(true);
-        setCode('');
+    if (isSubmitting || lockoutTime > 0) return;
+    setIsSubmitting(true); setError('');
+
+    try {
+      // 1. 真實登入 Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. 檢查名單 (遵循 Rule 1 路徑)
+      const adminDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', user.uid));
+      
+      if (adminDoc.exists()) {
+        onVerify(true);
+      } else {
+        await signOut(auth); // 雖然帳密對，但不在管理員白名單，強制登出
+        throw new Error('此帳號未獲授權進入管理後台。');
       }
-    });
+    } catch (err) {
+      const newAttempts = failedAttempts + 1;
+      if (newAttempts >= 3) {
+        setLockoutTime(60); setFailedAttempts(0);
+      } else {
+        setFailedAttempts(newAttempts);
+        setError(err.message === '此帳號未獲授權進入管理後台。' ? err.message : '帳號或密碼錯誤');
+      }
+      setPassword('');
+    } finally { setIsSubmitting(false); }
   };
 
   return (
     <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl relative animate-in zoom-in-95">
+      <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl relative animate-in zoom-in-95 border border-white">
         <div className="flex justify-center mb-6">
           <div className="bg-blue-600 p-4 rounded-2xl text-white shadow-lg shadow-blue-200">
             <Lock className="w-8 h-8" />
           </div>
         </div>
-        <h2 className="text-2xl font-black text-slate-900 text-center mb-2">安全存取驗證</h2>
-        <p className="text-slate-500 text-sm text-center mb-8 font-medium">請輸入管理員密碼以進入營運中心</p>
+        <h2 className="text-2xl font-black text-slate-900 text-center mb-2">營運管理登入</h2>
+        <p className="text-slate-500 text-sm text-center mb-8 font-medium">請使用已授權的帳號密碼</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <input 
-              autoFocus
-              type="password" 
-              value={code} 
-              onChange={e => { setCode(e.target.value); setError(false); }}
-              placeholder="權限碼" 
-              className={`w-full p-4 bg-slate-50 border-2 rounded-2xl text-center text-2xl font-black tracking-[1em] outline-none transition-all ${error ? 'border-red-500 bg-red-50' : 'border-slate-100 focus:border-blue-500 focus:bg-white'}`}
-            />
-            {error && <p className="text-red-500 text-xs font-bold text-center mt-2 animate-bounce">密碼錯誤，請重新輸入</p>}
-          </div>
-          <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-            {isSubmitting ? '驗證中...' : <><Check className="w-5 h-5" /> 驗證並進入</>}
+          {lockoutTime > 0 ? (
+            <div className="bg-red-50 border border-red-200 p-4 rounded-2xl text-center space-y-2 animate-pulse">
+              <AlertTriangle className="w-6 h-6 text-red-500 mx-auto" />
+              <p className="text-red-700 font-bold text-sm">嘗試錯誤次數過多</p>
+              <p className="text-red-500 font-black text-xl">{lockoutTime} 秒後解鎖</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <input 
+                  autoFocus
+                  type="email" 
+                  value={email} 
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
+                  placeholder="管理員 Email" 
+                  className={`w-full p-4 bg-slate-50 border-2 rounded-2xl text-center font-bold outline-none transition-all ${error ? 'border-red-500 bg-red-50' : 'border-slate-100 focus:border-blue-500 focus:bg-white'}`}
+                />
+                <input 
+                  type="password" 
+                  value={password} 
+                  onChange={e => { setPassword(e.target.value); setError(''); }}
+                  placeholder="密碼" 
+                  className={`w-full p-4 bg-slate-50 border-2 rounded-2xl text-center font-black tracking-widest outline-none transition-all ${error ? 'border-red-500 bg-red-50' : 'border-slate-100 focus:border-blue-500 focus:bg-white'}`}
+                />
+              </div>
+              {error && <p className="text-red-500 text-xs font-bold text-center mt-2 animate-bounce">{error} (剩餘 {3 - failedAttempts} 次機會)</p>}
+            </>
+          )}
+          <button type="submit" disabled={isSubmitting || lockoutTime > 0} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+            {isSubmitting ? '驗證中...' : <><KeyRound className="w-5 h-5" /> 登入並解鎖權限</>}
           </button>
           <button type="button" onClick={onClose} disabled={isSubmitting} className="w-full py-2 text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors disabled:opacity-50">
             取消返回
@@ -2736,10 +2780,6 @@ function SystemAdminPanel({ config, onSave }) {
                 <FormInput label="進房時間" value={f.checkInAcc} onChange={v => setF({...f, checkInAcc: v})} />
                 <FormInput label="退房時間" value={f.checkOutAcc} onChange={v => setF({...f, checkOutAcc: v})} />
              </div>
-             <div className="mt-4 pt-4 border-t border-slate-100">
-                <FormInput label="管理員存取密碼" type="password" value={f.adminCode || '0000'} onChange={v => setF({...f, adminCode: v})} placeholder="預設為 0000" />
-                <p className="text-[10px] text-slate-400 mt-1">※ 此密碼用於進入營運管理中心</p>
-             </div>
           </div>
         </ControlPanelCard>
       </div>
@@ -4187,6 +4227,7 @@ function UserDashboard({ bookings }) {
   const [searchPhone, setSearchPhone] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [expandedDocs, setExpandedDocs] = useState({});
 
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
@@ -4205,6 +4246,10 @@ function UserDashboard({ bookings }) {
     if (!searchName.trim() || !searchPhone.trim()) return;
     setIsSearching(true);
     setTimeout(() => { setHasSearched(true); setIsSearching(false); }, 500);
+  };
+
+  const toggleExpand = (id) => {
+    setExpandedDocs(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -4236,8 +4281,10 @@ function UserDashboard({ bookings }) {
 
         {hasSearched && (
            <div className="space-y-6 animate-in slide-in-from-bottom-4">
-              {filteredResults.length > 0 ? filteredResults.map(b => (
-                  <div key={b.id} className="bg-white rounded-[2rem] border-2 border-slate-50 p-8 shadow-lg group relative overflow-hidden">
+              {filteredResults.length > 0 ? filteredResults.map(b => {
+                const isExpanded = !!expandedDocs[b.id];
+                return (
+                  <div key={b.id} className="bg-white rounded-[2rem] border-2 border-slate-50 p-6 md:p-8 shadow-lg group relative overflow-hidden transition-all">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6 border-b-2 border-slate-50 pb-6 mb-6">
                       <div>
                         <div className="flex gap-2 items-center mb-2">
@@ -4248,22 +4295,171 @@ function UserDashboard({ bookings }) {
                         </div>
                         <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
                         
-                        <div className="mt-2 text-sm font-bold text-slate-500 flex items-center gap-2">
-                           {b.type === 'activity' && b.date && <><CalendarDays className="w-4 h-4 text-blue-400"/> 活動日期: {b.date}</>}
-                           {b.type === 'accommodation' && b.details?.checkIn && <><CalendarDays className="w-4 h-4 text-teal-400"/> 入住日期: {b.details.checkIn} ({b.details.nights}晚)</>}
-                           {b.type === 'equipment' && b.details?.date && <><CalendarDays className="w-4 h-4 text-cyan-400"/> 取件日期: {b.details.date} ({b.details.days}天)</>}
+                        <div className="mt-2 text-sm font-bold text-slate-500 flex flex-wrap items-center gap-3">
+                           {b.type === 'activity' && b.date && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-blue-400"/> 活動日期: {b.date}</span>}
+                           {b.type === 'accommodation' && b.details?.checkIn && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-teal-400"/> 入住日期: {b.details.checkIn} ({b.details.nights}晚)</span>}
+                           {b.type === 'equipment' && b.details?.date && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-cyan-400"/> 取件日期: {b.details.date} ({b.details.days}天)</span>}
                         </div>
                       </div>
-                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
-                        {b.status === 'confirmed' ? '已確認 / Confirmed' : '處理中 / Pending'}
+                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 flex items-center justify-center text-center whitespace-nowrap ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : b.status === 'cancelled' ? 'bg-slate-100 border-slate-400 text-slate-600' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
+                        {b.status === 'confirmed' ? '已確認 / Confirmed' : b.status === 'cancelled' ? '已取消 / Cancelled' : '處理中 / Pending'}
                       </div>
                     </div>
+                    
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
-                      <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name}</span></div>
+                      <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name} {b.nickname ? `(${b.nickname})` : ''}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
+
+                    <button 
+                       onClick={() => toggleExpand(b.id)} 
+                       className="mt-6 w-full py-3 bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-700 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors border border-slate-200 hover:border-blue-200"
+                    >
+                       {isExpanded ? <><ChevronDown className="w-5 h-5 rotate-180 transition-transform" /> 收起詳細資訊</> : <><ClipboardList className="w-5 h-5" /> 查看完整報名與預約資訊</>}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 animate-in slide-in-from-top-4 duration-300">
+                         {b.type === 'activity' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                               <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                  <p className="font-black text-blue-800 border-b border-blue-100 pb-2 mb-3 flex items-center gap-2"><User className="w-4 h-4"/> 報名者詳細資料</p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                     <p className="text-slate-500 font-bold">證件號碼</p><p className="font-black text-slate-800">{b.idNumber || '未提供'}</p>
+                                     <p className="text-slate-500 font-bold">出生日期</p><p className="font-black text-slate-800">{b.birthday || '未提供'}</p>
+                                     <p className="text-slate-500 font-bold">身高 / 體重</p><p className="font-black text-slate-800">{b.height} cm / {b.weight} kg</p>
+                                     <p className="text-slate-500 font-bold">鞋碼</p><p className="font-black text-slate-800">{b.shoeSize || '未提供'} cm</p>
+                                     <p className="text-slate-500 font-bold">配重需求</p><p className="font-black text-slate-800">{((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3)} kg</p>
+                                  </div>
+                               </div>
+                               <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                  <p className="font-black text-blue-800 border-b border-blue-100 pb-2 mb-3 flex items-center gap-2"><ShoppingCart className="w-4 h-4"/> 預約配置與選修</p>
+                                  <p className="flex justify-between border-b border-slate-200/50 pb-2"><span className="text-slate-500 font-bold">住宿安排</span> <span className="font-black text-slate-800">{b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '內附背包床' : b.accOption === 'upgrade' ? `升級房型` : b.accOption === 'release' ? '釋出床位' : '住宿自理'}</span></p>
+                                  <p className="flex justify-between border-b border-slate-200/50 pb-2"><span className="text-slate-500 font-bold">使用當地裝備</span> <span className="font-black text-slate-800">{b.useLocalShopEq ? '是' : '否'}</span></p>
+                                  <div className="pt-1 space-y-1.5">
+                                     <p className="text-slate-500 font-bold">選修加購：</p>
+                                     <div className="flex flex-wrap gap-1">
+                                        {b.selectedElectives?.length > 0 ? b.selectedElectives.map((e, i)=><span key={i} className="text-[11px] bg-purple-100 text-purple-700 font-black px-2 py-0.5 rounded">{e.name}</span>) : <span className="text-sm font-bold text-slate-800">無</span>}
+                                     </div>
+                                  </div>
+                                  <div className="pt-1 space-y-1.5">
+                                     <p className="text-slate-500 font-bold">裝備租借：</p>
+                                     <div className="flex flex-wrap gap-1">
+                                        {b.rentals?.length > 0 ? b.rentals.map((r, i)=><span key={i} className="text-[11px] bg-cyan-100 text-cyan-800 font-black px-2 py-0.5 rounded">{typeof r === 'string' ? r : `${r.name}(${r.size||'F'})`}</span>) : <span className="text-sm font-bold text-slate-800">無 / 自備</span>}
+                                     </div>
+                                  </div>
+                               </div>
+
+                               <div className="md:col-span-2 space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                  <p className="font-black text-blue-800 border-b border-blue-100 pb-2 mb-3 flex items-center gap-2"><Waves className="w-4 h-4"/> 潛水經驗與健康聲明</p>
+                                  {b.divingExperience ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
+                                       <div><p className="text-xs text-slate-500 font-bold">證照系統</p><p className="font-black text-slate-800">{b.divingExperience.certSystem}</p></div>
+                                       <div><p className="text-xs text-slate-500 font-bold">證照等級</p><p className="font-black text-slate-800">{b.divingExperience.certLevel}</p></div>
+                                       <div><p className="text-xs text-slate-500 font-bold">總潛水支數</p><p className="font-black text-slate-800">{b.divingExperience.loggedDives ? `${b.divingExperience.loggedDives} 支` : '未填寫'}</p></div>
+                                       <div className="col-span-2 md:col-span-4">
+                                          <p className="text-xs text-slate-500 font-bold mb-1">特殊專長</p>
+                                          <div className="flex flex-wrap gap-1">
+                                             {b.divingExperience.specialties?.length > 0 ? b.divingExperience.specialties.map(s => <span key={s} className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[11px] font-black">{s}</span>) : <span className="font-black text-slate-800 text-sm">無</span>}
+                                          </div>
+                                       </div>
+                                       {b.divingExperience.personalNotes && (
+                                         <div className="col-span-2 md:col-span-4 bg-white p-3 rounded-xl border border-slate-200 mt-1">
+                                            <p className="text-xs text-slate-500 font-bold mb-1">備註提醒事項</p>
+                                            <p className="text-sm font-bold text-slate-800">{b.divingExperience.personalNotes}</p>
+                                         </div>
+                                       )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm font-bold text-slate-400 mb-4">無潛水經驗紀錄</p>
+                                  )}
+                                  
+                                  {b.hasMedicalIssue ? (
+                                     <div className="bg-rose-100/50 p-4 rounded-xl border border-rose-200">
+                                        <p className="font-black text-rose-800 mb-2 flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> 醫療聲明異常項目 (需醫生證明)：</p>
+                                        <ul className="text-rose-700 text-xs space-y-1.5 pl-6 list-disc font-bold">
+                                          {(b.medicalIssues || []).map((issue, idx) => (
+                                             <li key={idx} className={issue.startsWith('↳') ? 'list-none -ml-4 text-rose-600 mt-1 mb-2' : ''}>{issue}</li>
+                                          ))}
+                                        </ul>
+                                     </div>
+                                  ) : b.medicalAnswers ? (
+                                     <div className="bg-green-50 p-3 rounded-xl border border-green-200 text-green-700 text-sm font-black flex items-center gap-2">
+                                        <CheckCircle className="w-5 h-5"/> 醫療健康聲明評估皆為正常
+                                     </div>
+                                  ) : (
+                                     <p className="text-sm font-bold text-slate-400">無健康聲明紀錄</p>
+                                  )}
+                               </div>
+                            </div>
+                         )}
+
+                         {b.type === 'accommodation' && (
+                            <div className="space-y-4">
+                               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                  <p className="font-black text-teal-800 border-b border-teal-100 pb-2 mb-4 flex items-center gap-2"><Home className="w-4 h-4"/> 住宿預約明細</p>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                     <div><p className="text-xs text-slate-500 font-bold mb-1">入住總晚數</p><p className="font-black text-slate-800 text-lg">{b.details?.nights || 1} 晚</p></div>
+                                     <div><p className="text-xs text-slate-500 font-bold mb-1">預訂房間數</p><p className="font-black text-slate-800 text-lg">{b.details?.roomCount || 1} 間</p></div>
+                                     <div><p className="text-xs text-slate-500 font-bold mb-1">總入住人數</p><p className="font-black text-slate-800 text-lg">{b.details?.guests || 1} 人</p></div>
+                                     <div><p className="text-xs text-slate-500 font-bold mb-1">總加床數</p><p className="font-black text-slate-800 text-lg">{b.details?.extraBeds || 0} 床</p></div>
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                     <p className="text-xs text-slate-500 font-bold">預訂房型清單：</p>
+                                     {(b.details?.cart || []).map((cartItem, idx) => (
+                                        <div key={idx} className="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm">
+                                           <span className="font-black text-slate-800">{cartItem.room?.name || '未知房型'}</span>
+                                           <div className="flex gap-2">
+                                              <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded text-xs font-black">{cartItem.roomCount} 間</span>
+                                              <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-black">{cartItem.guests} 人</span>
+                                              {cartItem.extraBeds > 0 && <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-xs font-black">加 {cartItem.extraBeds} 床</span>}
+                                           </div>
+                                        </div>
+                                     ))}
+                                  </div>
+
+                                  {b.details?.discountTotal > 0 && (
+                                     <div className="mt-4 bg-amber-50 p-3 rounded-xl border border-amber-200 flex justify-between items-center">
+                                        <span className="font-black text-amber-800 flex items-center gap-2"><BookOpen className="w-4 h-4"/> {b.details.discountLabel}</span>
+                                        <span className="font-black text-amber-600">-NT$ {b.details.discountTotal}</span>
+                                     </div>
+                                  )}
+                               </div>
+                            </div>
+                         )}
+
+                         {b.type === 'equipment' && (
+                            <div className="space-y-4">
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                     <p className="font-black text-cyan-800 border-b border-cyan-100 pb-2 mb-3 flex items-center gap-2"><User className="w-4 h-4"/> 租借人體型資訊</p>
+                                     <div className="grid grid-cols-2 gap-3">
+                                        <div><p className="text-xs text-slate-500 font-bold">身高</p><p className="font-black text-slate-800 text-base">{b.details?.height || '-'} cm</p></div>
+                                        <div><p className="text-xs text-slate-500 font-bold">體重</p><p className="font-black text-slate-800 text-base">{b.details?.weight || '-'} kg</p></div>
+                                        <div className="col-span-2"><p className="text-xs text-slate-500 font-bold">租借天數</p><p className="font-black text-blue-600 text-base">{b.details?.days || 1} 天</p></div>
+                                     </div>
+                                  </div>
+                                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                     <p className="font-black text-cyan-800 border-b border-cyan-100 pb-2 mb-3 flex items-center gap-2"><LifeBuoy className="w-4 h-4"/> 預留裝備清單</p>
+                                     <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-2">
+                                        {(b.rentals || []).map((r, idx) => (
+                                           <div key={idx} className="bg-white p-2.5 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
+                                              <span className="font-black text-sm text-slate-800 truncate pr-2">{r.name}</span>
+                                              <span className="bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded text-xs font-black shrink-0">{r.size || 'F'}</span>
+                                           </div>
+                                        ))}
+                                        {(b.rentals || []).length === 0 && <p className="text-sm font-bold text-slate-400">無裝備資訊</p>}
+                                     </div>
+                                  </div>
+                               </div>
+                            </div>
+                         )}
+                      </div>
+                    )}
                   </div>
-              )) : <div className="bg-white rounded-[2rem] p-20 text-center shadow-inner font-black text-slate-300">查無相關預約紀錄 / No records found</div>}
+                );
+              }) : <div className="bg-white rounded-[2rem] p-20 text-center shadow-inner font-black text-slate-300">查無相關預約紀錄 / No records found</div>}
            </div>
         )}
       </div>
@@ -4587,16 +4783,28 @@ function App() {
   const [showAccPromptModal, setShowAccPromptModal] = useState(false);
   const [pendingAccAction, setPendingAccAction] = useState(null); // 用於儲存帶有折扣 Context 的跳轉狀態
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [lastActivity, setLastActivity] = useState(Date.now());
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-        else await signInAnonymously(auth);
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
       } catch (err) { console.error("Auth error:", err); }
     };
     initAuth();
-    const unsubscribe = onAuthStateChanged(auth, (u) => { setUser(u); setIsLoading(false); });
+    
+    const unsubscribe = onAuthStateChanged(auth, async (u) => { 
+        setUser(u); setIsLoading(false); 
+        // 權限判定：檢查 /artifacts/{appId}/public/data/admins/ 是否有對應 UID
+        if (u && !u.isAnonymous) {
+          const adminDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', u.uid));
+          setIsAdminMode(adminDoc.exists());
+        } else { setIsAdminMode(false); }
+    });
     return () => unsubscribe();
   }, []);
 
@@ -4641,6 +4849,23 @@ function App() {
     if (accommodations.length > 0) cleanDuplicates(accommodations, 'accommodations', acc => acc.name);
     if (courseTemplates.length > 0) cleanDuplicates(courseTemplates, 'courseTemplates', c => c.courseName);
   }, [equipmentsList, accommodations, courseTemplates]);
+
+  // 閒置自動登出 (15分鐘)
+  useEffect(() => {
+    if (!isAdminMode) return;
+    const updateActivity = () => setLastActivity(Date.now());
+    window.addEventListener('mousemove', updateActivity); window.addEventListener('keydown', updateActivity);
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity > 15 * 60 * 1000) { handleLogout(); alert('【安全提示】閒置時間過長，已自動登出管理員身分。'); }
+    }, 60000);
+    return () => { window.removeEventListener('mousemove', updateActivity); window.removeEventListener('keydown', updateActivity); clearInterval(interval); };
+  }, [isAdminMode, lastActivity]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    await signInAnonymously(auth);
+    setIsAdminMode(false); setCurrentView('home'); window.scrollTo(0,0);
+  };
 
   useEffect(() => {
     const seed = async () => {
@@ -4706,17 +4931,15 @@ function App() {
 
   const handleAdminToggle = () => { 
     if (!isAdminMode) setShowLoginModal(true);
-    else setIsAdminMode(false); 
+    else handleLogout();
   };
 
-  const verifyAdmin = (code, callback) => {
-    if (code === (sysConfig.adminCode || '0000')) {
+  const verifyAdmin = (success) => {
+    if (success) {
       setIsAdminMode(true);
+      setLastActivity(Date.now());
       setShowLoginModal(false);
       setCurrentView('dashboard');
-      callback(true);
-    } else {
-      callback(false);
     }
   };
 
@@ -4748,9 +4971,12 @@ function App() {
             <div className="bg-blue-600 p-2 rounded-lg transition-transform group-hover:scale-110"><Waves className="h-5 w-5 text-white" /></div>
             <span className="ml-3 text-xl font-black text-slate-900 tracking-tight">鯊墾丁 (SHARKENTING)</span>
           </div>
-          <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-            <Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">營運管理中心</span>
-          </button>
+          <div className="flex items-center gap-3">
+             {isAdminMode && <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-full border border-green-200 shadow-inner"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>最高權限已載入</div>}
+             <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-rose-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+               {isAdminMode ? <><X className="w-4 h-4 mr-2" /> 退出管理後台</> : <><Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">營運管理中心</span></>}
+             </button>
+          </div>
         </div>
       </nav>
 
@@ -4956,7 +5182,22 @@ function App() {
                 {adminSection === 'activities' && <ActivityAdminPanel db={db} appId={appId} activities={activities} courseTemplates={courseTemplates} sysConfig={sysConfig} saveSysConfig={saveSysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} />}
                 {adminSection === 'accommodations' && <AccommodationAdminPanel db={db} appId={appId} accommodations={accommodations} sysConfig={sysConfig} saveSysConfig={saveSysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} />}
                 {adminSection === 'equipments' && <EquipmentAdminPanel db={db} appId={appId} equipments={equipmentsList} sysConfig={sysConfig} saveSysConfig={saveSysConfig} subTab={adminSubTab} setSubTab={setAdminSubTab} />}
-                {adminSection === 'system' && <SystemAdminPanel config={sysConfig} onSave={saveSysConfig} />}
+                {adminSection === 'system' && (
+                  <div className="p-8 space-y-6">
+                    <h3 className="text-xl font-bold border-b pb-4">Firebase 進階安全狀態</h3>
+                    <div className="p-6 bg-indigo-50 border border-indigo-200 rounded-3xl flex items-start gap-4">
+                      <div className="bg-white p-3 rounded-2xl text-indigo-600 shadow-sm"><Lock className="w-6 h-6" /></div>
+                      <div>
+                        <h4 className="font-black text-indigo-900 mb-1">後端安全規則連動中</h4>
+                        <p className="text-sm font-bold text-indigo-700 leading-relaxed">
+                          目前系統讀寫權限由 Firebase Auth UID 授權名單管控。未被列入 /admins/ 集合的帳號將無法執行任何修改。
+                        </p>
+                        <div className="mt-4 text-[10px] text-indigo-400 font-bold uppercase tracking-widest">目前管理員 UID：{user?.uid}</div>
+                      </div>
+                    </div>
+                    <SystemAdminPanel config={sysConfig} onSave={saveSysConfig} />
+                  </div>
+                )}
             </div>
           </div>
         )}
