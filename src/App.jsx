@@ -192,73 +192,89 @@ const DivingGearWatermark = ({ className }) => (
   </svg>
 );
 
-// 3. 全新重繪：守望燈塔 (包含延伸至頂部的導引線與掃描燈火)
-const LighthouseWatermark = ({ className }) => (
-  <svg viewBox="0 0 120 400" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} preserveAspectRatio="xMidYMax slice">
+// 3. 全新重繪：探測深淵 (海洋科技感聲納與無人潛水艇)
+const AbyssExplorerWatermark = ({ className }) => (
+  <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <defs>
-      {/* 燈塔主體漸層 */}
-      <linearGradient id="towerBase" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#1E293B" />
-        <stop offset="50%" stopColor="#334155" />
-        <stop offset="100%" stopColor="#0F172A" />
+      <linearGradient id="abyssBase" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#4338CA" />
+        <stop offset="100%" stopColor="#312E81" />
       </linearGradient>
-      {/* 高光與邊緣漸層 */}
-      <linearGradient id="towerHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#94A3B8" />
-        <stop offset="100%" stopColor="#475569" />
-      </linearGradient>
-      {/* 燈火光束漸層 */}
-      <radialGradient id="beamGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-        <stop offset="0%" stopColor="#FDE047" stopOpacity="0.8" />
-        <stop offset="100%" stopColor="#FDE047" stopOpacity="0" />
+      <radialGradient id="sonarGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#818CF8" stopOpacity="0.6" />
+        <stop offset="100%" stopColor="#3730A3" stopOpacity="0" />
       </radialGradient>
+      <linearGradient id="scanBeam" x1="50%" y1="50%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#6366F1" stopOpacity="0.9" />
+        <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
+      </linearGradient>
     </defs>
 
-    {/* 1. 垂直導引線：從卡片頂部直接相連至燈塔頂端，確保不截斷 */}
-    <line x1="60" y1="0" x2="60" y2="280" stroke="#94A3B8" strokeWidth="2" strokeDasharray="8 6" opacity="0.3" />
-
-    {/* 2. 燈塔掃描光束：動態旋轉動畫 */}
-    <g style={{ transformOrigin: '60px 285px' }}>
-      <animateTransform attributeName="transform" type="rotate" values="-35 60 285; 35 60 285; -35 60 285" dur="6s" repeatCount="indefinite" ease="ease-in-out" />
-      <path d="M60 285 L 0 200 L 120 200 Z" fill="url(#beamGrad)" opacity="0.4" />
-      <circle cx="60" cy="285" r="15" fill="#FDE047" opacity="0.2" />
+    {/* Tech Target / Sonar Rings */}
+    <g style={{ transformOrigin: '60px 60px' }}>
+      <circle cx="60" cy="60" r="50" stroke="#4F46E5" strokeWidth="1" strokeDasharray="2 4" opacity="0.5">
+        <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="20s" repeatCount="indefinite" linear="true" />
+      </circle>
+      <circle cx="60" cy="60" r="35" stroke="#6366F1" strokeWidth="1" opacity="0.6" />
+      <circle cx="60" cy="60" r="20" stroke="#818CF8" strokeWidth="1" strokeDasharray="1 3" opacity="0.8">
+        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="15s" repeatCount="indefinite" linear="true" />
+      </circle>
     </g>
 
-    {/* 3. 燈塔建築主體 */}
-    <g>
-      {/* 基座與岩石感 */}
-      <path d="M 20 395 Q 60 385, 100 395 V 400 H 20 Z" fill="#0F172A" />
-      
-      {/* 塔身 (由寬變窄的透視感) */}
-      <path d="M 40 290 L 30 395 H 90 L 80 290 Z" fill="url(#towerBase)" />
-      <path d="M 42 290 L 33 395" stroke="url(#towerHighlight)" strokeWidth="1" opacity="0.3" />
-      
-      {/* 塔身細節：觀景小窗 */}
-      <rect x="55" y="315" width="10" height="12" rx="2" fill="#0F172A" />
-      <rect x="55" y="345" width="10" height="12" rx="2" fill="#0F172A" />
-      <rect x="55" y="375" width="10" height="12" rx="2" fill="#0F172A" />
+    {/* Axis Lines */}
+    <line x1="60" y1="5" x2="60" y2="115" stroke="#4F46E5" strokeWidth="1" opacity="0.4" />
+    <line x1="5" y1="60" x2="115" y2="60" stroke="#4F46E5" strokeWidth="1" opacity="0.4" />
+    <circle cx="60" cy="60" r="2" fill="#818CF8" />
 
-      {/* 頂部護欄與平台 */}
-      <rect x="35" y="280" width="50" height="10" rx="2" fill="#1E293B" />
-      <line x1="38" y1="280" x2="38" y2="272" stroke="#475569" strokeWidth="2" />
-      <line x1="82" y1="280" x2="82" y2="272" stroke="#475569" strokeWidth="2" />
-      <line x1="60" y1="280" x2="60" y2="272" stroke="#475569" strokeWidth="2" />
-      <rect x="38" y="270" width="44" height="3" rx="1" fill="#475569" />
-
-      {/* 燈室 (發光核心) */}
-      <rect x="48" y="255" width="24" height="25" rx="4" fill="#334155" />
-      <rect x="52" y="258" width="16" height="18" rx="2" fill="#FEF08A" />
-      
-      {/* 尖頂 */}
-      <path d="M 48 255 L 60 235 L 72 255 Z" fill="#0F172A" />
-      <circle cx="60" cy="235" r="2" fill="#475569" />
+    {/* Sonar Scan Beam */}
+    <g style={{ transformOrigin: '60px 60px' }}>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite" />
+      <path d="M 60 60 L 60 10 A 50 50 0 0 1 103.3 35 Z" fill="url(#scanBeam)" opacity="0.3" />
+      <line x1="60" y1="60" x2="60" y2="10" stroke="#818CF8" strokeWidth="2" opacity="0.8">
+        <animate attributeName="opacity" values="0.8; 0.3; 0.8" dur="2s" repeatCount="indefinite" />
+      </line>
     </g>
 
-    {/* 周邊氣泡點綴 */}
-    <circle cx="25" cy="380" r="3" fill="#FFF" opacity="0.2">
-      <animate attributeName="cy" values="380; 250" dur="4s" repeatCount="indefinite" />
-      <animate attributeName="opacity" values="0; 0.4; 0" dur="4s" repeatCount="indefinite" />
-    </circle>
+    {/* ROV Submersible (Floating in the abyss) */}
+    <g opacity="0.9">
+      <animateTransform attributeName="transform" type="translate" values="0,-3; 0,3; 0,-3" dur="4s" repeatCount="indefinite" ease="ease-in-out" />
+      {/* Main Body */}
+      <rect x="42" y="52" width="24" height="14" rx="4" fill="#1E1B4B" stroke="#A5B4FC" strokeWidth="1.5" />
+      {/* Dome / Viewport */}
+      <path d="M 44 52 Q 54 42 64 52" fill="none" stroke="#818CF8" strokeWidth="1.5" />
+      <circle cx="54" cy="48" r="1.5" fill="#6366F1" />
+      {/* Thrusters / Propellers */}
+      <rect x="38" y="56" width="4" height="6" rx="1" fill="#4F46E5" />
+      <rect x="66" y="56" width="4" height="6" rx="1" fill="#4F46E5" />
+      <path d="M 36 57 Q 34 59 36 61" stroke="#818CF8" strokeWidth="1" fill="none" />
+      <path d="M 68 57 Q 70 59 68 61" stroke="#818CF8" strokeWidth="1" fill="none" />
+      
+      {/* Headlights illuminating the deep */}
+      <path d="M 54 66 L 30 100 L 78 100 Z" fill="url(#sonarGlow)" opacity="0.5" />
+      <circle cx="54" cy="66" r="2.5" fill="#C7D2FE">
+         <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite" />
+      </circle>
+    </g>
+
+    {/* Digital Signals / Detected Objects */}
+    <g fill="#38BDF8">
+      <circle cx="25" cy="30" r="2">
+        <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" />
+        <animate attributeName="r" values="1;3;1" dur="2.5s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="85" cy="20" r="1.5">
+        <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" begin="1s" />
+      </circle>
+      <circle cx="95" cy="85" r="2.5" fill="#818CF8">
+        <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" begin="0.5s" />
+      </circle>
+      <circle cx="20" cy="80" r="1">
+        <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" />
+      </circle>
+    </g>
+
+    {/* Tech Interface Brackets */}
+    <path d="M 10 20 L 10 10 L 20 10 M 100 10 L 110 10 L 110 20 M 110 100 L 110 110 L 100 110 M 20 110 L 10 110 L 10 100" stroke="#6366F1" strokeWidth="2" fill="none" opacity="0.7" />
   </svg>
 );
 
@@ -348,6 +364,17 @@ const WhaleSharkTopDownIcon = ({ className }) => (
   </svg>
 );
 
+const AbyssRadarIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2v20" opacity="0.3" />
+    <path d="M2 12h20" opacity="0.3" />
+    <circle cx="12" cy="12" r="6" strokeDasharray="2 2" />
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
+    <path d="M12 12L18.5 5.5" strokeDasharray="1 2" />
+  </svg>
+);
+
 const CoralIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M12 22v-7" />
@@ -389,10 +416,15 @@ const CardDivingMaskIcon = ({ className }) => (
 
 const CardDivingTankIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M7 12V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v7" />
-    <path d="M5 12v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7H5z" />
-    <path d="M12 3v-1" />
-    <path d="M10 2h4" />
+    {/* 閥門與開關手輪 (Valve & Knob) */}
+    <path d="M11 2h2v3h-2z" />
+    <path d="M13 3h1.5a1 1 0 0 1 0 2H13" />
+    {/* 氣瓶主體 (Tank body with smooth shoulders) */}
+    <path d="M7 10.5C7 7.46 9.24 5 12 5c2.76 0 5 2.46 5 5.5V20a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9.5Z" />
+    {/* BCD綁帶 (Strap) */}
+    <path d="M7 13h10" />
+    {/* 防撞底座 (Tank Boot) */}
+    <path d="M7 19h10" />
   </svg>
 );
 
@@ -744,8 +776,8 @@ function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", variant, b
           <DivingGearWatermark className={`absolute bottom-2 right-4 w-36 h-36 opacity-[0.2] transition-all duration-700 group-hover:-translate-y-2 group-hover:opacity-[0.35] ${theme.watermark}`} />
         )}
         {variant === 'dashboard' && (
-          /* 燈塔專屬佈局：容器設為全高 h-full 且靠頂 top-0，配合 SVG 內 y=0 的路徑確保導引線銜接至卡片最上緣 */
-          <LighthouseWatermark className={`absolute top-0 right-0 w-44 h-full opacity-[0.25] transition-all duration-700 group-hover:opacity-[0.4] ${theme.watermark}`} />
+          /* 探測深淵海洋科技感專屬佈局 */
+          <AbyssExplorerWatermark className={`absolute bottom-0 right-0 w-48 h-48 opacity-[0.25] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.45] ${theme.watermark} translate-x-4 translate-y-4`} />
         )}
         {variant === 'activities' && (
           <Waves className={`absolute bottom-0 right-0 w-44 h-44 opacity-[0.15] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.25] ${theme.watermark}`} />
@@ -2674,6 +2706,7 @@ function SystemAdminPanel({ config, onSave }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ControlPanelCard title="首頁視覺文案">
           <div className="space-y-4">
+            <FormInput label="HERO區動態標籤文字" value={f.heroBadgeText} onChange={v => setF({ ...f, heroBadgeText: v })} placeholder="例如: Top-Down Ocean View & Whale Sharks" />
             <FormInput label="主標題" value={f.title} onChange={v => setF({ ...f, title: v })} />
             <div className="space-y-2">
                <label className="text-sm font-bold text-slate-700">副標題描述</label>
@@ -3957,19 +3990,20 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   1. 入住資訊設定
                </h3>
 
-               {/* 雙日曆與天數顯示 */}
-               <div className="flex items-center justify-between gap-2 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100 shadow-inner relative z-10">
-                   <div className="flex-1">
+               {/* 雙日曆與天數顯示 (手機版自動改為上下排列防截斷) */}
+               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2 mb-6 bg-slate-50/80 p-4 sm:p-3 rounded-2xl border border-slate-100 shadow-inner relative z-10">
+                   <div className="w-full sm:flex-1">
                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Check-in 入住日</span>
-                       <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-rose-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm" />
+                       <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-3 sm:p-2.5 rounded-xl font-black text-rose-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm" />
                    </div>
-                   <div className="flex flex-col items-center shrink-0 px-2 relative z-10 pt-4">
-                       <div className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200 z-10">{nights} 晚</div>
-                       <div className="w-10 h-0.5 bg-slate-300 mt-[-10px] -z-0"></div>
+                   <div className="flex flex-row sm:flex-col items-center justify-center shrink-0 px-2 relative z-10 py-1 sm:py-0 sm:pt-4 w-full sm:w-auto">
+                       <div className="hidden sm:block absolute w-10 h-0.5 bg-slate-300 top-1/2 mt-2 -z-0"></div>
+                       <div className="sm:hidden absolute h-0.5 w-full bg-slate-200 top-1/2 -z-0"></div>
+                       <div className="text-xs font-black text-slate-500 bg-white px-4 sm:px-3 py-1.5 sm:py-1 rounded-full shadow-sm border border-slate-200 z-10">{nights} 晚</div>
                    </div>
-                   <div className="flex-1">
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 text-right">Check-out 退房日</span>
-                       <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-2.5 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm text-right" />
+                   <div className="w-full sm:flex-1">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 sm:text-right">Check-out 退房日</span>
+                       <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-3 sm:p-2.5 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm sm:text-right" />
                    </div>
                </div>
 
@@ -4176,14 +4210,14 @@ function UserDashboard({ bookings }) {
   return (
     <div className="relative animate-in fade-in duration-500 max-w-5xl mx-auto pb-20 pt-4">
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[4rem]">
-         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-cyan-100/40 via-blue-50/20 to-transparent"></div>
-         <div className="absolute top-10 right-[5%] text-cyan-500/10 transform rotate-12"><Waves className="w-80 h-80" /></div>
-         <div className="absolute top-40 left-[5%] text-blue-500/5 transform -rotate-6"><Fish className="w-48 h-48" /></div>
+         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-indigo-100/40 via-slate-50/20 to-transparent"></div>
+         <div className="absolute top-10 right-[5%] text-indigo-500/10 transform rotate-12"><AbyssRadarIcon className="w-80 h-80" /></div>
+         <div className="absolute top-40 left-[5%] text-indigo-500/10 transform -rotate-6"><AbyssExplorerWatermark className="w-64 h-64 opacity-30" /></div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4">
         <div className="text-center mb-10 pt-4">
-          <div className="mx-auto w-20 h-20 bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl border border-white transform -rotate-3 hover:rotate-0 transition-transform"><Search className="w-10 h-10" /></div>
+          <div className="mx-auto w-20 h-20 bg-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl border border-white transform -rotate-3 hover:rotate-0 transition-transform"><AbyssRadarIcon className="w-10 h-10" /></div>
           <h2 className="text-3xl md:text-4xl font-black text-slate-800 drop-shadow-sm mb-3">我的預約與報名查詢</h2>
           <div className="text-slate-500 font-bold">請輸入您預約活動、住宿或裝備時填寫的姓名與手機號碼。</div>
         </div>
@@ -4239,10 +4273,15 @@ function UserDashboard({ bookings }) {
 
 const DivingTankIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M7 12V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v7" />
-    <path d="M5 12v7a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-7H5z" />
-    <path d="M12 3v-1" />
-    <path d="M10 2h4" />
+    {/* 閥門與開關手輪 (Valve & Knob) */}
+    <path d="M11 2h2v3h-2z" />
+    <path d="M13 3h1.5a1 1 0 0 1 0 2H13" />
+    {/* 氣瓶主體 (Tank body with smooth shoulders) */}
+    <path d="M7 10.5C7 7.46 9.24 5 12 5c2.76 0 5 2.46 5 5.5V20a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9.5Z" />
+    {/* BCD綁帶 (Strap) */}
+    <path d="M7 13h10" />
+    {/* 防撞底座 (Tank Boot) */}
+    <path d="M7 19h10" />
   </svg>
 );
 
@@ -4344,47 +4383,47 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
   };
 
   return (
-    <div className="relative animate-in fade-in duration-500 min-h-[calc(100vh-80px)] pb-24 lg:pb-12">
-      {/* 陽光灑落海洋背景 (Sunlight Ocean Background) */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
-         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-cyan-100/60 via-blue-50/30 to-transparent"></div>
-         <div className="absolute -top-20 left-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/70 to-transparent transform rotate-[15deg] blur-3xl opacity-80"></div>
+    <div className="relative animate-in fade-in duration-500 min-h-screen pb-24 lg:pb-12 -mx-4 sm:-mx-6 lg:-mx-8 -my-8 px-4 sm:px-6 lg:px-8 pt-8 bg-slate-950 text-slate-200 overflow-hidden">
+      {/* 深海環境背景 (Dark Ocean Background) */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-950 via-slate-900 to-slate-950"></div>
+         <div className="absolute -top-20 left-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-cyan-900/20 to-transparent transform rotate-[15deg] blur-3xl opacity-80"></div>
          <div className="absolute top-10 right-[5%] text-cyan-500/10 transform rotate-12"><Waves className="w-80 h-80" /></div>
-         <div className="absolute top-40 left-[5%] text-blue-500/5 transform -rotate-6"><Fish className="w-48 h-48" /></div>
+         <div className="absolute top-40 left-[5%] text-blue-500/10 transform -rotate-6"><Fish className="w-48 h-48" /></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 border-b border-cyan-200/50 pb-5 mb-8 px-2">
-           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-cyan-700 rounded-full hover:bg-white hover:shadow-md hover:text-cyan-600 transition-all border border-white"><ChevronLeft className="w-6 h-6"/></button>
+      <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-2 sm:px-4">
+        <div className="flex items-center gap-4 border-b border-cyan-900/50 pb-5 mb-8">
+           <button onClick={onBack} className="p-2.5 bg-slate-800/80 backdrop-blur-sm text-cyan-400 rounded-full hover:bg-slate-700 hover:shadow-md transition-all border border-slate-700"><ChevronLeft className="w-6 h-6"/></button>
            <div>
-             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-blue-700 drop-shadow-sm">專業裝備預留 / Equipment Prep</h2>
-             <div className="text-xs md:text-sm font-bold text-cyan-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></div>線上選取裝備並預約，到店即可快速取件下水</div>
+             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-sm">專業裝備預留 / Equipment Prep</h2>
+             <div className="text-xs md:text-sm font-bold text-cyan-400/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></div>線上選取裝備並預約，到店即可快速取件下水</div>
            </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* 左側：AI分析與型錄區 */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-8">
-             <div className="bg-white/80 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(6,182,212,0.1)] relative overflow-hidden">
-               <h3 className="font-black text-xl text-slate-800 border-b border-cyan-100/50 pb-3 mb-5 flex items-center gap-3">
-                  <div className="bg-cyan-100 p-2 rounded-xl text-cyan-600"><Scale className="w-5 h-5"/></div>
+             <div className="bg-slate-900/60 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-slate-700/50 shadow-[0_15px_40px_rgba(0,0,0,0.5)] relative overflow-hidden">
+               <h3 className="font-black text-xl text-slate-100 border-b border-slate-700/50 pb-3 mb-5 flex items-center gap-3">
+                  <div className="bg-slate-800 p-2 rounded-xl text-cyan-400"><Scale className="w-5 h-5"/></div>
                   1. 填寫體型資訊 
                </h3>
                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6 relative z-10">
-                 <FormInput label="身高 (cm)" type="number" value={f.height} onChange={v=>setF({...f, height: v})} placeholder="例: 170" />
-                 <FormInput label="體重 (kg)" type="number" value={f.weight} onChange={v=>setF({...f, weight: v})} placeholder="例: 65" />
-                 <FormInput label="鞋碼 (cm)" type="number" value={f.shoeSize} onChange={v=>setF({...f, shoeSize: v})} placeholder="例: 26" />
+                 <FormInput dark={true} label="身高 (cm)" type="number" value={f.height} onChange={v=>setF({...f, height: v})} placeholder="例: 170" />
+                 <FormInput dark={true} label="體重 (kg)" type="number" value={f.weight} onChange={v=>setF({...f, weight: v})} placeholder="例: 65" />
+                 <FormInput dark={true} label="鞋碼 (cm)" type="number" value={f.shoeSize} onChange={v=>setF({...f, shoeSize: v})} placeholder="例: 26" />
                </div>
                {f.height && f.weight && (
                  <div className="relative z-10 animate-in slide-in-from-bottom-2">
-                   <AISizeAdvisor height={f.height} weight={f.weight} shoeSize={f.shoeSize} showWeight={false} />
+                   <AISizeAdvisor height={f.height} weight={f.weight} shoeSize={f.shoeSize} showWeight={false} dark={true} />
                  </div>
                )}
              </div>
 
              <div className="space-y-6">
-               <h3 className="font-black text-2xl text-slate-800 flex items-center gap-3">
-                  <DivingTankIcon className="w-7 h-7 text-cyan-500 drop-shadow-sm"/> 2. 挑選器材準備下潛
+               <h3 className="font-black text-2xl text-slate-100 flex items-center gap-3">
+                  <DivingTankIcon className="w-7 h-7 text-cyan-400 drop-shadow-sm"/> 2. 挑選器材準備下潛
                </h3>
                {['重裝備', '輕裝備', '其他配件'].map(cat => {
                   const catItems = equipments.filter(eq => eq.category === cat);
@@ -4392,17 +4431,17 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
 
                   return (
                     <div key={cat} className="space-y-4">
-                      <h4 className="text-sm font-black text-cyan-700 border-l-4 border-cyan-400 pl-3">{cat}</h4>
+                      <h4 className="text-sm font-black text-cyan-400 border-l-4 border-cyan-500 pl-3">{cat}</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         {catItems.map(eq => {
                           const availableSpecs = eq.hasSpecs ? eq.specDetails?.filter(s => s.ready > 0) : [];
                           const isOutOfStock = eq.hasSpecs ? availableSpecs.length === 0 : eq.readyQuantity <= 0;
 
                           return (
-                          <div key={eq.id} className="p-5 rounded-[1.5rem] border border-white/60 hover:border-cyan-300 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] transition-all duration-300 flex flex-col gap-4 bg-white/90 backdrop-blur-sm group">
+                          <div key={eq.id} className="p-5 rounded-[1.5rem] border border-slate-700/80 hover:border-cyan-500/50 hover:shadow-[0_10px_30px_rgba(6,182,212,0.1)] transition-all duration-300 flex flex-col gap-4 bg-slate-800/40 backdrop-blur-md group">
                              <div className="flex justify-between items-start">
-                               <span className="font-black text-slate-800 text-lg leading-snug pr-2 group-hover:text-cyan-700 transition-colors">{String(eq.name)}</span>
-                               <span className="text-[11px] font-black text-white bg-gradient-to-r from-cyan-500 to-blue-500 px-2.5 py-1 rounded-lg shrink-0 shadow-sm">NT$ {eq.price}/晚</span>
+                               <span className="font-black text-slate-200 text-lg leading-snug pr-2 group-hover:text-cyan-300 transition-colors">{String(eq.name)}</span>
+                               <span className="text-[11px] font-black text-slate-900 bg-gradient-to-r from-cyan-400 to-blue-400 px-2.5 py-1 rounded-lg shrink-0 shadow-sm">NT$ {eq.price}/晚</span>
                              </div>
                              <div className="mt-auto">
                                {eq.hasSpecs ? (
@@ -4411,24 +4450,24 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
                                       value={selectedSizes[eq.id] || (availableSpecs[0]?.name || '')} 
                                       onChange={e => setSelectedSizes({...selectedSizes, [eq.id]: e.target.value})} 
                                       disabled={isOutOfStock}
-                                      className="w-full p-3 pl-4 pr-10 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 bg-slate-50/80 shadow-inner text-slate-800 disabled:opacity-50 disabled:bg-slate-100 appearance-none cursor-pointer transition-all"
+                                      className="w-full p-3 pl-4 pr-10 border border-slate-600 rounded-xl text-sm font-bold outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 bg-slate-900/80 shadow-inner text-slate-200 disabled:opacity-50 disabled:bg-slate-800 appearance-none cursor-pointer transition-all"
                                     >
                                        {availableSpecs.map(spec => (
                                             <option key={spec.id} value={spec.name}>{spec.name} (庫存: {spec.ready})</option>
                                        ))}
                                        {isOutOfStock && <option value="">尺寸皆已租借一空</option>}
                                     </select>
-                                    {!isOutOfStock && <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-cyan-600 pointer-events-none" />}
+                                    {!isOutOfStock && <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-cyan-500 pointer-events-none" />}
                                   </div>
                                ) : (
-                                  <div className="text-sm text-slate-500 font-bold p-3 bg-slate-50/80 rounded-xl text-center border border-slate-200 shadow-inner">
-                                     單一規格 (F) {isOutOfStock ? <span className="text-red-500 ml-1">- 已租借一空</span> : <span className="text-cyan-600 ml-1"> (庫存: {eq.readyQuantity})</span>}
+                                  <div className="text-sm text-slate-400 font-bold p-3 bg-slate-900/80 rounded-xl text-center border border-slate-700 shadow-inner">
+                                     單一規格 (F) {isOutOfStock ? <span className="text-red-400 ml-1">- 已租借一空</span> : <span className="text-cyan-400 ml-1"> (庫存: {eq.readyQuantity})</span>}
                                   </div>
                                )}
                              </div>
                              <button 
                                type="button" disabled={isOutOfStock} onClick={() => handleAddToPrep(eq)} 
-                               className="w-full py-3.5 bg-gradient-to-r from-slate-800 to-slate-700 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-[0_5px_15px_rgba(6,182,212,0.4)]"
+                               className="w-full py-3.5 bg-slate-700 hover:bg-cyan-600 text-slate-200 hover:text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm hover:shadow-[0_5px_15px_rgba(6,182,212,0.3)] border border-slate-600 hover:border-transparent"
                              >
                                 <Plus className="w-4 h-4"/> 預留此器材
                              </button>
@@ -4443,35 +4482,35 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
 
           {/* 右側：準備清單與結帳表單 */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-6">
-             <form id="checkout-form" onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(8,145,178,0.1)] lg:sticky lg:top-24 scroll-mt-24">
-               <h3 className="font-black text-xl text-slate-800 border-b border-cyan-100/50 pb-4 mb-6 flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><DivingTankIcon className="w-5 h-5"/></div> 
+             <form id="checkout-form" onSubmit={handleSubmit} className="bg-slate-900/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-slate-700/50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] lg:sticky lg:top-24 scroll-mt-24">
+               <h3 className="font-black text-xl text-slate-100 border-b border-slate-700 pb-4 mb-6 flex items-center gap-3">
+                  <div className="bg-slate-800 p-2 rounded-xl text-cyan-400"><DivingTankIcon className="w-5 h-5"/></div> 
                   3. 器材準備區與結帳
                </h3>
                
                <div className="mb-6">
-                 <div className="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-3 flex items-center justify-between">
+                 <div className="text-[11px] font-black text-cyan-400 uppercase tracking-widest mb-3 flex items-center justify-between">
                    <span>預留清單 (Prep List)</span>
-                   <span className="bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-md">{prepList.length} 件</span>
+                   <span className="bg-slate-800 text-cyan-400 px-2 py-0.5 rounded-md border border-cyan-900">{prepList.length} 件</span>
                  </div>
                  
                  {prepList.length === 0 ? (
-                   <div className="text-center py-10 bg-white/50 rounded-2xl border border-dashed border-cyan-200">
-                     <DivingTankIcon className="w-10 h-10 text-cyan-200 mx-auto mb-3" />
-                     <div className="text-sm font-bold text-cyan-700/50">準備區尚無裝備</div>
+                   <div className="text-center py-10 bg-slate-800/30 rounded-2xl border border-dashed border-slate-700">
+                     <DivingTankIcon className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                     <div className="text-sm font-bold text-slate-500">準備區尚無裝備</div>
                    </div>
                  ) : (
                    <div className="space-y-3 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2">
                      {prepList.map((item) => (
-                       <div key={item.id} className="flex items-center justify-between bg-white/60 p-3.5 rounded-[1.25rem] border border-slate-100 shadow-sm group hover:border-cyan-300 hover:shadow-md hover:bg-white transition-all">
+                       <div key={item.id} className="flex items-center justify-between bg-slate-800/80 p-3.5 rounded-[1.25rem] border border-slate-700 shadow-sm group hover:border-cyan-500/50 hover:bg-slate-800 transition-all">
                           <div className="flex-1 min-w-0 pr-3">
-                            <div className="font-bold text-slate-800 text-sm truncate">{item.name}</div>
+                            <div className="font-bold text-slate-200 text-sm truncate">{item.name}</div>
                             <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">規格: {item.size}</span>
-                              <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">NT$ {item.price}</span>
+                              <span className="text-[10px] font-black bg-slate-900 px-2 py-0.5 rounded-md text-slate-400 border border-slate-700">規格: {item.size}</span>
+                              <span className="text-[10px] font-black text-cyan-300 bg-cyan-900/50 px-2 py-0.5 rounded-md">NT$ {item.price}</span>
                             </div>
                           </div>
-                          <button type="button" onClick={() => handleRemoveFromPrep(item.id)} className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors shrink-0">
+                          <button type="button" onClick={() => handleRemoveFromPrep(item.id)} className="p-2.5 text-slate-500 hover:text-red-400 hover:bg-slate-700 rounded-xl transition-colors shrink-0">
                             <Trash2 className="w-4 h-4"/>
                           </button>
                        </div>
@@ -4480,35 +4519,35 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
                  )}
                </div>
 
-               <div className="space-y-5 border-t border-cyan-100/50 pt-6">
-                 <div className="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-1">租借人與取件資訊</div>
+               <div className="space-y-5 border-t border-slate-700 pt-6">
+                 <div className="text-[11px] font-black text-cyan-400 uppercase tracking-widest mb-1">租借人與取件資訊</div>
                  <div className="grid grid-cols-2 gap-4">
-                   <FormInput label="取件日 / Date *" required type="date" value={f.date} onChange={v=>setF({...f, date: v})} />
-                   <FormInput label="天數 / Days *" required type="number" value={f.days} onChange={v=>setF({...f, days: v === '' ? '' : Math.max(1, parseInt(v))})} />
+                   <FormInput dark={true} label="取件日 / Date *" required type="date" value={f.date} onChange={v=>setF({...f, date: v})} />
+                   <FormInput dark={true} label="天數 / Days *" required type="number" value={f.days} onChange={v=>setF({...f, days: v === '' ? '' : Math.max(1, parseInt(v))})} />
                  </div>
-                 <FormInput label="真實姓名 / Full Name *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
-                 <FormInput label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                 <FormInput dark={true} label="真實姓名 / Full Name *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
+                 <FormInput dark={true} label="手機號碼 / Mobile Phone *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
                  
-                 <label className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 rounded-xl cursor-pointer shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 mt-2 group">
-                     <input type="checkbox" checked={isReturningCustomer} onChange={e => setIsReturningCustomer(e.target.checked)} className="w-5 h-5 text-orange-500 rounded border-orange-300 shrink-0" />
+                 <label className="flex items-center gap-3 p-4 bg-slate-800 border border-orange-900/50 rounded-xl cursor-pointer shadow-sm transition-all hover:bg-slate-700 hover:-translate-y-0.5 mt-2 group">
+                     <input type="checkbox" checked={isReturningCustomer} onChange={e => setIsReturningCustomer(e.target.checked)} className="w-5 h-5 text-orange-500 rounded border-slate-600 bg-slate-900 shrink-0" />
                      <div>
-                       <span className="font-black text-orange-800 text-sm block group-hover:text-orange-900 transition-colors">我是回客 / Returning Customer</span>
-                       <span className="text-[10px] font-bold text-orange-600/80 mt-0.5 block">勾選享專屬裝備折扣！</span>
+                       <span className="font-black text-orange-400 text-sm block group-hover:text-orange-300 transition-colors">我是回客 / Returning Customer</span>
+                       <span className="text-[10px] font-bold text-orange-500/70 mt-0.5 block">勾選享專屬裝備折扣！</span>
                      </div>
                  </label>
                </div>
 
-               <div className="pt-6 mt-6 border-t-2 border-cyan-100/50">
+               <div className="pt-6 mt-6 border-t-2 border-slate-700">
                   <div className="flex justify-between items-end mb-5">
-                    <span className="text-sm font-bold text-slate-500">預估總額 / Total</span>
+                    <span className="text-sm font-bold text-slate-400">預估總額 / Total</span>
                     <div className="text-right">
-                      <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">NT$ {calculateEqPrice()}</span>
-                      {(f.days > 1) && <div className="text-[10px] text-cyan-600 font-bold mt-1 bg-cyan-50 inline-block px-2 py-0.5 rounded-full">已乘上天數 / Multiplied by {f.days} days</div>}
+                      <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">NT$ {calculateEqPrice()}</span>
+                      {(f.days > 1) && <div className="text-[10px] text-cyan-500 font-bold mt-1 bg-cyan-900/30 inline-block px-2 py-0.5 rounded-full border border-cyan-900/50">已乘上天數 / Multiplied by {f.days} days</div>}
                     </div>
                   </div>
                   <button 
                     type="submit" form="checkout-form" disabled={isSubmitting || prepList.length === 0} 
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-2xl font-black shadow-[0_10px_20px_rgba(6,182,212,0.3)] hover:shadow-[0_15px_30px_rgba(6,182,212,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-2xl font-black shadow-[0_10px_20px_rgba(6,182,212,0.2)] hover:shadow-[0_15px_30px_rgba(6,182,212,0.4)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                      {isSubmitting ? '處理中... Processing' : prepList.length === 0 ? '準備區尚無裝備' : <><CheckCircle className="w-5 h-5"/>確認送出預約 / Submit</>}
                   </button>
@@ -4534,7 +4573,7 @@ function App() {
   const [accommodations, setAccommodations] = useState([]);
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [sysConfig, setSysConfig] = useState({
-    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
+    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
   });
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -4755,7 +4794,7 @@ function App() {
                   <div className="relative z-10 max-w-2xl">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-cyan-50 text-[10px] font-black uppercase tracking-widest mb-6 shadow-lg">
                       <div className="w-2 h-2 rounded-full bg-yellow-300 animate-ping"></div>
-                      Top-Down Ocean View & Whale Sharks
+                      {String(sysConfig.heroBadgeText || 'Top-Down Ocean View & Whale Sharks')}
                     </div>
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-white">{String(sysConfig.title || '')}</h1>
                     <p className="text-lg md:text-xl text-cyan-50 mb-10 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] font-bold">{String(sysConfig.subtitle || '')}</p>
@@ -4768,7 +4807,7 @@ function App() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20 mt-2">
                   <QuickCard variant="accommodations" icon={<CoralIcon className="w-6 h-6" />} colorTheme="rose" title="住宿預訂" desc="預約舒適房間，享活動專屬配套折抵優惠" onClick={() => handleNavClick('accommodations')} />
                   <QuickCard variant="equipments" icon={<CardDivingTankIcon className="w-6 h-6" />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} />
-                  <QuickCard variant="dashboard" icon={<Search className="w-6 h-6" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
+                  <QuickCard variant="dashboard" icon={<AbyssRadarIcon className="w-6 h-6" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
                 </div>
                 
                 <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
