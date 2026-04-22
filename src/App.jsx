@@ -2801,96 +2801,184 @@ function SystemAdminPanel({ config, onSave }) {
 // 前台：顧客服務與預約表單組件 (補齊缺失功能)
 // --------------------------------------------------------
 
-function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }) {
+const ServiceSection = React.memo(function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }) {
+  const [viewMode, setViewMode] = useState('card');
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  const calendarCells = Array(firstDay).fill(null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
+
+  const activitiesByDate = useMemo(() => {
+    const map = {};
+    if (type === 'activity') {
+      items.forEach(act => {
+        if (act.date) {
+          if (!map[act.date]) map[act.date] = [];
+          map[act.date].push(act);
+        }
+      });
+    }
+    return map;
+  }, [items, type]);
+
   return (
     <div className="animate-in fade-in duration-300">
-      <h2 className="text-2xl font-black mb-6 text-slate-800 border-b border-slate-200 pb-4">{title}</h2>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
+        <h2 className="text-2xl md:text-3xl font-black text-slate-800">{title}</h2>
+        
+        {type === 'activity' && items.length > 0 && (
+          <div className="flex bg-slate-100 p-1 rounded-lg self-start sm:self-auto shadow-inner">
+            <button onClick={() => setViewMode('card')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all flex items-center gap-2 ${viewMode === 'card' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}>
+              <ClipboardList className="w-4 h-4"/> 卡片列表
+            </button>
+            <button onClick={() => setViewMode('calendar')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all flex items-center gap-2 ${viewMode === 'calendar' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}>
+              <CalendarDays className="w-4 h-4"/> 月曆總覽
+            </button>
+          </div>
+        )}
+      </div>
+
       {items.length === 0 ? (
         <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold bg-white">
           目前暫無可預約的項目
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map(item => {
-            let totalSlots = 0;
-            let bookedCount = 0;
-            let remainingSlots = 0;
-            let isFull = false;
-
-            if (type === 'activity') {
-              totalSlots = parseInt(item.capacity) || 0;
-              bookedCount = bookings.filter(b => b.type === 'activity' && b.activityId === item.id && b.status !== 'cancelled').length;
-              remainingSlots = Math.max(0, totalSlots - bookedCount);
-              isFull = remainingSlots === 0;
-            }
-
-            return (
-            <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full relative overflow-hidden group">
-              {/* 活動屬性標籤 */}
-              {type === 'activity' && (
-                <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-xs font-black px-3 py-1.5 rounded-bl-xl shadow-sm">
-                  {item.isCourse ? '證照課程' : 'FUN DIVE'}
-                </div>
-              )}
-              
-              <div className="flex-1 mt-2">
-                <h3 className="font-bold text-xl text-slate-900 mb-2 pr-16 group-hover:text-blue-700 transition-colors">{String(item.name || item.courseName || '未命名項目')}</h3>
-                
-                {type === 'activity' && (
-                  <div className="space-y-1.5 mb-4 mt-3">
-                    <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-blue-500" /> 日期：{String(item.date || '常態開放')}
-                    </p>
-                    <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                      <Waves className="w-4 h-4 text-teal-500" /> 類型：{item.isCourse ? (item.courseName || '潛水課程') : String(item.diveCategory || '岸潛')}
-                    </p>
-                    <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                      <User className="w-4 h-4 text-indigo-500" /> 教練：{String(item.coach || '依店內安排')}
-                    </p>
-
-                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
-                       <span className="text-[11px] font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">總額: {totalSlots} 人</span>
-                       <span className={`text-[11px] font-black px-2 py-1 rounded-md ${remainingSlots > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-                         剩餘: {remainingSlots} 人
-                       </span>
-                    </div>
-                  </div>
-                )}
-
-                {type === 'accommodation' && (
-                  <div className="flex flex-wrap gap-2 mb-2 mt-3">
-                    <span className="text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
-                      <CoralIcon className="w-4 h-4" /> 房間數: {Number(item.quantity || 1)} 間
-                    </span>
-                    <span className="text-sm font-bold text-pink-700 bg-pink-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
-                      <User className="w-4 h-4" /> 每間容納: {Number(item.bedCount || 1)} 人/床
-                    </span>
-                  </div>
-                )}
+        <>
+          {type === 'activity' && viewMode === 'calendar' ? (
+            <div className="bg-white border border-slate-200 rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.05)] overflow-hidden animate-in slide-in-from-bottom-4">
+              <div className="flex items-center justify-between p-4 sm:p-6 bg-slate-50 border-b border-slate-200">
+                <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))} className="p-2.5 hover:bg-slate-200 bg-white border border-slate-200 rounded-xl transition-colors shadow-sm"><ChevronLeft className="w-5 h-5 text-slate-600"/></button>
+                <h3 className="font-black text-xl sm:text-2xl text-slate-800 tracking-wider">{year} 年 {month + 1} 月</h3>
+                <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} className="p-2.5 hover:bg-slate-200 bg-white border border-slate-200 rounded-xl transition-colors shadow-sm"><ChevronRight className="w-5 h-5 text-slate-600"/></button>
               </div>
-              
-              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                   {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
-                   <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
-                      NT$ {Number(item.price || item.priceLowWeekday || 0)}
-                   </span>
-                </div>
-                <button 
-                  onClick={() => onBook(item)} 
-                  disabled={type === 'activity' ? isFull : false}
-                  className={`px-5 py-2.5 text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-1.5 ${(type === 'activity' && isFull) ? 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none' : type === 'accommodation' ? 'bg-rose-600 hover:bg-rose-700 hover:shadow-rose-500/30' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30'}`}
-                >
-                  {type === 'activity' ? (isFull ? '已額滿' : '立即報名') : <><CalendarDays className="w-4 h-4"/> 選擇日期</>}
-                </button>
+              <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-100/80">
+                 {['日', '一', '二', '三', '四', '五', '六'].map(d => <div key={d} className="py-3 text-center text-xs sm:text-sm font-black text-slate-500 uppercase">{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 bg-slate-200 gap-px">
+                 {calendarCells.map((day, i) => {
+                   if (!day) return <div key={i} className="bg-slate-50/30 min-h-[100px] md:min-h-[140px]"></div>;
+                   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                   const dayActivities = activitiesByDate[dateStr] || [];
+                   const isToday = new Date().toISOString().slice(0, 10) === dateStr;
+
+                   return (
+                     <div key={i} className={`bg-white min-h-[100px] md:min-h-[140px] p-1.5 md:p-2.5 flex flex-col gap-1.5 transition-colors hover:bg-blue-50/30 ${isToday ? 'ring-2 ring-inset ring-blue-400 bg-blue-50/10' : ''}`}>
+                       <div className="flex justify-between items-center px-1 mb-1">
+                          <span className={`text-xs sm:text-sm font-black ${isToday ? 'text-white bg-blue-500 px-2 py-0.5 rounded-full' : (dayActivities.length > 0 ? 'text-blue-800' : 'text-slate-400')}`}>{day}</span>
+                          {dayActivities.length > 0 && <span className="text-[10px] font-bold text-slate-400 hidden lg:block bg-slate-100 px-1.5 py-0.5 rounded">{dayActivities.length} 場</span>}
+                       </div>
+                       <div className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar pr-0.5">
+                         {dayActivities.map(act => {
+                            const totalSlots = parseInt(act.capacity) || 0;
+                            const bookedCount = bookings.filter(b => b.type === 'activity' && b.activityId === act.id && b.status !== 'cancelled').length;
+                            const remaining = Math.max(0, totalSlots - bookedCount);
+                            const isFull = remaining === 0;
+
+                            return (
+                              <button key={act.id} onClick={() => onBook(act)} className={`text-left p-2 rounded-xl border flex flex-col gap-1 transition-all hover:-translate-y-px hover:shadow-md group ${act.isCourse ? 'bg-indigo-50/80 border-indigo-100 hover:border-indigo-300' : 'bg-cyan-50/80 border-cyan-100 hover:border-cyan-300'} ${isFull ? 'opacity-60 bg-slate-50 border-slate-200 hover:border-slate-300' : ''}`}>
+                                 <span className={`text-[10px] sm:text-xs font-black truncate w-full ${isFull ? 'text-slate-600' : (act.isCourse ? 'text-indigo-800 group-hover:text-indigo-600' : 'text-cyan-800 group-hover:text-cyan-600')}`} title={act.name}>{act.name}</span>
+                                 <div className="flex justify-between items-center w-full">
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 hidden 2xl:flex ${act.isCourse ? 'bg-indigo-100 text-indigo-600' : 'bg-cyan-100 text-cyan-600'}`}>
+                                       {act.isCourse ? <BookOpen className="w-2.5 h-2.5"/> : <Waves className="w-2.5 h-2.5"/>}
+                                       {act.isCourse ? '課程' : '潛水'}
+                                    </span>
+                                    <span className={`text-[10px] font-bold text-right w-full 2xl:w-auto ${isFull ? 'text-red-500 font-black' : 'text-slate-500'}`}>{isFull ? '額滿' : `剩 ${remaining} 名`}</span>
+                                 </div>
+                              </button>
+                            )
+                         })}
+                       </div>
+                     </div>
+                   )
+                 })}
               </div>
             </div>
-          )})}
-        </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4">
+              {items.map(item => {
+                let totalSlots = 0;
+                let bookedCount = 0;
+                let remainingSlots = 0;
+                let isFull = false;
+
+                if (type === 'activity') {
+                  totalSlots = parseInt(item.capacity) || 0;
+                  bookedCount = bookings.filter(b => b.type === 'activity' && b.activityId === item.id && b.status !== 'cancelled').length;
+                  remainingSlots = Math.max(0, totalSlots - bookedCount);
+                  isFull = remainingSlots === 0;
+                }
+
+                return (
+                <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full relative overflow-hidden group">
+                  {type === 'activity' && (
+                    <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-xs font-black px-3 py-1.5 rounded-bl-xl shadow-sm">
+                      {item.isCourse ? '證照課程' : 'FUN DIVE'}
+                    </div>
+                  )}
+                  
+                  <div className="flex-1 mt-2">
+                    <h3 className="font-bold text-xl text-slate-900 mb-2 pr-16 group-hover:text-blue-700 transition-colors">{String(item.name || item.courseName || '未命名項目')}</h3>
+                    
+                    {type === 'activity' && (
+                      <div className="space-y-1.5 mb-4 mt-3">
+                        <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                          <CalendarDays className="w-4 h-4 text-blue-500" /> 日期：{String(item.date || '常態開放')}
+                        </p>
+                        <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                          <Waves className="w-4 h-4 text-teal-500" /> 類型：{item.isCourse ? (item.courseName || '潛水課程') : String(item.diveCategory || '岸潛')}
+                        </p>
+                        <p className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                          <User className="w-4 h-4 text-indigo-500" /> 教練：{String(item.coach || '依店內安排')}
+                        </p>
+
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                           <span className="text-[11px] font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">總額: {totalSlots} 人</span>
+                           <span className={`text-[11px] font-black px-2 py-1 rounded-md ${remainingSlots > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                             剩餘: {remainingSlots} 人
+                           </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {type === 'accommodation' && (
+                      <div className="flex flex-wrap gap-2 mb-2 mt-3">
+                        <span className="text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
+                          <CoralIcon className="w-4 h-4" /> 房間數: {Number(item.quantity || 1)} 間
+                        </span>
+                        <span className="text-sm font-bold text-pink-700 bg-pink-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
+                          <User className="w-4 h-4" /> 每間容納: {Number(item.bedCount || 1)} 人/床
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                       {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
+                       <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
+                          NT$ {Number(item.price || item.priceLowWeekday || 0)}
+                       </span>
+                    </div>
+                    <button 
+                      onClick={() => onBook(item)} 
+                      disabled={type === 'activity' ? isFull : false}
+                      className={`px-5 py-2.5 text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-1.5 ${(type === 'activity' && isFull) ? 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none' : type === 'accommodation' ? 'bg-rose-600 hover:bg-rose-700 hover:shadow-rose-500/30' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30'}`}
+                    >
+                      {type === 'activity' ? (isFull ? '已額滿' : '立即報名') : <><CalendarDays className="w-4 h-4"/> 選擇日期</>}
+                    </button>
+                  </div>
+                </div>
+              )})}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
-}
+});
 
 // 專屬客製化：潛水面鏡圖示
 const DivingMaskIcon = ({ className }) => (
@@ -3087,7 +3175,12 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
       if (isCourse && accOption === 'upgrade') {
         gotoAcc = true;
         accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; 
-      } else if (!isCourse && !isTrip && accOption !== 'self') {
+      } else if (isDSD && accOption === 'upgrade') {
+        // 👉 新增：判斷為體驗潛水且需要預訂住宿時，觸發 DSD 專屬優惠 Context
+        gotoAcc = true;
+        accContext = { type: 'dsd_discount', date: activity.date };
+      } else if (!isCourse && !isTrip && accOption === 'upgrade') {
+        // 👉 修正：確保一般活動也有點選「需要住宿(upgrade)」才導引至訂房
         gotoAcc = true;
         accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue };
       }
@@ -3877,6 +3970,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
      let total = 0;
      const dailyAggregated = {};
      let totalRoomCount = 0;
+     let dsdDiscountAccumulator = 0; // 👉 新增：計算 DSD 專屬優惠折抵的總金額
 
      cart.forEach(item => {
          totalRoomCount += item.roomCount;
@@ -3914,6 +4008,15 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             } else {
                dailyPrice = isWeekend ? (item.room.priceLowWeekend || 0) : (item.room.priceLowWeekday || 0);
                priceLabel = isWeekend ? '淡季假日' : '淡季平日';
+            }
+
+            // 👉 新增：如果是體驗潛水且房型名稱包含「背包」，強制修改每晚單價為 500
+            if (context?.type === 'dsd_discount' && item.room.name.includes('背包')) {
+               if (dailyPrice > 500) {
+                   dsdDiscountAccumulator += (dailyPrice - 500) * item.roomCount;
+                   dailyPrice = 500;
+                   priceLabel += ' (體驗潛水特惠)';
+               }
             }
 
             const dailyBaseTotal = dailyPrice * item.roomCount;
@@ -3959,6 +4062,11 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             discountLabel = `活動專屬折扣 (每晚折抵 $${sysConfig.accDiscountValue})`;
             total -= discountTotal;
          }
+     } else if (context?.type === 'dsd_discount') {
+         // 👉 新增：帶入前面計算好的總折抵金額
+         discountTotal = dsdDiscountAccumulator;
+         discountLabel = `體驗潛水專屬優惠 (背包房床位 $500/晚)`;
+         // 注意：此處不需要再 `total -= discountTotal`，因為前面迴圈中的 dailyPrice 已經降為 500 計算了
      }
 
      total = Math.max(0, Math.round(total));
@@ -4120,7 +4228,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-3 shadow-sm mb-6 animate-in slide-in-from-top-2">
                      <div className="flex items-center gap-2">
                        <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
-                       <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : '活動專屬優惠'}</p>
+                       <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : context.type === 'dsd_discount' ? '體驗潛水專屬優惠' : '活動專屬優惠'}</p>
                      </div>
                      {context.type === 'course_upgrade' ? (
                        <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
@@ -4131,6 +4239,10 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                            ))}
                          </select>
                        </div>
+                     ) : context.type === 'dsd_discount' ? (
+                       <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                          享體驗潛水專屬優惠：背包房床位每晚以 NT$ 500 計算 (限背包客房適用)
+                       </p>
                      ) : (
                        <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
                      )}
@@ -5050,6 +5162,46 @@ function App() {
                   <QuickCard variant="equipments" icon={<CardDivingTankIcon className="w-6 h-6" />} colorTheme="cyan" title="專業裝備租借" desc="依據 AI 身型預測，為您準備最合適的潛水裝備" onClick={() => setCurrentView('equipments')} />
                   <QuickCard variant="dashboard" icon={<AbyssRadarIcon className="w-6 h-6" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
                 </div>
+
+                {/* 新增/優化: 潛水活動收費條列式價目表 */}
+                {sysConfig.priceList && sysConfig.priceList.length > 0 && (
+                  <div className="relative mt-24 mb-12 bg-white rounded-[3rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(8,145,178,0.08)] border border-cyan-100/50">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none z-0"></div>
+                     <div className="relative z-10">
+                       <div className="text-center mb-10">
+                          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-100 mb-4 shadow-sm">
+                             <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
+                             <span className="text-cyan-700 font-black tracking-widest text-[10px] uppercase">Price List</span>
+                          </div>
+                          <h3 className="text-3xl md:text-4xl font-black text-slate-800 flex items-center justify-center gap-3">
+                            潛水活動收費一覽
+                          </h3>
+                       </div>
+                       
+                       <div className="max-w-4xl mx-auto space-y-4">
+                         {sysConfig.priceList.map((item, idx) => (
+                           <div key={item.id || idx} className="group bg-white p-5 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:shadow-cyan-500/10 hover:border-cyan-300 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                             
+                             <div className="flex-1 min-w-0 z-10">
+                               <h4 className="text-lg md:text-xl font-black text-slate-800 group-hover:text-cyan-700 transition-colors flex items-center gap-2">
+                                 <CheckCircle className="w-5 h-5 text-cyan-500 opacity-0 group-hover:opacity-100 -ml-7 group-hover:ml-0 transition-all duration-300" />
+                                 {item.name}
+                               </h4>
+                               <p className="text-sm font-bold text-slate-500 mt-1.5 leading-relaxed">{item.desc}</p>
+                             </div>
+                             
+                             <div className="hidden sm:block flex-1 border-b-2 border-dashed border-slate-200 mt-4 mx-4 opacity-50 group-hover:border-cyan-300 transition-colors"></div>
+                             
+                             <div className="text-left sm:text-right shrink-0 z-10">
+                               <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">{item.price}</div>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                  </div>
+                )}
                 
                 <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
                    {/* 沉浸式清透海洋背景裝飾 (Clear Ocean Immersion) */}
