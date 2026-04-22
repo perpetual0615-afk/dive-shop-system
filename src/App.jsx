@@ -5113,7 +5113,7 @@ function App() {
             {currentView === 'home' && (
               <div className="space-y-10 animate-in fade-in duration-500">
                 {/* 1. 陽光海面與鯨鯊 HERO 區塊 (俯視海面全新設計) */}
-                <div className="rounded-[3rem] overflow-hidden text-white p-10 md:p-20 relative shadow-[0_30px_60px_rgba(6,182,212,0.3)] bg-cyan-500 min-h-[450px] flex items-center group border border-cyan-300/50">
+                <div className="rounded-[3rem] overflow-hidden text-white p-8 md:p-12 lg:p-16 relative shadow-[0_30px_60px_rgba(6,182,212,0.3)] bg-cyan-500 min-h-[450px] flex items-center group border border-cyan-300/50">
                   
                   {/* 俯視陽光海面漸層 (Top-down Sunlight Ocean) */}
                   <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,#a5f3fc_0%,#06b6d4_40%,#0284c7_70%,#082f49_100%)] opacity-95"></div>
@@ -5144,16 +5144,42 @@ function App() {
                      </div>
                   </div>
                   
-                  <div className="relative z-10 max-w-2xl">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-cyan-50 text-[10px] font-black uppercase tracking-widest mb-6 shadow-lg">
-                      <div className="w-2 h-2 rounded-full bg-yellow-300 animate-ping"></div>
-                      {String(sysConfig.heroBadgeText || 'Top-Down Ocean View & Whale Sharks')}
+                  <div className="relative z-10 w-full flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
+                    <div className="max-w-xl">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-cyan-50 text-[10px] font-black uppercase tracking-widest mb-6 shadow-lg">
+                        <div className="w-2 h-2 rounded-full bg-yellow-300 animate-ping"></div>
+                        {String(sysConfig.heroBadgeText || 'Top-Down Ocean View & Whale Sharks')}
+                      </div>
+                      <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-white">{String(sysConfig.title || '')}</h1>
+                      <p className="text-lg md:text-xl text-cyan-50 mb-10 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] font-bold">{String(sysConfig.subtitle || '')}</p>
+                      <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-8 py-3.5 md:px-10 md:py-4 rounded-xl font-black shadow-[0_10px_30px_rgba(0,182,212,0.4)] hover:bg-cyan-50 hover:scale-105 transition-all flex items-center gap-2 group">
+                        展開潛水旅程 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </button>
                     </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-white">{String(sysConfig.title || '')}</h1>
-                    <p className="text-lg md:text-xl text-cyan-50 mb-10 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] font-bold">{String(sysConfig.subtitle || '')}</p>
-                    <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-10 py-4 rounded-xl font-black shadow-[0_10px_30px_rgba(0,182,212,0.4)] hover:bg-cyan-50 hover:scale-105 transition-all flex items-center gap-2 group">
-                      展開潛水旅程 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </button>
+
+                    {/* 新增：懸浮於 HERO 區塊的精緻收費小面板 */}
+                    {sysConfig.priceList && sysConfig.priceList.length > 0 && (
+                      <div className="w-full lg:w-[360px] bg-slate-900/40 backdrop-blur-md border border-white/20 rounded-[2rem] p-6 shadow-2xl animate-in fade-in slide-in-from-right-8 duration-700 shrink-0">
+                        <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                           <div className="flex items-center gap-2.5">
+                             <div className="bg-cyan-500/20 p-1.5 rounded-lg text-cyan-300"><BookOpen className="w-4 h-4"/></div>
+                             <h3 className="font-black text-white text-base tracking-wide">活動與課程收費</h3>
+                           </div>
+                           <span className="text-[10px] font-bold text-cyan-200/50 uppercase tracking-widest">Price List</span>
+                        </div>
+                        <div className="space-y-4 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
+                          {sysConfig.priceList.map((item, idx) => (
+                            <div key={item.id || idx} className="group relative">
+                              <div className="flex justify-between items-start gap-2 mb-1">
+                                <span className="font-bold text-cyan-50 text-sm group-hover:text-cyan-300 transition-colors leading-tight">{item.name}</span>
+                                <span className="font-black text-cyan-300 text-sm shrink-0">{item.price}</span>
+                              </div>
+                              {item.desc && <p className="text-[11px] font-bold text-slate-300/80 leading-relaxed pr-2">{item.desc}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -5163,46 +5189,6 @@ function App() {
                   <QuickCard variant="dashboard" icon={<AbyssRadarIcon className="w-6 h-6" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
                 </div>
 
-                {/* 新增/優化: 潛水活動收費條列式價目表 */}
-                {sysConfig.priceList && sysConfig.priceList.length > 0 && (
-                  <div className="relative mt-24 mb-12 bg-white rounded-[3rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(8,145,178,0.08)] border border-cyan-100/50">
-                     <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none z-0"></div>
-                     <div className="relative z-10">
-                       <div className="text-center mb-10">
-                          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-100 mb-4 shadow-sm">
-                             <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
-                             <span className="text-cyan-700 font-black tracking-widest text-[10px] uppercase">Price List</span>
-                          </div>
-                          <h3 className="text-3xl md:text-4xl font-black text-slate-800 flex items-center justify-center gap-3">
-                            潛水活動收費一覽
-                          </h3>
-                       </div>
-                       
-                       <div className="max-w-4xl mx-auto space-y-4">
-                         {sysConfig.priceList.map((item, idx) => (
-                           <div key={item.id || idx} className="group bg-white p-5 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:shadow-cyan-500/10 hover:border-cyan-300 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                             
-                             <div className="flex-1 min-w-0 z-10">
-                               <h4 className="text-lg md:text-xl font-black text-slate-800 group-hover:text-cyan-700 transition-colors flex items-center gap-2">
-                                 <CheckCircle className="w-5 h-5 text-cyan-500 opacity-0 group-hover:opacity-100 -ml-7 group-hover:ml-0 transition-all duration-300" />
-                                 {item.name}
-                               </h4>
-                               <p className="text-sm font-bold text-slate-500 mt-1.5 leading-relaxed">{item.desc}</p>
-                             </div>
-                             
-                             <div className="hidden sm:block flex-1 border-b-2 border-dashed border-slate-200 mt-4 mx-4 opacity-50 group-hover:border-cyan-300 transition-colors"></div>
-                             
-                             <div className="text-left sm:text-right shrink-0 z-10">
-                               <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">{item.price}</div>
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                  </div>
-                )}
-                
                 <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
                    {/* 沉浸式清透海洋背景裝飾 (Clear Ocean Immersion) */}
                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-blue-50 rounded-[4rem] -z-10 overflow-hidden border border-white">
