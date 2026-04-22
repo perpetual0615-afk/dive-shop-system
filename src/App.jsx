@@ -2792,6 +2792,43 @@ function SystemAdminPanel({ config, onSave }) {
              </div>
           </div>
         </ControlPanelCard>
+
+        {/* 新增: 潛水活動收費表管理 */}
+        <div className="lg:col-span-2">
+          <ControlPanelCard title="潛水活動收費表管理">
+            <div className="space-y-4">
+               <div className="flex justify-between items-center mb-2">
+                 <p className="text-xs font-bold text-slate-500">顯示於前台大廳的收費一覽表</p>
+                 <button type="button" onClick={() => setF({...f, priceList: [...(f.priceList || []), { id: Date.now(), name: '', price: '', desc: '' }]})} className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors shadow-sm border border-blue-100">+ 新增收費項目</button>
+               </div>
+               <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                  {(f.priceList || []).map((item, idx) => (
+                    <div key={item.id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center transition-all hover:border-blue-300">
+                      <div className="flex-1 space-y-3 w-full">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                           <input type="text" value={item.name} onChange={e => {
+                              const newList = [...f.priceList]; newList[idx].name = e.target.value; setF({...f, priceList: newList});
+                           }} placeholder="項目名稱 (例：體驗潛水)" className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold outline-none focus:border-blue-500 focus:bg-white transition-colors" />
+                           <input type="text" value={item.price} onChange={e => {
+                              const newList = [...f.priceList]; newList[idx].price = e.target.value; setF({...f, priceList: newList});
+                           }} placeholder="價格 (例：NT$ 2,500)" className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold outline-none focus:border-blue-500 focus:bg-white transition-colors" />
+                         </div>
+                         <input type="text" value={item.desc} onChange={e => {
+                              const newList = [...f.priceList]; newList[idx].desc = e.target.value; setF({...f, priceList: newList});
+                           }} placeholder="項目說明 (例：含全套裝備、教練1對1)" className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold outline-none focus:border-blue-500 focus:bg-white transition-colors" />
+                      </div>
+                      <button type="button" onClick={() => {
+                          setF({...f, priceList: f.priceList.filter(x => x.id !== item.id)});
+                      }} className="p-2.5 bg-white text-slate-400 hover:text-red-500 border border-slate-200 rounded-lg hover:border-red-200 transition-colors shrink-0 self-end sm:self-auto shadow-sm"><Trash2 className="w-4 h-4"/></button>
+                    </div>
+                  ))}
+                  {(!f.priceList || f.priceList.length === 0) && (
+                     <div className="text-center py-8 text-sm font-bold text-slate-400 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">尚無收費項目，請點擊上方新增</div>
+                  )}
+               </div>
+            </div>
+          </ControlPanelCard>
+        </div>
       </div>
     </div>
   );
