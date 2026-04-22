@@ -2037,18 +2037,24 @@ function RoomManageModal({ db, appId, room, onClose }) {
       return {
         ...room,
         maxExtraBeds: room.maxExtraBeds !== undefined ? room.maxExtraBeds : (room.priceExtraBed > 0 ? 1 : 0),
-        // 兼容舊資料並初始化新欄位
-        lessPersonDiscountLow: room.lessPersonDiscountLow !== undefined ? room.lessPersonDiscountLow : (room.lessPersonDiscount || 0),
-        lessPersonDiscountPeak: room.lessPersonDiscountPeak !== undefined ? room.lessPersonDiscountPeak : (room.lessPersonDiscount || 0),
-        priceExtraBedLow: room.priceExtraBedLow !== undefined ? room.priceExtraBedLow : (room.priceExtraBed || 0),
-        priceExtraBedPeak: room.priceExtraBedPeak !== undefined ? room.priceExtraBedPeak : (room.priceExtraBed || 0)
+        // 兼容舊資料並初始化 4 維度新欄位
+        lessPersonDiscountLowWeekday: room.lessPersonDiscountLowWeekday !== undefined ? room.lessPersonDiscountLowWeekday : (room.lessPersonDiscountLow !== undefined ? room.lessPersonDiscountLow : (room.lessPersonDiscount || 0)),
+        lessPersonDiscountLowWeekend: room.lessPersonDiscountLowWeekend !== undefined ? room.lessPersonDiscountLowWeekend : (room.lessPersonDiscountLow !== undefined ? room.lessPersonDiscountLow : (room.lessPersonDiscount || 0)),
+        lessPersonDiscountPeakWeekday: room.lessPersonDiscountPeakWeekday !== undefined ? room.lessPersonDiscountPeakWeekday : (room.lessPersonDiscountPeak !== undefined ? room.lessPersonDiscountPeak : (room.lessPersonDiscount || 0)),
+        lessPersonDiscountPeakWeekend: room.lessPersonDiscountPeakWeekend !== undefined ? room.lessPersonDiscountPeakWeekend : (room.lessPersonDiscountPeak !== undefined ? room.lessPersonDiscountPeak : (room.lessPersonDiscount || 0)),
+        
+        priceExtraBedLowWeekday: room.priceExtraBedLowWeekday !== undefined ? room.priceExtraBedLowWeekday : (room.priceExtraBedLow !== undefined ? room.priceExtraBedLow : (room.priceExtraBed || 0)),
+        priceExtraBedLowWeekend: room.priceExtraBedLowWeekend !== undefined ? room.priceExtraBedLowWeekend : (room.priceExtraBedLow !== undefined ? room.priceExtraBedLow : (room.priceExtraBed || 0)),
+        priceExtraBedPeakWeekday: room.priceExtraBedPeakWeekday !== undefined ? room.priceExtraBedPeakWeekday : (room.priceExtraBedPeak !== undefined ? room.priceExtraBedPeak : (room.priceExtraBed || 0)),
+        priceExtraBedPeakWeekend: room.priceExtraBedPeakWeekend !== undefined ? room.priceExtraBedPeakWeekend : (room.priceExtraBedPeak !== undefined ? room.priceExtraBedPeak : (room.priceExtraBed || 0))
       };
     }
     return {
       name: '', quantity: 1, bedCount: 2, maxExtraBeds: 0, isDorm: false,
-      lessPersonDiscountLow: 0, lessPersonDiscountPeak: 0,
-      priceLowWeekday: 1000, priceLowWeekend: 1200, priceExtraBedLow: 600,
-      pricePeakWeekday: 1500, pricePeakWeekend: 1800, priceExtraBedPeak: 800,
+      lessPersonDiscountLowWeekday: 0, lessPersonDiscountLowWeekend: 0,
+      lessPersonDiscountPeakWeekday: 0, lessPersonDiscountPeakWeekend: 0,
+      priceLowWeekday: 1000, priceLowWeekend: 1200, priceExtraBedLowWeekday: 600, priceExtraBedLowWeekend: 600,
+      pricePeakWeekday: 1500, pricePeakWeekend: 1800, priceExtraBedPeakWeekday: 800, priceExtraBedPeakWeekend: 800,
       priceHoliday: 2200
     };
   });
@@ -2063,14 +2069,18 @@ function RoomManageModal({ db, appId, room, onClose }) {
          quantity: parseInt(f.quantity) || 1,
          bedCount: parseInt(f.bedCount) || 1,
          maxExtraBeds: parseInt(f.maxExtraBeds) || 0,
-         lessPersonDiscountLow: parseInt(f.lessPersonDiscountLow) || 0,
-         lessPersonDiscountPeak: parseInt(f.lessPersonDiscountPeak) || 0,
+         lessPersonDiscountLowWeekday: parseInt(f.lessPersonDiscountLowWeekday) || 0,
+         lessPersonDiscountLowWeekend: parseInt(f.lessPersonDiscountLowWeekend) || 0,
+         lessPersonDiscountPeakWeekday: parseInt(f.lessPersonDiscountPeakWeekday) || 0,
+         lessPersonDiscountPeakWeekend: parseInt(f.lessPersonDiscountPeakWeekend) || 0,
          priceLowWeekday: parseInt(f.priceLowWeekday) || 0,
          priceLowWeekend: parseInt(f.priceLowWeekend) || 0,
-         priceExtraBedLow: parseInt(f.priceExtraBedLow) || 0,
+         priceExtraBedLowWeekday: parseInt(f.priceExtraBedLowWeekday) || 0,
+         priceExtraBedLowWeekend: parseInt(f.priceExtraBedLowWeekend) || 0,
          pricePeakWeekday: parseInt(f.pricePeakWeekday) || 0,
          pricePeakWeekend: parseInt(f.pricePeakWeekend) || 0,
-         priceExtraBedPeak: parseInt(f.priceExtraBedPeak) || 0,
+         priceExtraBedPeakWeekday: parseInt(f.priceExtraBedPeakWeekday) || 0,
+         priceExtraBedPeakWeekend: parseInt(f.priceExtraBedPeakWeekend) || 0,
          priceHoliday: parseInt(f.priceHoliday) || 0
       };
       if (room) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accommodations', room.id), dataToSave);
@@ -2105,37 +2115,47 @@ function RoomManageModal({ db, appId, room, onClose }) {
              </div>
              {!f.isDorm && (
                 <p className="text-xs font-bold text-slate-400 mt-1 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  💡 <span className="text-blue-600">計價範例：</span>四人房基本價 $4000 (基本人數4)。若設定少人折抵 $400、加床 $800。<br/>
-                  2人入住: $4000 - ($400x2) = $3200。3人入住: $4000 - $400 = $3600。<br/>
-                  加床後3人(各自分床): $4000 - $400 + $800 = $4400。加床後5人: $4000 + $800 = $4800。
+                  💡 <span className="text-blue-600">計價範例：</span>系統會根據顧客選的日期是「平日/假日」與「淡季/旺季」，自動套用對應的「少人折抵金額」或「加床費用」。
                 </p>
              )}
           </div>
 
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
-             <h4 className="font-black text-blue-800 text-sm flex items-center gap-2 border-b border-blue-100 pb-2"><CalendarDays className="w-4 h-4"/> 基本房價 (淡季 Low Season)</h4>
-             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-               <FormInput label="淡季平日 (基本總價)" required type="number" value={f.priceLowWeekday} onChange={v => setF({ ...f, priceLowWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               <FormInput label="淡季假日 (基本總價)" required type="number" value={f.priceLowWeekend} onChange={v => setF({ ...f, priceLowWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               {!f.isDorm && <FormInput label="少人折抵 (淡季/每少1人)" required type="number" value={f.lessPersonDiscountLow} onChange={v => setF({ ...f, lessPersonDiscountLow: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
-               {!f.isDorm && <FormInput label="加床費用 (淡季/每床)" required type="number" value={f.priceExtraBedLow} onChange={v => setF({ ...f, priceExtraBedLow: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
+             <h4 className="font-black text-blue-800 text-sm flex items-center gap-2 border-b border-blue-100 pb-2"><CalendarDays className="w-4 h-4"/> 淡季價格設定 (Low Season)</h4>
+             <div className="grid grid-cols-2 gap-4">
+               <FormInput label="平日基本價 (總價)" required type="number" value={f.priceLowWeekday} onChange={v => setF({ ...f, priceLowWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="假日基本價 (總價)" required type="number" value={f.priceLowWeekend} onChange={v => setF({ ...f, priceLowWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
              </div>
+             {!f.isDorm && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+                   <FormInput label="平日少人折抵(每少1人)" required type="number" value={f.lessPersonDiscountLowWeekday} onChange={v => setF({ ...f, lessPersonDiscountLowWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                   <FormInput label="假日少人折抵(每少1人)" required type="number" value={f.lessPersonDiscountLowWeekend} onChange={v => setF({ ...f, lessPersonDiscountLowWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                   <FormInput label="平日加床費(每床)" required type="number" value={f.priceExtraBedLowWeekday} onChange={v => setF({ ...f, priceExtraBedLowWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                   <FormInput label="假日加床費(每床)" required type="number" value={f.priceExtraBedLowWeekend} onChange={v => setF({ ...f, priceExtraBedLowWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                </div>
+             )}
           </div>
 
           <div className="bg-amber-50 p-5 rounded-2xl border border-amber-100 space-y-4">
              <h4 className="font-black text-amber-800 text-sm flex items-center gap-2 border-b border-amber-100 pb-2"><Waves className="w-4 h-4"/> 旺季價格設定 (Peak Season)</h4>
-             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-               <FormInput label="旺季平日 (基本總價)" required type="number" value={f.pricePeakWeekday} onChange={v => setF({ ...f, pricePeakWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               <FormInput label="旺季假日 (基本總價)" required type="number" value={f.pricePeakWeekend} onChange={v => setF({ ...f, pricePeakWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               {!f.isDorm && <FormInput label="少人折抵 (旺季/每少1人)" required type="number" value={f.lessPersonDiscountPeak} onChange={v => setF({ ...f, lessPersonDiscountPeak: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
-               {!f.isDorm && <FormInput label="加床費用 (旺季/每床)" required type="number" value={f.priceExtraBedPeak} onChange={v => setF({ ...f, priceExtraBedPeak: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
+             <div className="grid grid-cols-2 gap-4">
+               <FormInput label="平日基本價 (總價)" required type="number" value={f.pricePeakWeekday} onChange={v => setF({ ...f, pricePeakWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="假日基本價 (總價)" required type="number" value={f.pricePeakWeekend} onChange={v => setF({ ...f, pricePeakWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
              </div>
+             {!f.isDorm && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-amber-200/60">
+                   <FormInput label="平日少人折抵(每少1人)" required type="number" value={f.lessPersonDiscountPeakWeekday} onChange={v => setF({ ...f, lessPersonDiscountPeakWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                   <FormInput label="假日少人折抵(每少1人)" required type="number" value={f.lessPersonDiscountPeakWeekend} onChange={v => setF({ ...f, lessPersonDiscountPeakWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                   <FormInput label="平日加床費(每床)" required type="number" value={f.priceExtraBedPeakWeekday} onChange={v => setF({ ...f, priceExtraBedPeakWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                   <FormInput label="假日加床費(每床)" required type="number" value={f.priceExtraBedPeakWeekend} onChange={v => setF({ ...f, priceExtraBedPeakWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+                </div>
+             )}
           </div>
 
           <div className="bg-rose-50 p-5 rounded-2xl border border-rose-100 space-y-4">
              <h4 className="font-black text-rose-800 text-sm flex items-center gap-2 border-b border-rose-100 pb-2"><Info className="w-4 h-4"/> 特殊連假設定 (Holidays)</h4>
              <div className="grid grid-cols-1 gap-4">
-               <FormInput label="連假每晚收費 (連假期間加床與折抵比照旺季標準)" required type="number" value={f.priceHoliday} onChange={v => setF({ ...f, priceHoliday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="連假每晚收費 (連假期間加床與折抵比照「旺季假日」標準)" required type="number" value={f.priceHoliday} onChange={v => setF({ ...f, priceHoliday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
              </div>
           </div>
         </form>
@@ -2287,15 +2307,19 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                        <span>實體房間: {room.quantity} 間</span>
                      </div>
                      {!room.isDorm && (
-                       <div className="flex flex-col gap-1.5 mt-1">
+                       <div className="flex flex-col gap-1.5 mt-2">
                          <div className="flex justify-between">
-                            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">少人折抵: 淡${room.lessPersonDiscountLow||0} / 旺${room.lessPersonDiscountPeak||0}</span>
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded w-full">
+                              少人折抵: (淡)平${room.lessPersonDiscountLowWeekday}/假${room.lessPersonDiscountLowWeekend} | (旺)平${room.lessPersonDiscountPeakWeekday}/假${room.lessPersonDiscountPeakWeekend}
+                            </span>
                          </div>
                          <div className="flex justify-between">
                             {room.maxExtraBeds > 0 ? (
-                              <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-1 rounded border border-amber-100">每間可加 {room.maxExtraBeds} 床: 淡${room.priceExtraBedLow||0} / 旺${room.priceExtraBedPeak||0}</span>
+                              <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-1 rounded border border-amber-100 w-full">
+                                可加 {room.maxExtraBeds} 床: (淡)平${room.priceExtraBedLowWeekday}/假${room.priceExtraBedLowWeekend} | (旺)平${room.priceExtraBedPeakWeekday}/假${room.priceExtraBedPeakWeekend}
+                              </span>
                             ) : (
-                              <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded">不可加床</span>
+                              <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded w-full">不可加床</span>
                             )}
                          </div>
                        </div>
@@ -4019,7 +4043,6 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             }
 
             const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
-            const isPeakSeason = isPeak || isHoliday; // 連假比照旺季判斷
 
             let basePrice = 0;
             let priceLabel = '';
@@ -4049,9 +4072,20 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                    }
                }
             } else {
-               // 獨立房型：動態計算折抵與加床費用 (區分淡旺季)
-               let currentLessPersonDiscount = isPeakSeason ? (item.room.lessPersonDiscountPeak || 0) : (item.room.lessPersonDiscountLow || 0);
-               let currentPriceExtraBed = isPeakSeason ? (item.room.priceExtraBedPeak || 0) : (item.room.priceExtraBedLow || 0);
+               // 獨立房型：動態計算折抵與加床費用 (區分淡旺季與平假日)
+               let currentLessPersonDiscount = 0;
+               let currentPriceExtraBed = 0;
+
+               if (isHoliday) {
+                   currentLessPersonDiscount = item.room.lessPersonDiscountPeakWeekend || 0;
+                   currentPriceExtraBed = item.room.priceExtraBedPeakWeekend || 0;
+               } else if (isPeak) {
+                   currentLessPersonDiscount = isWeekend ? (item.room.lessPersonDiscountPeakWeekend || 0) : (item.room.lessPersonDiscountPeakWeekday || 0);
+                   currentPriceExtraBed = isWeekend ? (item.room.priceExtraBedPeakWeekend || 0) : (item.room.priceExtraBedPeakWeekday || 0);
+               } else {
+                   currentLessPersonDiscount = isWeekend ? (item.room.lessPersonDiscountLowWeekend || 0) : (item.room.lessPersonDiscountLowWeekday || 0);
+                   currentPriceExtraBed = isWeekend ? (item.room.priceExtraBedLowWeekend || 0) : (item.room.priceExtraBedLowWeekday || 0);
+               }
 
                let totalRoomBasePrice = basePrice * item.roomCount;
                let missingPersons = Math.max(0, (item.room.bedCount * item.roomCount) - item.guests);
@@ -4450,9 +4484,21 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
   const maxUnits = isDorm ? (room.quantity * (room.bedCount || 1)) : room.quantity;
   const availableUnits = Math.max(0, maxUnits - inCartCount);
 
-  // 兼容舊有單一加床費用的邏輯判斷
-  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : ((room.priceExtraBedLow > 0 || room.priceExtraBed > 0) ? 1 : 0);
-  const maxEbAllowed = isDorm ? 0 : maxEbPerRoom; // 每間加床數上限
+  // 判斷加床上限
+  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : ((room.priceExtraBedLowWeekday > 0 || room.priceExtraBedPeakWeekday > 0 || room.priceExtraBed > 0) ? 1 : 0);
+  const maxEbAllowed = isDorm ? 0 : maxEbPerRoom; 
+
+  // 取得折抵區間字串
+  const getRangeStr = (v1, v2, v3, v4) => {
+    const vals = [v1, v2, v3, v4].filter(v => v !== undefined && v > 0);
+    if (vals.length === 0) return null;
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    return min === max ? `${min}` : `${min}~${max}`;
+  };
+  
+  const lpRange = getRangeStr(room.lessPersonDiscountLowWeekday, room.lessPersonDiscountLowWeekend, room.lessPersonDiscountPeakWeekday, room.lessPersonDiscountPeakWeekend);
+  const ebRange = getRangeStr(room.priceExtraBedLowWeekday, room.priceExtraBedLowWeekend, room.priceExtraBedPeakWeekday, room.priceExtraBedPeakWeekend);
 
   // 背包房自動同步入住人數與床位數，並禁用加床
   useEffect(() => {
@@ -4493,14 +4539,14 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
               <span className="text-[11px] font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-rose-100">
                 <User className="w-3.5 h-3.5" /> {isDorm ? '1 人 / 床' : `標準 ${room.bedCount} 人/間`}
               </span>
-              {!isDorm && (room.lessPersonDiscountLow > 0 || room.lessPersonDiscountPeak > 0) && (
+              {!isDorm && lpRange && (
                  <span className="text-[11px] font-bold text-blue-600 flex items-center gap-1.5 bg-blue-50 w-fit px-2 py-1 rounded-md border border-blue-100">
-                    少人折抵: 淡${room.lessPersonDiscountLow}/旺${room.lessPersonDiscountPeak}
+                    少人折抵: ${lpRange}
                  </span>
               )}
               {!isDorm && maxEbPerRoom > 0 && (
                  <span className="text-[11px] font-bold text-orange-600 flex items-center gap-1.5 bg-orange-50 w-fit px-2 py-1 rounded-md border border-orange-100">
-                    <Plus className="w-3 h-3" /> 可加 {maxEbPerRoom} 床 (淡${room.priceExtraBedLow || room.priceExtraBed}/旺${room.priceExtraBedPeak || room.priceExtraBed})
+                    <Plus className="w-3 h-3" /> 可加 {maxEbPerRoom} 床 (+${ebRange || '0'})
                  </span>
               )}
           </div>
