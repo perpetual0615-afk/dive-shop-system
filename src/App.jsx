@@ -2977,6 +2977,16 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
                              剩餘: {remainingSlots} 人
                            </span>
                         </div>
+
+                        {/* 👉 新增：在活動卡片上顯示報名前的注意事項 */}
+                        {item.notes && (
+                           <div className="mt-3 p-2.5 bg-amber-50 rounded-xl border border-amber-100/50">
+                              <p className="text-xs font-bold text-amber-800 flex items-start gap-1.5 leading-relaxed line-clamp-2" title={item.notes}>
+                                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500"/>
+                                 {item.notes}
+                              </p>
+                           </div>
+                        )}
                       </div>
                     )}
 
