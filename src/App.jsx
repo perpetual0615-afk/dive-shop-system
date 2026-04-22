@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -5194,29 +5193,38 @@ function App() {
                       </button>
                     </div>
 
-                    {/* 保證顯示：懸浮於 HERO 區塊的精緻收費小面板 */}
-                    <div className="w-full lg:w-[320px] bg-slate-900/60 backdrop-blur-md border border-white/20 rounded-[2rem] p-5 sm:p-6 shadow-2xl relative z-30 transform transition-all duration-500 hover:scale-[1.02] mt-6 lg:mt-0 shrink-0">
+                    {/* 保證顯示：懸浮於 HERO 區塊的精緻收費小面板 (加寬優化版) */}
+                    <div className="w-full lg:w-[420px] xl:w-[460px] bg-slate-900/60 backdrop-blur-md border border-white/20 rounded-[2rem] p-6 shadow-2xl relative z-30 transform transition-all duration-500 hover:scale-[1.02] mt-6 lg:mt-0 shrink-0">
                       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-[2rem] pointer-events-none"></div>
                       <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
                            <div className="flex items-center gap-2.5">
-                             <div className="bg-cyan-500/30 p-2 rounded-lg text-cyan-300"><CircleDollarSign className="w-4 h-4"/></div>
-                             <h3 className="font-black text-white text-base tracking-wide">活動與收費</h3>
+                             <div className="bg-cyan-500/30 p-2 rounded-lg text-cyan-300"><CircleDollarSign className="w-5 h-5"/></div>
+                             <h3 className="font-black text-white text-lg tracking-wide">活動與收費</h3>
                            </div>
                         </div>
-                        <div className="space-y-2.5 max-h-[200px] overflow-y-auto custom-scrollbar pr-2 relative">
+                        
+                        {/* 新增預約流程提示 */}
+                        <div className="mb-4 bg-cyan-900/40 p-3 rounded-xl border border-cyan-500/20">
+                           <p className="text-xs font-bold text-cyan-50 leading-relaxed flex items-start gap-2">
+                             <Info className="w-4 h-4 shrink-0 mt-0.5 text-cyan-400"/> 
+                             先聯絡預約，等待教練開啟報名表單後，填寫預約潛水行程報名資訊。
+                           </p>
+                        </div>
+
+                        <div className="space-y-3 max-h-[240px] overflow-y-auto custom-scrollbar pr-2 relative">
                           {sysConfig.priceList && sysConfig.priceList.length > 0 ? (
                             sysConfig.priceList.map((item, idx) => (
-                              <div key={item.id || idx} className="group relative bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all border border-transparent hover:border-cyan-300/30 shadow-sm">
-                                <div className="flex justify-between items-start gap-2 mb-1.5">
-                                  <span className="font-bold text-cyan-50 text-xs group-hover:text-cyan-300 transition-colors leading-tight">{item.name}</span>
-                                  <span className="font-black text-cyan-300 text-xs shrink-0">{item.price}</span>
+                              <div key={item.id || idx} className="group relative bg-white/5 hover:bg-white/10 p-3.5 rounded-xl transition-all border border-transparent hover:border-cyan-300/30 shadow-sm">
+                                <div className="flex justify-between items-start gap-3 mb-1.5">
+                                  <span className="font-bold text-cyan-50 text-sm group-hover:text-cyan-300 transition-colors leading-tight">{item.name}</span>
+                                  <span className="font-black text-cyan-300 text-sm shrink-0">{item.price}</span>
                                 </div>
-                                {item.desc && <p className="text-[10px] font-medium text-slate-300/80 leading-relaxed pr-1">{item.desc}</p>}
+                                {item.desc && <p className="text-xs font-medium text-slate-300/80 leading-relaxed pr-1">{item.desc}</p>}
                               </div>
                             ))
                           ) : (
-                            <div className="text-center py-6 text-slate-400 text-xs font-bold border-2 border-dashed border-slate-600 rounded-xl bg-slate-800/30">
+                            <div className="text-center py-8 text-slate-400 text-sm font-bold border-2 border-dashed border-slate-600 rounded-xl bg-slate-800/30">
                               目前尚無收費項目
                             </div>
                           )}
