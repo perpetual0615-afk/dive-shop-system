@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download } from 'lucide-react';
+import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, CircleDollarSign } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
@@ -5157,29 +5157,35 @@ function App() {
                       </button>
                     </div>
 
-                    {/* 新增：懸浮於 HERO 區塊的精緻收費小面板 */}
-                    {sysConfig.priceList && sysConfig.priceList.length > 0 && (
-                      <div className="w-full lg:w-[360px] bg-slate-900/40 backdrop-blur-md border border-white/20 rounded-[2rem] p-6 shadow-2xl animate-in fade-in slide-in-from-right-8 duration-700 shrink-0">
+                    {/* 保證顯示：懸浮於 HERO 區塊的精緻收費小面板 */}
+                    <div className="w-full lg:w-[320px] bg-slate-900/60 backdrop-blur-md border border-white/20 rounded-[2rem] p-5 sm:p-6 shadow-2xl relative z-30 transform transition-all duration-500 hover:scale-[1.02] mt-6 lg:mt-0 shrink-0">
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-[2rem] pointer-events-none"></div>
+                      <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
                            <div className="flex items-center gap-2.5">
-                             <div className="bg-cyan-500/20 p-1.5 rounded-lg text-cyan-300"><BookOpen className="w-4 h-4"/></div>
-                             <h3 className="font-black text-white text-base tracking-wide">活動與課程收費</h3>
+                             <div className="bg-cyan-500/30 p-2 rounded-lg text-cyan-300"><CircleDollarSign className="w-4 h-4"/></div>
+                             <h3 className="font-black text-white text-base tracking-wide">活動與收費</h3>
                            </div>
-                           <span className="text-[10px] font-bold text-cyan-200/50 uppercase tracking-widest">Price List</span>
                         </div>
-                        <div className="space-y-4 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
-                          {sysConfig.priceList.map((item, idx) => (
-                            <div key={item.id || idx} className="group relative">
-                              <div className="flex justify-between items-start gap-2 mb-1">
-                                <span className="font-bold text-cyan-50 text-sm group-hover:text-cyan-300 transition-colors leading-tight">{item.name}</span>
-                                <span className="font-black text-cyan-300 text-sm shrink-0">{item.price}</span>
+                        <div className="space-y-2.5 max-h-[200px] overflow-y-auto custom-scrollbar pr-2 relative">
+                          {sysConfig.priceList && sysConfig.priceList.length > 0 ? (
+                            sysConfig.priceList.map((item, idx) => (
+                              <div key={item.id || idx} className="group relative bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all border border-transparent hover:border-cyan-300/30 shadow-sm">
+                                <div className="flex justify-between items-start gap-2 mb-1.5">
+                                  <span className="font-bold text-cyan-50 text-xs group-hover:text-cyan-300 transition-colors leading-tight">{item.name}</span>
+                                  <span className="font-black text-cyan-300 text-xs shrink-0">{item.price}</span>
+                                </div>
+                                {item.desc && <p className="text-[10px] font-medium text-slate-300/80 leading-relaxed pr-1">{item.desc}</p>}
                               </div>
-                              {item.desc && <p className="text-[11px] font-bold text-slate-300/80 leading-relaxed pr-2">{item.desc}</p>}
+                            ))
+                          ) : (
+                            <div className="text-center py-6 text-slate-400 text-xs font-bold border-2 border-dashed border-slate-600 rounded-xl bg-slate-800/30">
+                              目前尚無收費項目
                             </div>
-                          ))}
+                          )}
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
                 
