@@ -2036,11 +2036,13 @@ function RoomManageModal({ db, appId, room, onClose }) {
     if (room) {
       return {
         ...room,
-        maxExtraBeds: room.maxExtraBeds !== undefined ? room.maxExtraBeds : (room.priceExtraBed > 0 ? 1 : 0)
+        maxExtraBeds: room.maxExtraBeds !== undefined ? room.maxExtraBeds : (room.priceExtraBed > 0 ? 1 : 0),
+        lessPersonDiscount: room.lessPersonDiscount || 0
       };
     }
     return {
-      name: '', quantity: 1, bedCount: 1, maxExtraBeds: 0,
+      name: '', quantity: 1, bedCount: 2, maxExtraBeds: 0, isDorm: false,
+      lessPersonDiscount: 0,
       priceLowWeekday: 1000, priceLowWeekend: 1200, 
       pricePeakWeekday: 1500, pricePeakWeekend: 1800, 
       priceHoliday: 2200,
@@ -2058,6 +2060,7 @@ function RoomManageModal({ db, appId, room, onClose }) {
          quantity: parseInt(f.quantity) || 1,
          bedCount: parseInt(f.bedCount) || 1,
          maxExtraBeds: parseInt(f.maxExtraBeds) || 0,
+         lessPersonDiscount: parseInt(f.lessPersonDiscount) || 0,
          priceLowWeekday: parseInt(f.priceLowWeekday) || 0,
          priceLowWeekend: parseInt(f.priceLowWeekend) || 0,
          pricePeakWeekday: parseInt(f.pricePeakWeekday) || 0,
@@ -2076,32 +2079,49 @@ function RoomManageModal({ db, appId, room, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
-        <h2 className="text-2xl font-black mb-6 text-slate-800">房型及階梯價格設定</h2>
+      <div className="bg-white rounded-3xl w-full max-w-4xl p-8 shadow-xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+        <h2 className="text-2xl font-black mb-6 text-slate-800">房型及動態人數價格設定</h2>
         <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
           <div className="grid grid-cols-1 gap-4">
              <FormInput label="房型/床位名稱" required value={f.name} onChange={v => setF({ ...f, name: v })} placeholder="例如：背包客房 或 豪華雙人房" />
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+             
+             <label className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-200 rounded-xl cursor-pointer shadow-sm hover:bg-indigo-100 transition-colors">
+                <input type="checkbox" checked={f.isDorm || false} onChange={e => setF({...f, isDorm: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded" />
+                <div>
+                  <span className="font-black text-indigo-900 block text-sm">此為背包房 / 青旅模式 (以「單一床位」計價)</span>
+                  <span className="text-xs font-bold text-indigo-600 mt-1 block">啟用後，顧客預訂將以「床位」為計算單位。所有價格設定皆為「單一床位的單價」。</span>
+                </div>
+             </label>
+
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                <FormInput label="實體房間數 (間)" required type="number" value={f.quantity} onChange={v => setF({ ...f, quantity: v === '' ? '' : Math.max(1, parseInt(v)) })} />
-               <FormInput label="每間基本容納人數" required type="number" value={f.bedCount} onChange={v => setF({ ...f, bedCount: v === '' ? '' : Math.max(1, parseInt(v)) })} />
-               <FormInput label="每間最多加床數" required type="number" value={f.maxExtraBeds} onChange={v => setF({ ...f, maxExtraBeds: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               <FormInput label="加床費用 (人/晚)" required type="number" value={f.priceExtraBed} onChange={v => setF({ ...f, priceExtraBed: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label={f.isDorm ? "每間床位數" : "基本入住人數"} required type="number" value={f.bedCount} onChange={v => setF({ ...f, bedCount: v === '' ? '' : Math.max(1, parseInt(v)) })} />
+               {!f.isDorm && <FormInput label="少於基本人數折抵(每少1人)" required type="number" value={f.lessPersonDiscount} onChange={v => setF({ ...f, lessPersonDiscount: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
+               {!f.isDorm && <FormInput label="最多加床數(每間)" required type="number" value={f.maxExtraBeds} onChange={v => setF({ ...f, maxExtraBeds: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
+               {!f.isDorm && <FormInput label="加床費用(每床/晚)" required type="number" value={f.priceExtraBed} onChange={v => setF({ ...f, priceExtraBed: v === '' ? '' : Math.max(0, parseInt(v)) })} />}
              </div>
+             {!f.isDorm && (
+                <p className="text-xs font-bold text-slate-400 mt-1 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  💡 <span className="text-blue-600">計價範例：</span>四人房基本價 $4000 (基本人數4)。若設定少人折抵 $400、加床 $800。<br/>
+                  2人入住: $4000 - ($400x2) = $3200。3人入住: $4000 - $400 = $3600。<br/>
+                  加床後3人(各自獨立床): $4000 - $400 + $800 = $4400。加床後5人: $4000 + $800 = $4800。
+                </p>
+             )}
           </div>
 
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
-             <h4 className="font-black text-blue-800 text-sm flex items-center gap-2 border-b border-blue-100 pb-2"><CalendarDays className="w-4 h-4"/> 淡季價格設定 (Low Season)</h4>
+             <h4 className="font-black text-blue-800 text-sm flex items-center gap-2 border-b border-blue-100 pb-2"><CalendarDays className="w-4 h-4"/> 基本房價 (淡季 Low Season)</h4>
              <div className="grid grid-cols-2 gap-4">
-               <FormInput label="淡季平日價" required type="number" value={f.priceLowWeekday} onChange={v => setF({ ...f, priceLowWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               <FormInput label="淡季假日價" required type="number" value={f.priceLowWeekend} onChange={v => setF({ ...f, priceLowWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="淡季平日價 (基本人數總價)" required type="number" value={f.priceLowWeekday} onChange={v => setF({ ...f, priceLowWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="淡季假日價 (基本人數總價)" required type="number" value={f.priceLowWeekend} onChange={v => setF({ ...f, priceLowWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
              </div>
           </div>
 
           <div className="bg-amber-50 p-5 rounded-2xl border border-amber-100 space-y-4">
              <h4 className="font-black text-amber-800 text-sm flex items-center gap-2 border-b border-amber-100 pb-2"><Waves className="w-4 h-4"/> 旺季價格設定 (Peak Season)</h4>
              <div className="grid grid-cols-2 gap-4">
-               <FormInput label="旺季平日價" required type="number" value={f.pricePeakWeekday} onChange={v => setF({ ...f, pricePeakWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
-               <FormInput label="旺季假日價" required type="number" value={f.pricePeakWeekend} onChange={v => setF({ ...f, pricePeakWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="旺季平日價 (基本人數總價)" required type="number" value={f.pricePeakWeekday} onChange={v => setF({ ...f, pricePeakWeekday: v === '' ? '' : Math.max(0, parseInt(v)) })} />
+               <FormInput label="旺季假日價 (基本人數總價)" required type="number" value={f.pricePeakWeekend} onChange={v => setF({ ...f, pricePeakWeekend: v === '' ? '' : Math.max(0, parseInt(v)) })} />
              </div>
           </div>
 
@@ -2240,8 +2260,11 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                     <button onClick={() => { setEditingRoom(room); setIsRoomModalOpen(true); }} className="p-2 bg-slate-100 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm"><Edit3 className="w-4 h-4" /></button>
                     <button onClick={() => handleDeleteRoom(room.id)} className="p-2 bg-slate-100 rounded-xl hover:bg-red-600 hover:text-white transition-colors shadow-sm"><Trash2 className="w-4 h-4" /></button>
                   </div>
-                  <h4 className="font-black text-slate-900 text-xl mb-4">{String(room.name)}</h4>
-                  <div className="grid grid-cols-2 gap-3 text-xs font-bold">
+                  <h4 className="font-black text-slate-900 text-xl mb-4">
+                    {String(room.name)}
+                    {room.isDorm && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg ml-2 align-middle shadow-sm">背包床位計價</span>}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-xs font-bold mb-4">
                      <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
                         <p className="text-slate-400 mb-1">淡季 (平/假)</p>
                         <p className="text-slate-700">${room.priceLowWeekday} / ${room.priceLowWeekend}</p>
@@ -2250,21 +2273,22 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                         <p className="text-amber-600 mb-1">旺季 (平/假)</p>
                         <p className="text-amber-800">${room.pricePeakWeekday} / ${room.pricePeakWeekend}</p>
                      </div>
-                     <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
-                        <p className="text-rose-600 mb-1">連假定價 (最後一晚免費)</p>
-                        <p className="text-rose-800">${room.priceHoliday}</p>
-                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm font-bold gap-2">
-                     <span className="text-slate-500">實體房間：{room.quantity} 間</span>
-                     <div className="flex flex-wrap gap-2">
-                       {room.maxExtraBeds > 0 ? (
-                         <span className="text-amber-600 bg-amber-50 px-3 py-1 rounded-lg">加床 ${room.priceExtraBed || 0} / 晚 (上限 {room.maxExtraBeds} 床)</span>
-                       ) : (
-                         <span className="text-slate-400 bg-slate-50 px-3 py-1 rounded-lg">不可加床</span>
-                       )}
-                       <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">每間容納：{room.bedCount || 1} 人(床)</span>
+                  <div className="pt-4 border-t border-slate-100 flex flex-col gap-2 text-sm font-bold">
+                     <div className="flex justify-between text-slate-600">
+                       <span>基本人數: {room.bedCount||1} 人</span>
+                       <span>實體房間: {room.quantity} 間</span>
                      </div>
+                     {!room.isDorm && (
+                       <div className="flex flex-wrap gap-2 mt-1">
+                         <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">少人折抵: ${room.lessPersonDiscount||0}/人</span>
+                         {room.maxExtraBeds > 0 ? (
+                           <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-1 rounded border border-amber-100">可加 {room.maxExtraBeds} 床 (+${room.priceExtraBed||0})</span>
+                         ) : (
+                           <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded">不可加床</span>
+                         )}
+                       </div>
+                     )}
                   </div>
                </div>
              ))}
@@ -3115,14 +3139,23 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
 
     let heavyCount = rentals.filter(r => r.category === '重裝備').length;
     let lightCount = rentals.filter(r => r.category === '輕裝備').length;
-    let rawTotal = rentals.reduce((sum, r) => sum + r.price, 0);
+    let rawTotal = 0;
     
     const packs = sysConfig.equipmentPackages || {};
     
+    // 👉 新增：計算配件總價 (配件不包含在全套優惠內，須額外計價)
+    const accessoryPrice = rentals.filter(r => r.category !== '重裝備' && r.category !== '輕裝備').reduce((sum, r) => sum + r.price, 0);
+    
     // 套裝計算
-    if (heavyCount >= 2 && lightCount >= 3 && packs.full) rawTotal = packs.full;
-    else if (heavyCount >= 2 && packs.heavy) rawTotal = packs.heavy + rentals.filter(r => r.category !== '重裝備').reduce((sum, r) => sum + r.price, 0);
-    else if (lightCount >= 3 && packs.light) rawTotal = packs.light + rentals.filter(r => r.category !== '輕裝備').reduce((sum, r) => sum + r.price, 0);
+    if (heavyCount >= 2 && lightCount >= 3 && packs.full) {
+       rawTotal = packs.full + accessoryPrice;
+    } else if (heavyCount >= 2 && packs.heavy) {
+       rawTotal = packs.heavy + rentals.filter(r => r.category !== '重裝備').reduce((sum, r) => sum + r.price, 0);
+    } else if (lightCount >= 3 && packs.light) {
+       rawTotal = packs.light + rentals.filter(r => r.category !== '輕裝備').reduce((sum, r) => sum + r.price, 0);
+    } else {
+       rawTotal = rentals.reduce((sum, r) => sum + r.price, 0);
+    }
     
     // 回客折扣疊加計算
     if (isReturningCustomer) {
@@ -3881,88 +3914,6 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   );
 }
 
-function AccRoomCard({ room, onAdd, hasFullDays, nights }) {
-  const [rc, setRc] = useState(1);
-  const [g, setG] = useState(1);
-  const [eb, setEb] = useState(0);
-
-  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : (room.priceExtraBed > 0 ? 1 : 0);
-  const maxEbAllowed = (parseInt(rc) || 0) * maxEbPerRoom;
-
-  useEffect(() => {
-    if (eb > maxEbAllowed) setEb(maxEbAllowed);
-  }, [rc, maxEbAllowed, eb]);
-
-  const maxCap = (parseInt(rc) || 0) * (room.bedCount || 1) + (parseInt(eb) || 0);
-  const isOverCap = (parseInt(g) || 0) > maxCap;
-
-  return (
-      <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-[1.5rem] shadow-sm border border-slate-200 hover:border-rose-300 hover:shadow-[0_10px_30px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col h-full relative group overflow-hidden">
-          
-          {/* 珊瑚主題房型專屬背景浮水印 */}
-          <div className="absolute -bottom-6 -right-6 w-36 h-36 opacity-[0.05] group-hover:scale-110 group-hover:opacity-[0.12] transition-all duration-500 pointer-events-none transform -rotate-6">
-              <StaghornCoralWatermark className="w-full h-full text-rose-600" />
-          </div>
-
-          <div className="flex justify-between items-start mb-2 relative z-10">
-              <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors pr-2">{room.name}</h3>
-              <div className="text-right shrink-0">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">淡季平日起</span>
-                  <span className="text-rose-600 font-black text-lg">NT$ {room.priceLowWeekday}</span>
-              </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-2 mb-4 mt-1 relative z-10">
-              <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-slate-200">
-                <CoralIcon className="w-3.5 h-3.5" /> 實體 {room.quantity} 間
-              </span>
-              <span className="text-[11px] font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-rose-100">
-                <User className="w-3.5 h-3.5" /> 容納 {room.bedCount} 人/間
-              </span>
-              {room.priceExtraBed > 0 && maxEbPerRoom > 0 && (
-                 <span className="text-[11px] font-bold text-orange-600 flex items-center gap-1.5 bg-orange-50 w-fit px-2 py-1 rounded-md border border-orange-100">
-                    <Plus className="w-3 h-3" /> 最多加 {maxEbPerRoom} 床 (+${room.priceExtraBed})
-                 </span>
-              )}
-          </div>
-
-          <div className="grid grid-cols-3 gap-2.5 mt-auto bg-slate-50/80 p-3 rounded-xl border border-slate-100 shadow-inner relative z-10">
-              <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">房間/床位</label>
-                  <input type="number" min="1" max={room.quantity} value={rc} onChange={e => setRc(e.target.value)} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all" />
-              </div>
-              <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">入住人數</label>
-                  <input type="number" min="1" value={g} onChange={e => setG(e.target.value)} className={`w-full p-2 text-center rounded-lg border text-sm font-bold outline-none transition-all ${isOverCap ? 'border-red-500 bg-red-50 text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'}`} />
-              </div>
-              <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">加床數</label>
-                  <input type="number" min="0" max={maxEbAllowed} value={eb} onChange={e => {
-                     let val = parseInt(e.target.value);
-                     if (isNaN(val)) val = 0;
-                     if (val > maxEbAllowed) val = maxEbAllowed;
-                     if (val < 0) val = 0;
-                     setEb(val);
-                  }} disabled={!(room.priceExtraBed > 0) || maxEbPerRoom <= 0} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
-              </div>
-          </div>
-          
-          {isOverCap && <p className="text-[10px] font-bold text-red-500 mt-2 text-center animate-pulse relative z-10"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>人數超過容量上限 (最大 {maxCap} 人)</p>}
-
-          <button 
-              onClick={() => {
-                  onAdd({ id: Date.now() + Math.random(), room, roomCount: parseInt(rc)||1, guests: parseInt(g)||1, extraBeds: parseInt(eb)||0 });
-                  setRc(1); setG(1); setEb(0);
-              }} 
-              disabled={hasFullDays || isOverCap || nights <= 0}
-              className="w-full mt-4 py-3 bg-gradient-to-r from-rose-600 to-rose-500 text-white rounded-xl font-bold shadow-sm hover:from-rose-500 hover:to-rose-400 hover:shadow-rose-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
-          >
-              <Plus className="w-4 h-4"/> {nights <= 0 ? '請先於左側選擇日期' : '加入預訂清單'}
-          </button>
-      </div>
-  );
-}
-
 function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, context }) {
   const [checkIn, setCheckIn] = useState(context?.date || '');
   const [checkOut, setCheckOut] = useState(() => {
@@ -3973,13 +3924,16 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
     }
     return '';
   });
+  
+  const [searchGuests, setSearchGuests] = useState(2);
+  const [showPlans, setShowPlans] = useState(false);
+  const [generatedPlans, setGeneratedPlans] = useState([]);
 
   const [f, setF] = useState({ name: '', phone: '' });
   const [cart, setCart] = useState([]); 
   const [courseStudents, setCourseStudents] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. 自動計算晚數
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
     const start = new Date(checkIn).getTime();
@@ -3988,7 +3942,6 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
     return diff > 0 ? diff : 0;
   }, [checkIn, checkOut]);
 
-  // 2. 多日滿房防呆掃描
   const fullDaysInRange = useMemo(() => {
     if (!checkIn || nights <= 0) return [];
     const fullDays = [];
@@ -4008,8 +3961,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   }, [checkIn, nights, sysConfig.fullDates]);
   const hasFullDays = fullDaysInRange.length > 0;
 
-  // 動態折抵人數上限防呆
-  const maxStudents = useMemo(() => cart.reduce((sum, item) => sum + (item.roomCount * item.room.bedCount) + item.extraBeds, 0), [cart]);
+  const maxStudents = useMemo(() => cart.reduce((sum, item) => sum + item.guests + item.extraBeds, 0), [cart]);
   useEffect(() => {
      if (courseStudents > maxStudents) setCourseStudents(Math.max(1, maxStudents));
   }, [maxStudents, courseStudents]);
@@ -4023,16 +3975,16 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const handleAddToCart = (item) => setCart([...cart, item]);
   const handleRemoveFromCart = (id) => setCart(cart.filter(c => c.id !== id));
 
-  // 3. 動態定價引擎 (支援多房間購物車)
-  const priceInfo = useMemo(() => {
-     if (!checkIn || nights <= 0 || cart.length === 0) return { total: 0, breakdown: [], discountTotal: 0, discountLabel: '', totalRoomCount: 0 };
+  // --- 動態計價引擎 (獨立抽出供 Cart 與 Plans 共用) ---
+  const calculateCartPrice = React.useCallback((targetCart) => {
+     if (!checkIn || nights <= 0 || targetCart.length === 0) return { total: 0, breakdown: [], discountTotal: 0, discountLabel: '', totalRoomCount: 0 };
 
      let total = 0;
      const dailyAggregated = {};
      let totalRoomCount = 0;
-     let dsdDiscountAccumulator = 0; // 👉 新增：計算 DSD 專屬優惠折抵的總金額
+     let dsdDiscountAccumulator = 0; 
 
-     cart.forEach(item => {
+     targetCart.forEach(item => {
          totalRoomCount += item.roomCount;
          const startDate = new Date(checkIn);
          for (let i = 0; i < nights; i++) {
@@ -4056,45 +4008,54 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             }
 
             const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
-            let dailyPrice = 0;
+            let basePrice = 0;
             let priceLabel = '';
 
             if (isHoliday) {
-               dailyPrice = item.room.priceHoliday || 0;
+               basePrice = item.room.priceHoliday || 0;
                priceLabel = '連假定價';
             } else if (isPeak) {
-               dailyPrice = isWeekend ? (item.room.pricePeakWeekend || 0) : (item.room.pricePeakWeekday || 0);
+               basePrice = isWeekend ? (item.room.pricePeakWeekend || 0) : (item.room.pricePeakWeekday || 0);
                priceLabel = isWeekend ? '旺季假日' : '旺季平日';
             } else {
-               dailyPrice = isWeekend ? (item.room.priceLowWeekend || 0) : (item.room.priceLowWeekday || 0);
+               basePrice = isWeekend ? (item.room.priceLowWeekend || 0) : (item.room.priceLowWeekday || 0);
                priceLabel = isWeekend ? '淡季假日' : '淡季平日';
             }
 
-            // 👉 新增：如果是體驗潛水且房型名稱包含「背包」，強制修改每晚單價為 500
-            if (context?.type === 'dsd_discount' && item.room.name.includes('背包')) {
-               if (dailyPrice > 500) {
-                   dsdDiscountAccumulator += (dailyPrice - 500) * item.roomCount;
-                   dailyPrice = 500;
-                   priceLabel += ' (體驗潛水特惠)';
+            let dailyPrice = 0;
+            let extraBedsCost = 0;
+
+            if (item.room.isDorm) {
+               // 背包房：直接用基本床位單價 * 預訂床位數(roomCount)
+               dailyPrice = basePrice * item.roomCount;
+               if (context?.type === 'dsd_discount' && item.room.name.includes('背包')) {
+                   if (basePrice > 500) {
+                       dsdDiscountAccumulator += (basePrice - 500) * item.roomCount;
+                       dailyPrice = 500 * item.roomCount;
+                       priceLabel += ' (體驗潛水特惠)';
+                   }
                }
+            } else {
+               // 獨立房型：動態計算折抵與加床費用
+               let totalRoomBasePrice = basePrice * item.roomCount;
+               let missingPersons = Math.max(0, (item.room.bedCount * item.roomCount) - item.guests);
+               let discount = missingPersons * (item.room.lessPersonDiscount || 0);
+               extraBedsCost = item.extraBeds * (item.room.priceExtraBed || 0);
+               
+               dailyPrice = Math.max(0, totalRoomBasePrice - discount) + extraBedsCost;
             }
 
-            const dailyBaseTotal = dailyPrice * item.roomCount;
-            const extraBedCost = item.extraBeds * (item.room.priceExtraBed || 0);
-            const subtotal = dailyBaseTotal + extraBedCost;
-
-            total += subtotal;
+            total += dailyPrice;
 
             if (!dailyAggregated[dateStr]) {
                 dailyAggregated[dateStr] = { date: dateStr, label: priceLabel, baseSum: 0, extraBed: 0, subtotal: 0 };
             }
-            dailyAggregated[dateStr].baseSum += dailyBaseTotal;
-            dailyAggregated[dateStr].extraBed += extraBedCost;
-            dailyAggregated[dateStr].subtotal += subtotal;
+            dailyAggregated[dateStr].baseSum += (dailyPrice - extraBedsCost);
+            dailyAggregated[dateStr].extraBed += extraBedsCost;
+            dailyAggregated[dateStr].subtotal += dailyPrice;
          }
      });
 
-     // 將跨房型的基底加總平均為單房供顯示相容
      const breakdown = Object.values(dailyAggregated).sort((a,b) => a.date.localeCompare(b.date)).map(day => ({
          date: day.date,
          label: day.label,
@@ -4123,16 +4084,105 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             total -= discountTotal;
          }
      } else if (context?.type === 'dsd_discount') {
-         // 👉 新增：帶入前面計算好的總折抵金額
          discountTotal = dsdDiscountAccumulator;
          discountLabel = `體驗潛水專屬優惠 (背包房床位 $500/晚)`;
-         // 注意：此處不需要再 `total -= discountTotal`，因為前面迴圈中的 dailyPrice 已經降為 500 計算了
      }
 
      total = Math.max(0, Math.round(total));
-
      return { total, breakdown, discountTotal: Math.round(discountTotal), discountLabel, totalRoomCount };
-  }, [checkIn, nights, cart, sysConfig, context, courseStudents]);
+  }, [checkIn, nights, sysConfig, context, courseStudents]);
+
+  const priceInfo = useMemo(() => calculateCartPrice(cart), [cart, calculateCartPrice]);
+
+  // --- 產生智能搭配方案 (Smart Planner) ---
+  const handleSearchPlans = () => {
+     if (!checkIn || !checkOut || searchGuests < 1 || nights <= 0 || hasFullDays) {
+         alert(hasFullDays ? '選擇的區間包含已滿房日期，無法預訂' : '請填寫正確的日期與人數'); return;
+     }
+
+     const availRooms = accommodations.map(r => {
+         const maxU = r.isDorm ? r.quantity * (r.bedCount||1) : r.quantity;
+         return { ...r, availQty: maxU };
+     }).filter(r => r.availQty > 0);
+
+     const plans = [];
+     const groupCartHelper = (tempCart) => {
+        const res = [];
+        tempCart.forEach(c => {
+           const ex = res.find(x => x.room.id === c.room.id && x.guestsPerRoom === c.guestsPerRoom && x.extraBedsPerRoom === c.extraBedsPerRoom);
+           if (ex) { ex.roomCount++; ex.guests += c.guests; ex.extraBeds += c.extraBeds; }
+           else res.push({ id: Date.now()+Math.random(), room: c.room, roomCount: c.roomCount, guestsPerRoom: c.guestsPerRoom, extraBedsPerRoom: c.extraBedsPerRoom, guests: c.guests, extraBeds: c.extraBeds, isDorm: c.isDorm });
+        });
+        return res;
+     };
+
+     const addPlan = (id, name, desc, rawCart) => {
+         if (rawCart && rawCart.reduce((s, c) => s + c.guests, 0) === searchGuests) {
+            const grouped = groupCartHelper(rawCart);
+            const sig = grouped.map(c => `${c.room.id}_${c.roomCount}_${c.guests}_${c.extraBeds}`).sort().join('|');
+            if (!plans.some(p => p.sig === sig)) {
+               plans.push({ id, name, desc, cart: grouped, sig });
+            }
+         }
+     };
+
+     // 策略 1: 全背包床 (最便宜)
+     const dormRooms = availRooms.filter(r => r.isDorm);
+     if (dormRooms.length > 0) {
+         let g = searchGuests;
+         let c = [];
+         for (let r of dormRooms) {
+             if (g <= 0) break;
+             let take = Math.min(r.availQty, g);
+             c.push({ room: r, roomCount: take, guestsPerRoom: 1, extraBedsPerRoom: 0, guests: take, extraBeds: 0, isDorm: true });
+             g -= take;
+         }
+         addPlan('dorm', '背包客精省方案', '全數安排背包床位，適合三五好友或獨行俠，極致性價比。', c);
+     }
+
+     // 策略 2: 集中包房 (最少房間數，接受加床)
+     const privateRooms = availRooms.filter(r => !r.isDorm).sort((a,b) => (b.bedCount + b.maxExtraBeds) - (a.bedCount + a.maxExtraBeds));
+     if (privateRooms.length > 0) {
+         let g2 = searchGuests;
+         let c2 = [];
+         for (let r of privateRooms) {
+             if (g2 <= 0) break;
+             let roomCap = r.bedCount + r.maxExtraBeds;
+             let takeRooms = Math.min(r.availQty, Math.ceil(g2 / roomCap));
+             for (let i=0; i<takeRooms; i++) {
+                 if (g2 <= 0) break;
+                 let assign = Math.min(roomCap, g2);
+                 let eb = Math.max(0, assign - r.bedCount);
+                 c2.push({ room: r, roomCount: 1, guestsPerRoom: assign, extraBedsPerRoom: eb, guests: assign, extraBeds: eb, isDorm: false });
+                 g2 -= assign;
+             }
+         }
+         addPlan('concentrated', '親友同樂方案', '盡可能安排在同一間房，適合親朋好友徹夜長談。', c2);
+     }
+
+     // 策略 3: 寬敞舒適 (保證不加床)
+     const privateComfort = availRooms.filter(r => !r.isDorm).sort((a,b) => b.bedCount - a.bedCount);
+     if (privateComfort.length > 0) {
+         let g3 = searchGuests;
+         let c3 = [];
+         for (let r of privateComfort) {
+             if (g3 <= 0) break;
+             let roomCap = r.bedCount;
+             let takeRooms = Math.min(r.availQty, Math.ceil(g3 / roomCap));
+             for (let i=0; i<takeRooms; i++) {
+                 if (g3 <= 0) break;
+                 let assign = Math.min(roomCap, g3);
+                 c3.push({ room: r, roomCount: 1, guestsPerRoom: assign, extraBedsPerRoom: 0, guests: assign, extraBeds: 0, isDorm: false });
+                 g3 -= assign;
+             }
+         }
+         addPlan('comfort', '寬敞舒適方案', '保證不加床，每個人都能享受標準床位的安穩睡眠。', c3);
+     }
+
+     setGeneratedPlans(plans);
+     setShowPlans(true);
+     setCart([]); // 清空既有購物車，讓顧客重新選擇
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -4179,180 +4229,300 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
          <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-rose-100/50 via-pink-50/30 to-transparent"></div>
          <div className="absolute -top-20 right-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/60 to-transparent transform -rotate-[15deg] blur-3xl opacity-80"></div>
-         
-         {/* 優雅的大型珊瑚浮水印 */}
-         <div className="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] opacity-[0.15] pointer-events-none text-rose-400">
-            <StaghornCoralWatermark className="w-full h-full" />
-         </div>
-         <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[400px] opacity-[0.1] pointer-events-none transform -rotate-45 text-pink-500">
-            <StaghornCoralWatermark className="w-full h-full" />
-         </div>
+         <div className="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] opacity-[0.15] pointer-events-none text-rose-400"><StaghornCoralWatermark className="w-full h-full" /></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-5xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 border-b border-rose-200/50 pb-5 mb-8 px-2">
            <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-rose-700 rounded-full hover:bg-white hover:shadow-md hover:text-rose-600 transition-all border border-white"><ChevronLeft className="w-6 h-6"/></button>
            <div>
-             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
-             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>輸入日期與資訊，即刻為您試算房價</div>
+             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">線上訂房 / Accommodation</h2>
+             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>智能試算方案，為您推薦最佳房型</div>
            </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="space-y-6 lg:space-y-8">
           
-          {/* 左欄：日期、基本資料、購物車與結帳 */}
-          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24 scroll-mt-24">
-             <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)] relative overflow-hidden">
-               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-5 flex items-center gap-3">
-                  <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CalendarDays className="w-5 h-5"/></div>
-                  1. 入住資訊設定
-               </h3>
+          {/* STEP 1: 選擇日期與人數 */}
+          <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)]">
+             <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-6 flex items-center gap-3">
+                <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CalendarDays className="w-5 h-5"/></div>
+                1. 選擇入住日期與人數
+             </h3>
 
-               {/* 雙日曆與天數顯示 (手機版自動改為上下排列防截斷) */}
-               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2 mb-6 bg-slate-50/80 p-4 sm:p-3 rounded-2xl border border-slate-100 shadow-inner relative z-10">
-                   <div className="w-full sm:flex-1">
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Check-in 入住日</span>
-                       <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-3 sm:p-2.5 rounded-xl font-black text-rose-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm" />
+             {/* 滿房警告 */}
+             {hasFullDays && (
+                <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 mb-6 shadow-sm animate-in slide-in-from-top-2">
+                   <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                   <div>
+                     <p className="text-sm font-black text-rose-800">區間包含已滿房日期</p>
+                     <p className="text-xs font-bold text-rose-600 mt-1">客滿日期：{fullDaysInRange.join(', ')}</p>
                    </div>
-                   <div className="flex flex-row sm:flex-col items-center justify-center shrink-0 px-2 relative z-10 py-1 sm:py-0 sm:pt-4 w-full sm:w-auto">
-                       <div className="hidden sm:block absolute w-10 h-0.5 bg-slate-300 top-1/2 mt-2 -z-0"></div>
-                       <div className="sm:hidden absolute h-0.5 w-full bg-slate-200 top-1/2 -z-0"></div>
-                       <div className="text-xs font-black text-slate-500 bg-white px-4 sm:px-3 py-1.5 sm:py-1 rounded-full shadow-sm border border-slate-200 z-10">{nights} 晚</div>
-                   </div>
-                   <div className="w-full sm:flex-1">
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 sm:text-right">Check-out 退房日</span>
-                       <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-3 sm:p-2.5 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 transition-all shadow-sm sm:text-right" />
-                   </div>
-               </div>
+                </div>
+             )}
 
-               {/* 滿房警告 */}
-               {hasFullDays && (
-                  <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 mb-6 shadow-sm animate-in slide-in-from-top-2 relative z-10">
-                     <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                     <div>
-                       <p className="text-sm font-black text-rose-800">區間包含已滿房日期</p>
-                       <p className="text-[10px] font-bold text-rose-600 mt-1 leading-relaxed">客滿日期：{fullDaysInRange.join(', ')}<br/>請調整入住/退房日期才能加入預訂清單。</p>
-                     </div>
-                  </div>
-               )}
-
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                 <FormInput label="真實姓名 *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
-                 <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
-               </div>
-             </div>
-
-             {/* 結帳與購物車 */}
-             <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.15)] flex flex-col">
-               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-5 flex items-center gap-3">
-                  <div className="bg-pink-100 p-2 rounded-xl text-pink-600"><ClipboardList className="w-5 h-5"/></div> 
-                  2. 預訂清單與費用
-               </h3>
-               
-               <div className="mb-6">
-                 <div className="text-[11px] font-black text-rose-600 uppercase tracking-widest mb-3 flex items-center justify-between">
-                   <span>已選房型清單 (Booking List)</span>
-                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md shadow-sm">{cart.length} 筆</span>
+             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                 <div className="sm:col-span-3">
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block ml-1">Check-in 入住日</span>
+                     <input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-3.5 rounded-xl font-bold text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 shadow-sm" />
                  </div>
+                 <div className="sm:col-span-3">
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block ml-1">Check-out 退房日</span>
+                     <input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-3.5 rounded-xl font-bold text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 shadow-sm" />
+                 </div>
+                 <div className="sm:col-span-3">
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block ml-1">Guests 總入住人數</span>
+                     <input type="number" min="1" required value={searchGuests} onChange={e => setSearchGuests(Math.max(1, parseInt(e.target.value)||1))} className="w-full bg-white p-3.5 rounded-xl font-black text-rose-600 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 shadow-sm text-center" />
+                 </div>
+                 <div className="sm:col-span-3 flex items-end">
+                     <button onClick={handleSearchPlans} className="w-full py-3.5 bg-slate-900 hover:bg-rose-600 text-white rounded-xl font-black shadow-lg transition-all">搜尋住宿方案</button>
+                 </div>
+             </div>
+          </div>
+
+          {/* STEP 2: 方案選擇與自訂 */}
+          {showPlans && (
+             <div className="bg-white/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)] animate-in slide-in-from-bottom-4">
+                <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-6 flex items-center gap-3">
+                   <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CoralIcon className="w-5 h-5"/></div>
+                   2. 選擇系統推薦方案
+                </h3>
+                
+                {generatedPlans.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                     {generatedPlans.map(p => {
+                        const pPriceInfo = calculateCartPrice(p.cart);
+                        const isSelected = p.sig === cart.map(c => `${c.room.id}_${c.roomCount}_${c.guests}_${c.extraBeds}`).sort().join('|');
+
+                        return (
+                        <div key={p.id} onClick={() => {setCart(p.cart); window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });}} className={`bg-gradient-to-br from-white to-rose-50 border-2 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 relative overflow-hidden group ${isSelected ? 'border-rose-500 shadow-[0_10px_20px_rgba(244,63,94,0.2)]' : 'border-rose-100 shadow-sm hover:shadow-md hover:border-rose-300'}`}>
+                            {isSelected && <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-sm">已選擇</div>}
+                            <h4 className="font-black text-rose-800 mb-1 text-lg">{p.name}</h4>
+                            <p className="text-xs font-bold text-rose-600/70 mb-4 h-8">{p.desc}</p>
+                            
+                            <div className="space-y-2 mb-5 min-h-[60px]">
+                                {p.cart.map(c => (
+                                    <div key={c.id} className="flex justify-between items-center text-sm font-bold text-slate-700 bg-white p-2 rounded-lg border border-rose-100 shadow-sm">
+                                        <span className="truncate pr-2">{c.room.name} × {c.roomCount}</span>
+                                        <span className="shrink-0 bg-slate-50 text-xs px-2 py-0.5 rounded">{c.guests}人 {c.extraBeds > 0 && <span className="text-orange-500 ml-1">(加{c.extraBeds}床)</span>}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="pt-3 border-t border-rose-200/60 flex justify-between items-end relative z-10">
+                                <span className="text-[11px] font-black text-slate-500 uppercase">預估總價 / Total</span>
+                                <span className="text-2xl font-black text-rose-600 leading-none">NT$ {pPriceInfo.total}</span>
+                            </div>
+                        </div>
+                     )})}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-sm font-bold text-slate-500 border-2 border-dashed border-rose-200 rounded-2xl mb-8 bg-rose-50/50">
+                    目前沒有完全符合人數的完美方案，請使用下方「自訂房型」手動分配。
+                  </div>
+                )}
+
+                <h3 className="font-black text-lg text-slate-800 border-b border-rose-100/50 pb-3 mb-6">或自行挑選與微調房型</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                   {accommodations.map(room => {
+                      const inCartCount = cart.filter(c => c.room.id === room.id).reduce((sum, c) => sum + c.roomCount, 0);
+                      return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} />;
+                   })}
+                </div>
+             </div>
+          )}
+
+          {/* STEP 3: 預訂清單與結帳 */}
+          {(showPlans || cart.length > 0) && (
+            <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.15)] flex flex-col lg:flex-row gap-8 animate-in slide-in-from-bottom-4">
+               
+               {/* 預訂清單區 */}
+               <div className="lg:w-1/2 flex flex-col">
+                 <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-5 flex items-center gap-3">
+                    <div className="bg-pink-100 p-2 rounded-xl text-pink-600"><ClipboardList className="w-5 h-5"/></div> 
+                    3. 目前預訂清單確認
+                 </h3>
                  
                  {cart.length === 0 ? (
-                   <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-rose-200">
-                     <div className="w-8 h-8 text-rose-300 mx-auto mb-2 flex items-center justify-center">
-                        <CoralIcon className="w-full h-full" />
-                     </div>
-                     <div className="text-xs font-bold text-rose-700/50">請先於右側選擇需要的房型</div>
+                   <div className="text-center py-12 bg-slate-50/50 rounded-2xl border border-dashed border-rose-200 flex-1 flex flex-col items-center justify-center">
+                     <div className="w-8 h-8 text-rose-300 mx-auto mb-2 flex items-center justify-center"><CoralIcon className="w-full h-full" /></div>
+                     <div className="text-xs font-bold text-rose-700/50">請先於上方選擇需要的房型方案</div>
                    </div>
                  ) : (
-                   <div className="space-y-3 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
+                   <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-[150px]">
                      {cart.map((item) => (
-                       <div key={item.id} className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm group hover:border-rose-300 hover:shadow-md transition-all">
+                       <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm group hover:border-rose-300 hover:shadow-md transition-all">
                           <div className="flex-1 min-w-0 pr-3">
-                            <div className="font-bold text-slate-800 text-sm truncate">{item.room.name}</div>
-                            <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
-                              <span className="text-[10px] font-black bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">{item.roomCount} 間</span>
-                              <span className="text-[10px] font-black bg-slate-50 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200/50">{item.guests} 人</span>
-                              {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-0.5 rounded-md text-orange-600 border border-orange-100">加 {item.extraBeds} 床</span>}
+                            <div className="font-bold text-slate-800 text-base truncate mb-2">{item.room.name}</div>
+                            <div className="flex items-center flex-wrap gap-2">
+                              <span className="text-[10px] font-black bg-slate-100 px-2 py-1 rounded-md text-slate-600 border border-slate-200/50">{item.roomCount} {item.isDorm ? '床' : '間'}</span>
+                              <span className="text-[10px] font-black bg-slate-100 px-2 py-1 rounded-md text-slate-600 border border-slate-200/50">入住 {item.guests} 人</span>
+                              {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-1 rounded-md text-orange-600 border border-orange-100">加 {item.extraBeds} 床</span>}
                             </div>
                           </div>
                           <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors shrink-0">
-                            <Trash2 className="w-4 h-4"/>
+                            <Trash2 className="w-5 h-5"/>
                           </button>
                        </div>
                      ))}
                    </div>
                  )}
+                 
+                 {/* 折扣資訊區 */}
+                 {(context && cart.length > 0) && (
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-3 shadow-sm mt-6 animate-in slide-in-from-bottom-2">
+                       <div className="flex items-center gap-2">
+                         <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
+                         <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : context.type === 'dsd_discount' ? '體驗潛水專屬優惠' : '活動專屬優惠'}</p>
+                       </div>
+                       {context.type === 'course_upgrade' ? (
+                         <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                           <span className="text-xs font-bold text-amber-800 pl-2">套用折抵的同行學員</span>
+                           <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-1.5 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
+                             {Array.from({ length: maxStudents || 1 }, (_, i) => i + 1).map(num => (
+                               <option key={num} value={num}>{num} 位</option>
+                             ))}
+                           </select>
+                         </div>
+                       ) : context.type === 'dsd_discount' ? (
+                         <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                            享體驗潛水專屬優惠：背包房床位每晚以 NT$ 500 計算 (限背包客房適用)
+                         </p>
+                       ) : (
+                         <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
+                       )}
+                    </div>
+                 )}
                </div>
 
-               {/* 折扣資訊區 */}
-               {(context && cart.length > 0) && (
-                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-3 shadow-sm mb-6 animate-in slide-in-from-top-2">
-                     <div className="flex items-center gap-2">
-                       <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
-                       <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : context.type === 'dsd_discount' ? '體驗潛水專屬優惠' : '活動專屬優惠'}</p>
-                     </div>
-                     {context.type === 'course_upgrade' ? (
-                       <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
-                         <span className="text-xs font-bold text-amber-800 pl-2">套用折抵的同行學員</span>
-                         <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-1.5 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
-                           {Array.from({ length: maxStudents || 1 }, (_, i) => i + 1).map(num => (
-                             <option key={num} value={num}>{num} 位</option>
-                           ))}
-                         </select>
-                       </div>
-                     ) : context.type === 'dsd_discount' ? (
-                       <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
-                          享體驗潛水專屬優惠：背包房床位每晚以 NT$ 500 計算 (限背包客房適用)
-                       </p>
-                     ) : (
-                       <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
-                     )}
+               {/* 結帳資料區 */}
+               <div className="lg:w-1/2 border-t lg:border-t-0 lg:border-l border-slate-200/60 pt-6 lg:pt-0 lg:pl-8 flex flex-col justify-end">
+                  <div className="grid grid-cols-1 gap-4 mb-8">
+                     <FormInput label="訂房人姓名 *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
+                     <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
                   </div>
-               )}
-
-               <div className="pt-5 border-t-2 border-rose-100/50 mt-auto">
+                  
                   <div className="flex justify-between items-end mb-5">
                     <span className="text-sm font-bold text-slate-500">預估總額 / Total Amount</span>
                     <div className="text-right">
                       {priceInfo.discountTotal > 0 && <div className="text-[10px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
-                      <span className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-rose-700 to-pink-500">NT$ {priceInfo.total}</span>
+                      <span className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-rose-700 to-pink-500 tracking-tight">NT$ {priceInfo.total}</span>
                     </div>
                   </div>
                   <button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone} 
-                    className="w-full py-4 bg-gradient-to-r from-rose-600 to-pink-500 text-white rounded-2xl font-black shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:shadow-[0_15px_30px_rgba(244,63,94,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full py-4 lg:py-5 bg-gradient-to-r from-rose-600 to-pink-500 text-white rounded-2xl font-black text-lg shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:shadow-[0_15px_30px_rgba(244,63,94,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
-                     {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '請先選擇房型' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-5 h-5"/>確認送出預訂單</>}
+                     {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '請先選擇房型' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-6 h-6"/> 確認送出訂單</>}
                   </button>
                </div>
-             </div>
-          </div>
-
-          {/* 右欄：房型導覽區 */}
-          <div className="lg:col-span-7 space-y-6">
-             <div className="bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-white shadow-sm flex items-center gap-3">
-                 <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CoralIcon className="w-5 h-5"/></div>
-                 <div>
-                    <h3 className="font-black text-lg text-slate-800">3. 選擇預訂房型</h3>
-                    <p className="text-[10px] font-bold text-slate-500">依據您左側輸入的日期，以下為各房型資訊與計價</p>
-                 </div>
-             </div>
-
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {accommodations.map(room => (
-                   <AccRoomCard 
-                       key={room.id} 
-                       room={room} 
-                       onAdd={handleAddToCart} 
-                       hasFullDays={hasFullDays} 
-                       nights={nights} 
-                   />
-                ))}
-             </div>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
+  const isDorm = room.isDorm === true;
+  const [rc, setRc] = useState(1);
+  const [g, setG] = useState(room.bedCount || 2);
+  const [eb, setEb] = useState(0);
+
+  const maxUnits = isDorm ? (room.quantity * (room.bedCount || 1)) : room.quantity;
+  const availableUnits = Math.max(0, maxUnits - inCartCount);
+
+  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : (room.priceExtraBed > 0 ? 1 : 0);
+  const maxEbAllowed = isDorm ? 0 : maxEbPerRoom; // 每間加床數上限
+
+  // 背包房自動同步入住人數與床位數，並禁用加床
+  useEffect(() => {
+    if (isDorm) { setG(rc); setEb(0); }
+  }, [rc, isDorm]);
+
+  // 初始化獨立房型的預設人數為基本人數
+  useEffect(() => {
+    if (!isDorm && g === 1 && (room.bedCount||2) > 1 && !rc) { setG(room.bedCount || 2); }
+  }, [isDorm, room.bedCount]);
+
+  const maxCapPerRoom = isDorm ? 1 : (room.bedCount || 1) + (parseInt(eb) || 0);
+  const isOverCap = isDorm ? false : (parseInt(g) || 0) > maxCapPerRoom;
+  const isOverUnits = (parseInt(rc) || 0) > availableUnits;
+
+  return (
+      <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-[1.5rem] shadow-sm border border-slate-200 hover:border-rose-300 hover:shadow-[0_10px_30px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col h-full relative group overflow-hidden">
+          
+          <div className="absolute -bottom-6 -right-6 w-36 h-36 opacity-[0.05] group-hover:scale-110 group-hover:opacity-[0.12] transition-all duration-500 pointer-events-none transform -rotate-6">
+              <StaghornCoralWatermark className="w-full h-full text-rose-600" />
+          </div>
+
+          <div className="flex justify-between items-start mb-2 relative z-10">
+              <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors pr-2">
+                 {room.name}
+                 {isDorm && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded ml-2 align-middle border border-slate-200">背包床位</span>}
+              </h3>
+              <div className="text-right shrink-0">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">淡季平日</span>
+                  <span className="text-rose-600 font-black text-lg">NT$ {room.priceLowWeekday} {isDorm ? <span className="text-xs text-rose-400">/床</span> : <span className="text-xs text-rose-400">/房</span>}</span>
+              </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-4 mt-1 relative z-10">
+              <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-slate-200">
+                <CoralIcon className="w-3.5 h-3.5" /> {isDorm ? `共 ${maxUnits} 個床位` : `實體 ${room.quantity} 間`}
+              </span>
+              <span className="text-[11px] font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-rose-100">
+                <User className="w-3.5 h-3.5" /> {isDorm ? '1 人 / 床' : `標準 ${room.bedCount} 人/間`}
+              </span>
+              {!isDorm && room.lessPersonDiscount > 0 && (
+                 <span className="text-[11px] font-bold text-blue-600 flex items-center gap-1.5 bg-blue-50 w-fit px-2 py-1 rounded-md border border-blue-100">
+                    少人每人折 ${room.lessPersonDiscount}
+                 </span>
+              )}
+              {!isDorm && room.priceExtraBed > 0 && maxEbPerRoom > 0 && (
+                 <span className="text-[11px] font-bold text-orange-600 flex items-center gap-1.5 bg-orange-50 w-fit px-2 py-1 rounded-md border border-orange-100">
+                    <Plus className="w-3 h-3" /> 可加 {maxEbPerRoom} 床 (+${room.priceExtraBed})
+                 </span>
+              )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 mt-auto bg-slate-50/80 p-3 rounded-xl border border-slate-100 shadow-inner relative z-10">
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">{isDorm ? '預訂床位數' : '預訂房間數'}</label>
+                  <input type="number" min="1" max={availableUnits} value={rc} onChange={e => { let val = parseInt(e.target.value); if (isNaN(val)) val = ''; setRc(val); }} className={`w-full p-2 text-center rounded-lg border font-bold text-sm outline-none transition-all ${isOverUnits ? 'border-red-500 bg-red-50 text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'}`} />
+              </div>
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">{isDorm ? '入住總人數' : '每間入住人數'}</label>
+                  <input type="number" min="1" value={g} onChange={e => setG(e.target.value)} disabled={isDorm} className={`w-full p-2 text-center rounded-lg border text-sm font-bold outline-none transition-all ${isOverCap ? 'border-red-500 bg-red-50 text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'} ${isDorm ? 'bg-slate-100 text-slate-400' : ''}`} />
+              </div>
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">{isDorm ? '不可加床' : '每間加床數'}</label>
+                  <input type="number" min="0" max={maxEbAllowed} value={eb} onChange={e => { let val = parseInt(e.target.value); if (isNaN(val)) val = 0; if (val > maxEbAllowed) val = maxEbAllowed; if (val < 0) val = 0; setEb(val); }} disabled={isDorm || !(room.priceExtraBed > 0) || maxEbPerRoom <= 0} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
+              </div>
+          </div>
+          
+          {isOverUnits && <p className="text-[10px] font-bold text-red-500 mt-2 text-center animate-pulse relative z-10"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>數量超過剩餘可選數 ({availableUnits})</p>}
+          {!isOverUnits && isOverCap && !isDorm && <p className="text-[10px] font-bold text-red-500 mt-2 text-center animate-pulse relative z-10"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>每間人數超過上限 (最大 {maxCapPerRoom} 人)</p>}
+
+          <button 
+              onClick={() => {
+                  const roomCount = parseInt(rc)||1;
+                  const guestsPerRoom = isDorm ? 1 : (parseInt(g)||1);
+                  const extraBedsPerRoom = isDorm ? 0 : (parseInt(eb)||0);
+                  const totalGuests = isDorm ? roomCount : roomCount * guestsPerRoom;
+                  const totalExtraBeds = isDorm ? 0 : roomCount * extraBedsPerRoom;
+
+                  onAdd({ id: Date.now() + Math.random(), room, roomCount, guestsPerRoom, extraBedsPerRoom, guests: totalGuests, extraBeds: totalExtraBeds, isDorm });
+                  setRc(1); setG(room.bedCount||2); setEb(0);
+              }} 
+              disabled={hasFullDays || isOverUnits || isOverCap || availableUnits <= 0 || nights <= 0}
+              className="w-full mt-4 py-3 bg-gradient-to-r from-rose-600 to-rose-500 text-white rounded-xl font-bold shadow-sm hover:from-rose-500 hover:to-rose-400 hover:shadow-rose-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
+          >
+              <Plus className="w-4 h-4"/> {availableUnits <= 0 ? '已達預訂上限' : nights <= 0 ? '請先於上方選擇日期' : '加入至預訂清單'}
+          </button>
+      </div>
   );
 }
 
@@ -4677,13 +4847,23 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
   const calculateEqPrice = () => {
     let heavyCount = prepList.filter(r => r.category === '重裝備').length;
     let lightCount = prepList.filter(r => r.category === '輕裝備').length;
-    let rawTotal = prepList.reduce((sum, r) => sum + r.price, 0);
+    let rawTotal = 0;
 
     const packs = sysConfig.equipmentPackages || {};
+    
+    // 👉 新增：計算配件總價 (配件不包含在全套優惠內，須額外計價)
+    const accessoryPrice = prepList.filter(r => r.category !== '重裝備' && r.category !== '輕裝備').reduce((sum, r) => sum + r.price, 0);
 
-    if (heavyCount >= 2 && lightCount >= 3 && packs.full) rawTotal = packs.full;
-    else if (heavyCount >= 2 && packs.heavy) rawTotal = packs.heavy + prepList.filter(r => r.category !== '重裝備').reduce((sum, r) => sum + r.price, 0);
-    else if (lightCount >= 3 && packs.light) rawTotal = packs.light + prepList.filter(r => r.category !== '輕裝備').reduce((sum, r) => sum + r.price, 0);
+    // 套裝計算
+    if (heavyCount >= 2 && lightCount >= 3 && packs.full) {
+       rawTotal = packs.full + accessoryPrice;
+    } else if (heavyCount >= 2 && packs.heavy) {
+       rawTotal = packs.heavy + prepList.filter(r => r.category !== '重裝備').reduce((sum, r) => sum + r.price, 0);
+    } else if (lightCount >= 3 && packs.light) {
+       rawTotal = packs.light + prepList.filter(r => r.category !== '輕裝備').reduce((sum, r) => sum + r.price, 0);
+    } else {
+       rawTotal = prepList.reduce((sum, r) => sum + r.price, 0);
+    }
 
     if (isReturningCustomer) {
       const discountRate = packs.returnCustomerDiscount > 0 ? packs.returnCustomerDiscount : 100;
@@ -5089,7 +5269,7 @@ function App() {
         });
 
         const rRef = collection(db, 'artifacts', appId, 'public', 'data', 'accommodations');
-        await addDoc(rRef, { name: '背包客房', quantity: 1, bedCount: 12, priceLowWeekday: 800, priceLowWeekend: 1000, pricePeakWeekday: 1200, pricePeakWeekend: 1500, priceHoliday: 1800, priceExtraBed: 600 });
+        await addDoc(rRef, { name: '背包客房', quantity: 1, bedCount: 6, isDorm: true, priceLowWeekday: 500, priceLowWeekend: 600, pricePeakWeekday: 700, pricePeakWeekend: 800, priceHoliday: 1000, priceExtraBed: 0 });
         
         const eqRef = collection(db, 'artifacts', appId, 'public', 'data', 'equipments');
         
