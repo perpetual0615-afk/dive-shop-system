@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -3385,6 +3386,19 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
             {/* STEP: Basic Data */}
             {isStepBasic && (
               <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                
+                {/* 👉 新增：非課程活動的備註與注意事項顯示區塊 */}
+                {!isCourse && activity.notes && (
+                   <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 shadow-sm">
+                      <h4 className="font-black text-amber-900 mb-3 flex items-center gap-2">
+                         <AlertTriangle className="w-5 h-5 text-amber-500"/> 活動備註與注意事項
+                      </h4>
+                      <p className="text-sm font-bold text-amber-800 whitespace-pre-wrap leading-relaxed">
+                         {activity.notes}
+                      </p>
+                   </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="真實姓名 *" required value={f.name} onChange={v => setF({...f, name: v})} placeholder="保險與證照使用" />
                   <FormInput label="常用暱稱" value={f.nickname} onChange={v => setF({...f, nickname: v})} placeholder="教練稱呼您的方式" />
