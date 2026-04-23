@@ -2044,7 +2044,7 @@ function RoomManageModal({ db, appId, room, onClose }) {
       pricePeakWeekday: 1500, pricePeakWeekend: 1800, 
       priceHoliday: 2200,
       pricingTiers: [
-         { id: Date.now().toString(), name: '2人入住', guests: 2, extraBeds: 0, priceLowWeekday: 2000, priceLowWeekend: 2400, pricePeakWeekday: 2800, pricePeakWeekend: 3200, priceHoliday: 3600 }
+         { id: Date.now().toString(), name: '2人入住價位', guests: 2, extraBeds: 0, priceLowWeekday: 2000, priceLowWeekend: 2400, pricePeakWeekday: 2800, pricePeakWeekend: 3200, priceHoliday: 3600 }
       ]
     };
   });
@@ -2054,20 +2054,20 @@ function RoomManageModal({ db, appId, room, onClose }) {
        setF({
          ...f, isDorm: false,
          pricingTiers: [
-           { id: Date.now() + '1', name: '1人入住', guests: 1, extraBeds: 0, priceLowWeekday: 1500, priceLowWeekend: 1800, pricePeakWeekday: 2000, pricePeakWeekend: 2400, priceHoliday: 2800 },
-           { id: Date.now() + '2', name: '2人入住', guests: 2, extraBeds: 0, priceLowWeekday: 2000, priceLowWeekend: 2400, pricePeakWeekday: 2800, pricePeakWeekend: 3200, priceHoliday: 3600 },
-           { id: Date.now() + '3', name: '3人入住 (含沙發床)', guests: 3, extraBeds: 1, priceLowWeekday: 2500, priceLowWeekend: 2900, pricePeakWeekday: 3300, pricePeakWeekend: 3700, priceHoliday: 4100 }
+           { id: Date.now() + '1', name: '1人入住價位', guests: 1, extraBeds: 0, priceLowWeekday: 1500, priceLowWeekend: 1800, pricePeakWeekday: 2000, pricePeakWeekend: 2400, priceHoliday: 2800 },
+           { id: Date.now() + '2', name: '2人入住價位', guests: 2, extraBeds: 0, priceLowWeekday: 2000, priceLowWeekend: 2400, pricePeakWeekday: 2800, pricePeakWeekend: 3200, priceHoliday: 3600 },
+           { id: Date.now() + '3', name: '加床後3人入住價位', guests: 3, extraBeds: 1, priceLowWeekday: 2500, priceLowWeekend: 2900, pricePeakWeekday: 3300, pricePeakWeekend: 3700, priceHoliday: 4100 }
          ]
        });
      } else if (type === 2) {
        setF({
          ...f, isDorm: false,
          pricingTiers: [
-           { id: Date.now() + '1', name: '2人入住', guests: 2, extraBeds: 0, priceLowWeekday: 2400, priceLowWeekend: 2800, pricePeakWeekday: 3200, pricePeakWeekend: 3600, priceHoliday: 4000 },
-           { id: Date.now() + '2', name: '3人入住', guests: 3, extraBeds: 0, priceLowWeekday: 2800, priceLowWeekend: 3200, pricePeakWeekday: 3600, pricePeakWeekend: 4000, priceHoliday: 4400 },
-           { id: Date.now() + '3', name: '3人入住 (含沙發床)', guests: 3, extraBeds: 1, priceLowWeekday: 3300, priceLowWeekend: 3700, pricePeakWeekday: 4100, pricePeakWeekend: 4500, priceHoliday: 4900 },
-           { id: Date.now() + '4', name: '4人入住', guests: 4, extraBeds: 0, priceLowWeekday: 3600, priceLowWeekend: 4000, pricePeakWeekday: 4400, pricePeakWeekend: 4800, priceHoliday: 5200 },
-           { id: Date.now() + '5', name: '5人入住 (含沙發床)', guests: 5, extraBeds: 1, priceLowWeekday: 4100, priceLowWeekend: 4500, pricePeakWeekday: 4900, pricePeakWeekend: 5300, priceHoliday: 5700 }
+           { id: Date.now() + '1', name: '2人入住價位', guests: 2, extraBeds: 0, priceLowWeekday: 2400, priceLowWeekend: 2800, pricePeakWeekday: 3200, pricePeakWeekend: 3600, priceHoliday: 4000 },
+           { id: Date.now() + '2', name: '3人入住價位', guests: 3, extraBeds: 0, priceLowWeekday: 2800, priceLowWeekend: 3200, pricePeakWeekday: 3600, pricePeakWeekend: 4000, priceHoliday: 4400 },
+           { id: Date.now() + '3', name: '加床後3人入住價位', guests: 3, extraBeds: 1, priceLowWeekday: 3300, priceLowWeekend: 3700, pricePeakWeekday: 4100, pricePeakWeekend: 4500, priceHoliday: 4900 },
+           { id: Date.now() + '4', name: '4人入住價位', guests: 4, extraBeds: 0, priceLowWeekday: 3600, priceLowWeekend: 4000, pricePeakWeekday: 4400, pricePeakWeekend: 4800, priceHoliday: 5200 },
+           { id: Date.now() + '5', name: '加床後5人入住價位', guests: 5, extraBeds: 1, priceLowWeekday: 4100, priceLowWeekend: 4500, pricePeakWeekday: 4900, pricePeakWeekend: 5300, priceHoliday: 5700 }
          ]
        });
      }
@@ -2171,12 +2171,12 @@ function RoomManageModal({ db, appId, room, onClose }) {
             <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
                <div className="flex flex-col md:flex-row justify-between md:items-center border-b border-slate-200 pb-3 mb-2 gap-4">
                   <div>
-                    <h4 className="font-black text-blue-800 text-base">依入住組合設定各別房價方案</h4>
-                    <p className="text-xs font-bold text-slate-500 mt-1">例如：獨立設定 1人入住、2人入住、3人加沙發床 的不同收費</p>
+                    <h4 className="font-black text-blue-800 text-base">依入住組合設定各別房價方案 (不採用固定加床金額)</h4>
+                    <p className="text-xs font-bold text-slate-500 mt-1">例如：1張雙人床房型可設定 1人、2人、加床後3人。每一種人數皆為獨立填寫的平假日收費。</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                     <button type="button" onClick={() => applyTemplate(1)} className="text-xs bg-white text-indigo-700 px-3 py-2 rounded-lg font-bold hover:bg-indigo-50 border border-indigo-200 shadow-sm flex items-center gap-1 transition-colors"><Plus className="w-3.5 h-3.5"/> 1雙人床 範本</button>
-                     <button type="button" onClick={() => applyTemplate(2)} className="text-xs bg-white text-teal-700 px-3 py-2 rounded-lg font-bold hover:bg-teal-50 border border-teal-200 shadow-sm flex items-center gap-1 transition-colors"><Plus className="w-3.5 h-3.5"/> 2雙人床 範本</button>
+                     <button type="button" onClick={() => applyTemplate(1)} className="text-xs bg-white text-indigo-700 px-3 py-2 rounded-lg font-bold hover:bg-indigo-50 border border-indigo-200 shadow-sm flex items-center gap-1 transition-colors"><Plus className="w-3.5 h-3.5"/> 1張雙人床 範本</button>
+                     <button type="button" onClick={() => applyTemplate(2)} className="text-xs bg-white text-teal-700 px-3 py-2 rounded-lg font-bold hover:bg-teal-50 border border-teal-200 shadow-sm flex items-center gap-1 transition-colors"><Plus className="w-3.5 h-3.5"/> 2張雙人床 範本</button>
                      <button type="button" onClick={() => {
                         setF({...f, pricingTiers: [...f.pricingTiers, {
                           id: Date.now().toString(), name: '新方案', guests: 2, extraBeds: 0,
