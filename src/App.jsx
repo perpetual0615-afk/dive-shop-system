@@ -5,14 +5,15 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 
 // --- Firebase 基礎配置 (加上安全防護) ---
-let firebaseConfig = {};
-try {
-  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-    firebaseConfig = JSON.parse(__firebase_config);
-  }
-} catch (e) {
-  console.error("Firebase config parse error", e);
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
+  authDomain: "sharkenting777550.firebaseapp.com",
+  projectId: "sharkenting777550",
+  storageBucket: "sharkenting777550.firebasestorage.app",
+  messagingSenderId: "1092791454866",
+  appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
+  measurementId: "G-TYT7E313E2"
+};
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -491,24 +492,6 @@ function exportToCSV(filename, rows) {
     link.click();
     document.body.removeChild(link);
   }
-}
-
-// 確保房型資料相容新版階梯定價的轉換函式
-function migrateRoomTiers(room) {
-  if (room.pricingTiers && room.pricingTiers.length > 0) return room.pricingTiers;
-  if (room.isDorm) return [];
-  // 若為舊版單一定價資料，自動轉換為預設入住方案
-  return [{
-     id: Date.now().toString(),
-     name: '基本入住方案',
-     guests: room.bedCount || 2,
-     extraBeds: 0,
-     priceLowWeekday: room.priceLowWeekday || '',
-     priceLowWeekend: room.priceLowWeekend || '',
-     pricePeakWeekday: room.pricePeakWeekday || '',
-     pricePeakWeekend: room.pricePeakWeekend || '',
-     priceHoliday: room.priceHoliday || ''
-  }];
 }
 
 // --- AI 尺寸與配重分析工具 ---
@@ -2356,50 +2339,28 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
              </button>
              {accommodations.map(room => (
                <div key={room.id} className="bg-white border border-slate-200 p-6 rounded-3xl group relative shadow-sm hover:shadow-md transition-shadow">
-                  <div className="absolute top-5 right-5 flex gap-2 z-10 transition-opacity">
-                    <button onClick={() => { setEditingRoom(room); setIsRoomModalOpen(true); }} className="p-2 bg-slate-100 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm" title="編輯房型"><Edit3 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDeleteRoom(room.id)} className="p-2 bg-slate-100 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-colors shadow-sm" title="刪除房型"><Trash2 className="w-4 h-4" /></button>
+                  <div className="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditingRoom(room); setIsRoomModalOpen(true); }} className="p-2 bg-slate-100 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm"><Edit3 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDeleteRoom(room.id)} className="p-2 bg-slate-100 rounded-xl hover:bg-red-600 hover:text-white transition-colors shadow-sm"><Trash2 className="w-4 h-4" /></button>
                   </div>
-                  <h4 className="font-black text-slate-900 text-xl mb-4 pr-20">
+                  <h4 className="font-black text-slate-900 text-xl mb-4">
                     {String(room.name)}
                     {room.isDorm && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg ml-2 align-middle shadow-sm">背包床位計價</span>}
                   </h4>
-                  
-                  {room.isDorm ? (
-                    <div className="grid grid-cols-2 gap-3 text-xs font-bold">
-                       <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                          <p className="text-slate-400 mb-1">淡季 (平/假)</p>
-                          <p className="text-slate-700">${Number(room.priceLowWeekday).toLocaleString()} / ${Number(room.priceLowWeekend).toLocaleString()}</p>
-                       </div>
-                       <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
-                          <p className="text-amber-600 mb-1">旺季 (平/假)</p>
-                          <p className="text-amber-800">${Number(room.pricePeakWeekday).toLocaleString()} / ${Number(room.pricePeakWeekend).toLocaleString()}</p>
-                       </div>
-                       <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
-                          <p className="text-rose-600 mb-1">連假定價</p>
-                          <p className="text-rose-800">${Number(room.priceHoliday).toLocaleString()}</p>
-                       </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
-                       {migrateRoomTiers(room).map((tier, idx) => (
-                         <div key={tier.id || idx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
-                           <div className="flex justify-between items-center mb-2 border-b border-slate-200/60 pb-2">
-                             <span className="font-black text-blue-800 text-sm">{tier.name}</span>
-                             <span className="text-[10px] bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold shadow-sm">
-                               {tier.guests} 人入住 {tier.extraBeds > 0 ? `(含 ${tier.extraBeds} 加床)` : ''}
-                             </span>
-                           </div>
-                           <div className="grid grid-cols-3 gap-2 text-[10px] font-bold">
-                              <div><p className="text-slate-400 mb-0.5">淡季(平/假)</p><p className="text-slate-700">${Number(tier.priceLowWeekday).toLocaleString()} / ${Number(tier.priceLowWeekend).toLocaleString()}</p></div>
-                              <div><p className="text-amber-500 mb-0.5">旺季(平/假)</p><p className="text-amber-700">${Number(tier.pricePeakWeekday).toLocaleString()} / ${Number(tier.pricePeakWeekend).toLocaleString()}</p></div>
-                              <div><p className="text-rose-500 mb-0.5">連假定價</p><p className="text-rose-700">${Number(tier.priceHoliday).toLocaleString()}</p></div>
-                           </div>
-                         </div>
-                       ))}
-                    </div>
-                  )}
-
+                  <div className="grid grid-cols-2 gap-3 text-xs font-bold">
+                     <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <p className="text-slate-400 mb-1">淡季 (平/假)</p>
+                        <p className="text-slate-700">${room.priceLowWeekday} / ${room.priceLowWeekend}</p>
+                     </div>
+                     <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
+                        <p className="text-amber-600 mb-1">旺季 (平/假)</p>
+                        <p className="text-amber-800">${room.pricePeakWeekday} / ${room.pricePeakWeekend}</p>
+                     </div>
+                     <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
+                        <p className="text-rose-600 mb-1">連假定價 (最後一晚免費)</p>
+                        <p className="text-rose-800">${room.priceHoliday}</p>
+                     </div>
+                  </div>
                   <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm font-bold gap-2">
                      <span className="text-slate-500">實體房間：{room.quantity} 間</span>
                      <div className="flex flex-wrap gap-2">
@@ -3151,7 +3112,7 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
                     <div>
                        {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
                        <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
-                          NT$ {Number(item.price || item.priceLowWeekday || 0).toLocaleString()}
+                          NT$ {Number(item.price || item.priceLowWeekday || 0)}
                        </span>
                     </div>
                     <button 
@@ -3237,12 +3198,6 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   const [rentals, setRentals] = useState([]); // { eqId, name, size, category, price }
   const [selectedElectives, setSelectedElectives] = useState([]); // 儲存已勾選的選修項目 ID
   
-  // 👉 新增：管理簽證費與收費必修項目的勾選狀態 (預設為勾選，讓顧客自行取消)
-  const [requireCert, setRequireCert] = useState(activity.certFee > 0); 
-  const [selectedCompulsories, setSelectedCompulsories] = useState(
-      (activity.compulsories || []).filter(c => typeof c === 'object' && c.price > 0).map(c => c.id)
-  );
-  
   // 潛旅當地租借裝備清單與完整選項
   const LOCAL_SHOP_GEARS = [
     { name: 'BCD', category: '重裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
@@ -3293,15 +3248,13 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     return rawTotal;
   };
 
-  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用
+  // 總計金額計算 (活動基底 + 裝備 + 簽證 + 選修 + 強制必修)
   const calculateTotal = () => {
     let total = activity.price + calculateEqPrice();
-    if (isCourse && requireCert && activity.certFee) total += activity.certFee;
+    if (isCourse && activity.certFee) total += activity.certFee;
     if (isCourse && activity.compulsories?.length > 0) {
        activity.compulsories.forEach(comp => {
-          if (typeof comp === 'object' && comp.price > 0 && selectedCompulsories.includes(comp.id)) {
-              total += comp.price;
-          }
+          if (typeof comp === 'object' && comp.price > 0) total += comp.price;
        });
     }
     if (isCourse && activity.electives?.length > 0) {
@@ -3339,9 +3292,8 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     setIsSubmitting(true);
     
     try {
-      // 提取被選中的選修與加購項目詳細資料
+      // 提取被選中的選修項目詳細資料
       const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
-      const finalCompulsories = isCourse && activity.compulsories ? activity.compulsories.filter(c => typeof c === 'object' && c.price > 0 && selectedCompulsories.includes(c.id)) : [];
 
       // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
       const medicalIssues = [];
@@ -3365,10 +3317,9 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         ...f,
         weights,
         rentals,
-        // 👉 將勾選的必修與選修合併紀錄至 selectedElectives，供後台一併顯示
-        selectedElectives: [...finalCompulsories, ...finalElectives],
-        certFee: requireCert ? (activity.certFee || 0) : 0,
-        certSystem: requireCert ? (activity.certSystem || '') : '',
+        selectedElectives: finalElectives,
+        certFee: activity.certFee || 0,
+        certSystem: activity.certSystem || '',
         useLocalShopEq,
         isReturningCustomer,
         accOption: isTrip ? 'trip' : accOption,
@@ -3503,70 +3454,41 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                       </ul>
                    </div>
 
-                   {/* 必修與選修區塊 (改為可互動勾選) */}
-                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
-                      <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4 gap-2">
-                         <h4 className="font-black text-slate-800 flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-purple-500 shrink-0"/> 簽證與額外加購選項
-                         </h4>
-                         <span className="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0">
-                            小計: NT$ {(calculateTotal() - activity.price - calculateEqPrice()).toLocaleString()}
-                         </span>
-                      </div>
-                      
-                      <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
-                         {/* 費用大於0的必修項目 */}
-                         {activity.compulsories?.filter(c => typeof c === 'object' && c.price > 0).map(comp => (
-                           <label key={comp.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedCompulsories.includes(comp.id) ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
-                             <div className="flex items-center gap-3">
-                               <input type="checkbox" checked={selectedCompulsories.includes(comp.id)} onChange={e => {
-                                 if (e.target.checked) setSelectedCompulsories([...selectedCompulsories, comp.id]);
-                                 else setSelectedCompulsories(selectedCompulsories.filter(id => id !== comp.id));
-                               }} className="w-4 h-4 text-blue-600 rounded" />
-                               <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-500"/> {comp.name}</span>
-                             </div>
-                             <span className="font-black text-blue-700 text-sm">+NT$ {Number(comp.price).toLocaleString()}</span>
-                           </label>
-                         ))}
-
-                         {/* 免費的必修項目 (純展示) */}
-                         {activity.compulsories?.filter(c => typeof c === 'string' || (typeof c === 'object' && c.price <= 0)).map((comp, i) => (
-                            <div key={`free-${i}`} className="flex items-center justify-between p-3 border border-slate-100 bg-slate-50 rounded-xl opacity-70">
-                               <span className="font-bold text-slate-600 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-slate-400"/> {typeof comp === 'string' ? comp : comp.name}</span>
-                               <span className="font-black text-slate-500 text-sm">免費/內含</span>
-                            </div>
-                         ))}
-
-                         {/* 簽證費 */}
-                         {activity.certFee > 0 && (
-                           <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${requireCert ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
-                             <div className="flex items-center gap-3">
-                               <input type="checkbox" checked={requireCert} onChange={e => setRequireCert(e.target.checked)} className="w-4 h-4 text-amber-600 rounded" />
-                               <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-500"/> {activity.certSystem || '系統'} 簽證費</span>
-                             </div>
-                             <span className="font-black text-amber-700 text-sm">+NT$ {Number(activity.certFee).toLocaleString()}</span>
-                           </label>
-                         )}
-                         
-                         {/* 選修項目 */}
-                         {activity.electives?.length > 0 && (
-                           <div className="pt-2 border-t border-slate-100 mt-2">
-                             <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest">可自由加購選修</h5>
-                             <div className="grid grid-cols-1 gap-2">
-                               {activity.electives.map(el => (
-                                 <label key={el.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedElectives.includes(el.id) ? 'bg-purple-50 border-purple-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
-                                   <div className="flex items-center gap-3">
-                                     <input type="checkbox" checked={selectedElectives.includes(el.id)} onChange={(e) => {
-                                       if (e.target.checked) setSelectedElectives([...selectedElectives, el.id]);
-                                       else setSelectedElectives(selectedElectives.filter(id => id !== el.id));
-                                     }} className="w-4 h-4 text-purple-600 rounded" />
-                                     <span className="font-bold text-slate-700 text-sm">{el.name}</span>
-                                   </div>
-                                   <span className="font-black text-purple-700 text-sm">+NT$ {Number(el.price).toLocaleString()}</span>
-                                 </label>
+                   {/* 必修與選修區塊 */}
+                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
+                      <h4 className="font-black text-slate-800 mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
+                         <Plus className="w-5 h-5 text-purple-500"/> 必修、選修與加購資訊
+                      </h4>
+                      <div className="space-y-4">
+                         <div>
+                            <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest">強制/必修項目</h5>
+                            {activity.certFee > 0 && (
+                               <div className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
+                                  <span>{activity.certSystem} 簽證費</span>
+                                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">+NT$ {activity.certFee}</span>
+                               </div>
+                            )}
+                            {(activity.compulsories || []).map((c, i) => {
+                               const name = typeof c === 'string' ? c : c.name;
+                               const price = typeof c === 'object' && c.price > 0 ? c.price : 0;
+                               return (
+                                  <div key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
+                                     <span>{name}</span>
+                                     <span className={price > 0 ? 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100' : 'text-slate-400'}>{price > 0 ? `+NT$ ${price}` : '免費/內含'}</span>
+                                  </div>
+                               );
+                            })}
+                         </div>
+                         {activity.electives && activity.electives.length > 0 && (
+                            <div className="pt-2 border-t border-slate-100">
+                               <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest mt-2">可自由加購選修 (稍後可選)</h5>
+                               {activity.electives.map((el, i) => (
+                                  <div key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
+                                     <span>{el.name}</span>
+                                     <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">+NT$ {el.price}</span>
+                                  </div>
                                ))}
-                             </div>
-                           </div>
+                            </div>
                          )}
                       </div>
                    </div>
@@ -3668,12 +3590,54 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                    </div>
                  </div>
 
-                 {/* 課程裝備提示 */}
+                 {/* 課程專屬加購與簽證費 */}
                  {isCourse && (
                     <div className="space-y-4 mb-8">
                        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm">
                          <Info className="w-5 h-5 shrink-0" /> 課程費用已包含裝備租借，請安心選擇下方的裝備尺寸。
                        </div>
+
+                       {(activity.certFee > 0 || activity.electives?.length > 0 || activity.compulsories?.some(c => typeof c === 'object' && c.price > 0)) && (
+                         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                           <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                             <h4 className="font-black text-slate-800 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-500"/> 課程選修加購與強制費用</h4>
+                             <span className="text-xl font-black text-blue-600">小計: NT$ {calculateTotal() - activity.price - calculateEqPrice()}</span>
+                           </div>
+                           
+                           <div className="space-y-3">
+                              {activity.compulsories?.filter(c => typeof c === 'object' && c.price > 0).map(comp => (
+                                <div key={comp.id} className="flex items-center justify-between p-3 border border-blue-200 bg-blue-50 rounded-xl">
+                                  <span className="font-bold text-blue-900 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-500"/> {comp.name} (必修費用)</span>
+                                  <span className="font-black text-blue-700 text-sm">+NT$ {comp.price}</span>
+                                </div>
+                              ))}
+
+                              {activity.certFee > 0 && (
+                                <div className="flex items-center justify-between p-3 border border-amber-200 bg-amber-50 rounded-xl">
+                                  <span className="font-bold text-amber-900 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-500"/> {activity.certSystem || '系統'} 簽證費 (必收)</span>
+                                  <span className="font-black text-amber-700 text-sm">+NT$ {activity.certFee}</span>
+                                </div>
+                              )}
+                              
+                              {activity.electives?.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                  {activity.electives.map(el => (
+                                    <label key={el.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedElectives.includes(el.id) ? 'bg-purple-50 border-purple-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
+                                      <div className="flex items-center gap-3">
+                                        <input type="checkbox" checked={selectedElectives.includes(el.id)} onChange={(e) => {
+                                          if (e.target.checked) setSelectedElectives([...selectedElectives, el.id]);
+                                          else setSelectedElectives(selectedElectives.filter(id => id !== el.id));
+                                        }} className="w-4 h-4 text-purple-600 rounded" />
+                                        <span className="font-bold text-slate-700 text-sm">{el.name}</span>
+                                      </div>
+                                      <span className="font-black text-purple-700 text-sm">+NT$ {el.price}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+                           </div>
+                         </div>
+                       )}
                     </div>
                  )}
                  
@@ -3835,7 +3799,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                          {rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 最優惠組合</span>}
                          {isReturningCustomer && rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-orange-700 font-bold bg-orange-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 回客折扣</span>}
                        </div>
-                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice().toLocaleString()}</span>
+                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice()}</span>
                      </div>
                    </div>
                  )}
@@ -4021,25 +3985,10 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
              type="button" 
              disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
              onClick={handleSubmit} 
-             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-between px-6"
+             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
           >
-            {isSubmitting ? <span className="mx-auto">處理中...</span> : step < totalSteps ? (
-               <>
-                  <div className="flex flex-col text-left">
-                     <span className="text-[10px] text-blue-200 uppercase tracking-widest leading-none mb-1">預估總計 Total</span>
-                     <span className="leading-none text-xl">NT$ {calculateTotal().toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1">下一步 <ChevronRight className="w-5 h-5" /></div>
-               </>
-            ) : (
-               <>
-                  <div className="flex flex-col text-left">
-                     <span className="text-[10px] text-blue-200 uppercase tracking-widest leading-none mb-1">應繳總計 Total</span>
-                     <span className="leading-none text-xl">NT$ {calculateTotal().toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1"><CheckCircle className="w-5 h-5"/>確認送出</div>
-               </>
-            )}
+            {isSubmitting ? '處理中...' : step < totalSteps ? '下一步，繼續填寫' : '確認無誤，送出報名單'}
+            {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -4058,12 +4007,11 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
     return '';
   });
 
-  const [searchGuests, setSearchGuests] = useState(1); 
+  const [searchGuests, setSearchGuests] = useState(2); 
   const [f, setF] = useState({ name: '', phone: '' });
   const [cart, setCart] = useState([]); 
   const [courseStudents, setCourseStudents] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recommendModalData, setRecommendModalData] = useState(null);
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -4106,7 +4054,6 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const handleAddToCart = (item) => setCart([...cart, item]);
   const handleRemoveFromCart = (id) => setCart(cart.filter(c => c.id !== id));
 
-  // 升級版：智慧最佳配房演算 (最高 CP 值優先)
   const handleAutoRecommend = () => {
     if (!checkIn || !checkOut || nights <= 0) {
       alert("請先選擇入住與退房日期"); return;
@@ -4119,152 +4066,68 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
       alert("請輸入有效的入住人數"); return;
     }
 
-    // 內部函式：計算指定區間內的實際花費
-    const calculateRoomCost = (room, tier, isDorm) => {
-        let total = 0;
-        const startDate = new Date(checkIn);
-        for (let i = 0; i < nights; i++) {
-            const currentDate = new Date(startDate);
-            currentDate.setDate(startDate.getDate() + i);
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth() + 1;
-            const d = currentDate.getDate();
-            const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const dayOfWeek = currentDate.getDay();
+    let newCart = [];
+    const usage = {}; 
+    accommodations.forEach(r => usage[r.id] = 0);
 
-            const pS = parseInt(sysConfig.peakSeasonStart || '05');
-            const pE = parseInt(sysConfig.peakSeasonEnd || '10');
-            const isPeak = pS <= pE ? (m >= pS && m <= pE) : (m >= pS || m <= pE);
-
-            let isHoliday = (sysConfig.specialHolidays || []).includes(dateStr);
-            if (!isHoliday && sysConfig.holidayRanges) {
-              for (const r of sysConfig.holidayRanges) {
-                if (dateStr >= r.start && dateStr <= r.end) { isHoliday = true; break; }
-              }
-            }
-
-            const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
-            const pricingSource = isDorm ? room : tier;
-
-            if (isHoliday) total += (pricingSource.priceHoliday || 0);
-            else if (isPeak) total += (isWeekend ? (pricingSource.pricePeakWeekend || 0) : (pricingSource.pricePeakWeekday || 0));
-            else total += (isWeekend ? (pricingSource.priceLowWeekend || 0) : (pricingSource.priceLowWeekday || 0));
-        }
-        return total;
-    };
-
-    // 1. 扁平化所有可選方案並計算其實際成本
-    const options = [];
+    let opts = [];
     accommodations.forEach(r => {
-        if (r.isDorm) {
-            const cost = calculateRoomCost(r, null, true);
-            options.push({ type: 'dorm', room: r, guests: 1, cost, available: r.quantity * (r.bedCount || 1) });
-        } else {
-            const tiers = migrateRoomTiers(r);
-            tiers.forEach(t => {
-                const cost = calculateRoomCost(r, t, false);
-                options.push({ type: 'private', room: r, tier: t, guests: t.guests, cost, available: r.quantity });
-            });
-        }
+      if (r.isDorm) {
+         opts.push({ type: 'dorm', room: r, guests: 1, capacity: r.quantity * (r.bedCount || 1) });
+      } else {
+         const tiers = migrateRoomTiers(r);
+         tiers.forEach(t => {
+            opts.push({ type: 'private', room: r, guests: t.guests, extraBeds: t.extraBeds, planId: t.id, planName: t.name, selectedTier: t, capacity: r.quantity });
+         });
+      }
     });
 
-    // 依據平均每人成本排序 (優先考慮高 CP 值)
-    options.sort((a, b) => (a.cost / a.guests) - (b.cost / b.guests));
+    opts.sort((a, b) => b.guests - a.guests);
 
-    let results = [];
-    let iterations = 0;
-    const targetGuests = parseInt(searchGuests);
-
-    // 2. 深度優先搜尋 (DFS) 尋找所有組合
-    const dfs = (idx, currentGuests, currentCost, currentCombo, roomUsage) => {
-        iterations++;
-        if (iterations > 5000) return; // 安全機制：防止計算過久
-        
-        if (currentGuests >= targetGuests) {
-            results.push({ combo: [...currentCombo], totalGuests: currentGuests, totalCost: currentCost });
-            return;
-        }
-        if (idx >= options.length) return;
-
-        const opt = options[idx];
-        const maxCanPick = opt.available - (roomUsage[opt.room.id] || 0);
-
-        for (let count = 0; count <= maxCanPick; count++) {
-            if (count > 0) {
-                currentCombo.push({ opt, count });
-                roomUsage[opt.room.id] = (roomUsage[opt.room.id] || 0) + count;
-            }
-
-            dfs(idx + 1, currentGuests + (opt.guests * count), currentCost + (opt.cost * count), currentCombo, roomUsage);
-
-            if (count > 0) {
-                currentCombo.pop();
-                roomUsage[opt.room.id] -= count;
-            }
-        }
-    };
-
-    dfs(0, 0, 0, [], {});
-
-    if (results.length === 0) {
-        alert("目前的空房不足以容納您設定的人數，請分批預訂或減少人數。");
-        return;
-    }
-
-    // 3. 排序結果：總價最低優先，若總價相同則取人數剛好的
-    results.sort((a, b) => {
-        if (a.totalCost !== b.totalCost) return a.totalCost - b.totalCost;
-        return a.totalGuests - b.totalGuests;
-    });
-
-    // 4. 去除重複的房型組合
-    const uniqueResults = [];
-    const seenCombos = new Set();
-    for (const r of results) {
-        const sig = r.combo.map(c => `${c.opt.type}-${c.opt.room.id}-${c.opt.tier ? c.opt.tier.id : 'none'}-${c.count}`).sort().join('|');
-        if (!seenCombos.has(sig)) {
-            seenCombos.add(sig);
-            uniqueResults.push(r);
-        }
-    }
-
-    // 將最優的前 4 種組合顯示給用戶選擇
-    setRecommendModalData(uniqueResults.slice(0, 4));
-  };
-
-  // 套用選定的推薦方案
-  const applyRecommendation = (combo) => {
-      const newCart = [];
-      combo.forEach(c => {
-          const opt = c.opt;
-          if (opt.type === 'dorm') {
-              newCart.push({
-                  id: Date.now() + Math.random(),
-                  room: opt.room,
-                  roomCount: c.count,
-                  isDorm: true,
-                  guests: c.count,
-                  extraBeds: 0,
-                  planId: null,
-                  planName: null,
-                  selectedTier: null
-              });
-          } else {
-              newCart.push({
-                  id: Date.now() + Math.random(),
-                  room: opt.room,
-                  roomCount: c.count,
-                  isDorm: false,
-                  guests: opt.tier.guests * c.count,
-                  extraBeds: opt.tier.extraBeds * c.count,
-                  planId: opt.tier.id,
-                  planName: opt.tier.name,
-                  selectedTier: opt.tier
-              });
+    while (remaining > 0) {
+      let bestOpt = opts.find(o => o.guests === remaining && usage[o.room.id] < o.capacity);
+      if (!bestOpt) bestOpt = opts.find(o => o.guests < remaining && usage[o.room.id] < o.capacity);
+      if (!bestOpt) {
+          let overshoots = opts.filter(o => o.guests > remaining && usage[o.room.id] < o.capacity);
+          if (overshoots.length > 0) {
+              overshoots.sort((a, b) => a.guests - b.guests);
+              bestOpt = overshoots[0];
           }
-      });
-      setCart(newCart);
-      setRecommendModalData(null);
+      }
+
+      if (bestOpt) {
+          if (bestOpt.type === 'dorm') {
+              const bedsToTake = Math.min(remaining, bestOpt.capacity - usage[bestOpt.room.id]);
+              newCart.push({ id: Date.now() + Math.random(), room: bestOpt.room, roomCount: bedsToTake, isDorm: true, guests: bedsToTake, extraBeds: 0, planId: null, planName: null, selectedTier: null });
+              usage[bestOpt.room.id] += bedsToTake;
+              remaining -= bedsToTake;
+          } else {
+              newCart.push({ id: Date.now() + Math.random(), room: bestOpt.room, roomCount: 1, isDorm: false, guests: bestOpt.guests, extraBeds: bestOpt.extraBeds, planId: bestOpt.planId, planName: bestOpt.planName, selectedTier: bestOpt.selectedTier });
+              usage[bestOpt.room.id] += 1;
+              remaining -= bestOpt.guests;
+          }
+      } else {
+          break;
+      }
+    }
+
+    if (remaining > 0) alert("目前的空房不足以完全容納您設定的人數，我們已為您盡可能分配房型，您可於右側自行調整或分開下單。");
+
+    const compressedCart = [];
+    newCart.forEach(item => {
+        let existing = compressedCart.find(c => c.room.id === item.room.id && c.planId === item.planId);
+        if (existing && !existing.isDorm) {
+            existing.roomCount += item.roomCount;
+            existing.guests += item.guests;
+            existing.extraBeds += item.extraBeds;
+        } else if (existing && existing.isDorm) {
+            existing.roomCount += item.roomCount;
+            existing.guests += item.guests;
+        } else {
+            compressedCart.push({...item});
+        }
+    });
+    setCart(compressedCart);
   };
 
   const priceInfo = useMemo(() => {
@@ -4437,11 +4300,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
            <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-rose-700 rounded-full hover:bg-white hover:shadow-md transition-all border border-white shadow-sm"><ChevronLeft className="w-6 h-6"/></button>
            <div>
              <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
-             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex flex-wrap items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>
-                挑選理想房型，系統為您自動試算
-                <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md shadow-sm border border-rose-200/50">指定區間：週末、旺季、連假</span>
-             </div>
+             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>挑選理想房型，系統為您自動試算</div>
            </div>
         </div>
 
@@ -4450,41 +4309,33 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
              <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)] relative overflow-hidden">
                 <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-5 flex items-center gap-3">
                   <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CalendarDays className="w-5 h-5"/></div>
-                  1. 選擇入住日期與人數
+                  1. 入住需求設定
                 </h3>
-                
-                {/* 極簡流線型膠囊搜尋列 (Modern Pill Search Bar) - 解決空間不足與遮擋問題 */}
-                <div className="bg-white rounded-3xl md:rounded-[2.5rem] p-2 md:p-3 shadow-[0_8px_30px_rgba(244,63,94,0.08)] border border-rose-50 flex flex-col lg:flex-row gap-2 lg:gap-3 items-stretch relative z-10 transition-all hover:shadow-[0_12px_40px_rgba(244,63,94,0.12)]">
-                   <div className="flex-1 grid grid-cols-2 lg:flex lg:flex-row items-stretch bg-slate-50/80 hover:bg-slate-50 rounded-2xl md:rounded-[2rem] border border-slate-100/80 transition-colors relative">
-                       
-                       <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-r border-b lg:border-b-0 border-slate-200/60 rounded-tl-2xl lg:rounded-l-[2rem]">
-                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">入住 Check-in</label>
-                           <input type="date" min={todayStr} required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0" />
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                   <div className="flex-1 w-full bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-inner flex flex-col sm:flex-row items-center gap-3 sm:gap-4 relative z-10">
+                       <div className="w-full sm:flex-1">
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">Check-in 入住日</span>
+                           <input type="date" min={todayStr} required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-white p-3 rounded-xl font-black text-rose-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 transition-all shadow-sm" />
                        </div>
-
-                       <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-b lg:border-b-0 lg:border-r border-slate-200/60 rounded-tr-2xl lg:rounded-tr-none flex flex-col justify-center">
-                           {/* 浮動 N晚 標籤 (完美跨越中央分隔線) */}
-                           <div className="absolute top-1/2 -left-[24px] sm:-left-[28px] -translate-y-1/2 z-20 pointer-events-none flex items-center justify-center">
-                               <div className="text-[10px] font-black text-white bg-rose-500 px-3 py-1 rounded-full shadow-md whitespace-nowrap border-[3px] border-white">{nights} 晚</div>
-                           </div>
-                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block sm:text-right group-hover:text-rose-600 transition-colors">退房 Check-out</label>
-                           <input type="date" min={checkIn || todayStr} required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0 sm:text-right" />
+                       <div className="flex flex-row sm:flex-col items-center justify-center shrink-0 px-2 py-1 sm:py-0 sm:pt-4 w-full sm:w-auto relative z-10">
+                           <div className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200 z-10">{nights} 晚</div>
                        </div>
-                       
-                       <div className="col-span-2 lg:w-40 shrink-0 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors rounded-b-2xl lg:rounded-b-none lg:rounded-r-[2rem] flex flex-col justify-center">
-                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">人數 Guests</label>
-                           <div className="flex items-center">
-                              <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none m-0 p-0" placeholder="例如: 1" />
-                           </div>
+                       <div className="w-full sm:flex-1">
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1 sm:text-right">Check-out 退房日</span>
+                           <input type="date" min={checkIn || todayStr} required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-white p-3 rounded-xl font-black text-slate-700 text-sm outline-none cursor-pointer border border-slate-200 focus:border-rose-400 focus:ring-2 transition-all shadow-sm sm:text-right" />
                        </div>
                    </div>
-                   <button onClick={handleAutoRecommend} disabled={hasFullDays || nights <= 0} className="w-full lg:w-auto px-6 py-4 bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 rounded-2xl md:rounded-[2rem] font-black transition-all shadow-md disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 shrink-0 hover:scale-[1.02]">
-                      ✨ 智慧最佳配房
+                   
+                   <div className="w-full md:w-32 shrink-0">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block px-1">總人數</span>
+                       <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} placeholder="例：4" className="w-full p-3 rounded-2xl border border-slate-200 font-black text-slate-700 text-sm outline-none focus:border-rose-400 shadow-sm" />
+                   </div>
+                   <button onClick={handleAutoRecommend} disabled={hasFullDays || nights <= 0} className="w-full md:w-auto h-[46px] px-6 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-2xl font-black transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+                      ✨ 系統自動配房
                    </button>
                 </div>
-
                 {hasFullDays && (
-                  <div className="mt-5 bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in slide-in-from-top-2 relative z-10">
+                  <div className="mt-4 bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in slide-in-from-top-2 relative z-10">
                      <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                      <div>
                        <p className="text-sm font-black text-rose-800">區間包含已滿房日期</p>
@@ -4494,7 +4345,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                 )}
              </div>
 
-             <div className="bg-white/60 backdrop-blur-md p-6 md:p-8 rounded-[2rem] border border-white shadow-sm">
+             <div className="bg-white/60 backdrop-blur-md p-6 rounded-[2rem] border border-white shadow-sm">
                 <div className="flex items-center gap-3 mb-6 border-b border-slate-200/50 pb-4">
                    <div className="bg-rose-100 p-2.5 rounded-xl text-rose-600"><Home className="w-6 h-6"/></div>
                    <div>
@@ -4502,55 +4353,51 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                       <p className="text-xs font-bold text-slate-500 mt-1">下方顯示各房型資訊，價格會隨選擇的「方案」即時變動</p>
                    </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {accommodations.map(room => {
                      const inCartCount = cart.filter(c => c.room.id === room.id).reduce((sum, c) => sum + c.roomCount, 0);
-                     // 傳遞 sysConfig 與 checkIn 屬性，確保卡片能計算動態定價
-                     return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
+                     return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} />;
                   })}
                 </div>
              </div>
           </div>
 
           <div className="xl:col-span-4 xl:sticky xl:top-24 space-y-6 scroll-mt-24">
-             <div className="bg-white/95 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.12)] flex flex-col">
-               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-6 flex items-center gap-3">
+             <div className="bg-white/95 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.15)] flex flex-col">
+               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-5 flex items-center gap-3">
                   <div className="bg-pink-100 p-2 rounded-xl text-pink-600"><ClipboardList className="w-5 h-5"/></div> 
                   3. 預訂明細與結帳
                </h3>
                
-               <div className="mb-8">
-                 <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
-                   <span>已選房型清單</span>
-                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md font-black">{cart.length} 筆</span>
+               <div className="mb-6">
+                 <div className="text-[11px] font-black text-rose-600 uppercase tracking-widest mb-3 flex items-center justify-between">
+                   <span>已選房型 (Booking List)</span>
+                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md shadow-sm font-bold">{cart.length} 筆</span>
                  </div>
                  
                  {cart.length === 0 ? (
-                   <div className="text-center py-12 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-rose-100">
-                     <div className="w-14 h-14 bg-white rounded-full shadow-sm text-rose-200 mx-auto mb-4 flex items-center justify-center">
-                        <ShoppingCart className="w-6 h-6" />
+                   <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-dashed border-rose-200">
+                     <div className="w-10 h-10 text-rose-200 mx-auto mb-3 flex items-center justify-center">
+                        <ShoppingCart className="w-full h-full" />
                      </div>
-                     <div className="text-sm font-black text-slate-400">尚未選擇任何房型</div>
-                     <p className="text-xs font-bold text-slate-400/70 mt-1">請從左側挑選或使用智慧配房</p>
+                     <div className="text-xs font-bold text-rose-700/50">請點擊左側房型加入清單</div>
                    </div>
                  ) : (
-                   <div className="space-y-3 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2">
+                   <div className="space-y-3 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
                      {cart.map((item) => (
-                       <div key={item.id} className="flex items-stretch justify-between bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-rose-300 hover:shadow-md transition-all relative overflow-hidden">
-                          <div className="w-1.5 bg-gradient-to-b from-rose-400 to-pink-500 shrink-0"></div>
-                          <div className="flex-1 min-w-0 p-4 pr-2 flex items-start gap-3">
-                            <div className="bg-rose-50 p-2 rounded-xl text-rose-500 shrink-0 shadow-inner"><Home className="w-4 h-4"/></div>
+                       <div key={item.id} className="flex items-center justify-between bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 shadow-sm group hover:border-rose-400 hover:shadow-md transition-all">
+                          <div className="flex-1 min-w-0 pr-3 flex items-start gap-3">
+                            <div className="bg-white p-2 rounded-lg text-rose-500 shrink-0 mt-0.5 shadow-sm border border-slate-100"><Home className="w-4 h-4"/></div>
                             <div>
-                               <div className="font-black text-slate-800 text-sm leading-tight mb-1 truncate">{item.room.name}</div>
-                               {item.planName && <div className="text-[10px] font-bold text-slate-500 mb-2 truncate">方案: {item.planName}</div>}
-                               <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                 <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 shadow-sm">{item.roomCount} 間</span>
-                                 <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 shadow-sm">{item.guests} 人</span>
-                                 {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100 text-orange-600 shadow-sm">加 {item.extraBeds} 床</span>}
+                               <div className="font-bold text-slate-800 text-sm leading-tight mb-1">{item.room.name} {item.planName ? <span className="text-rose-600 ml-1">({item.planName})</span> : ''}</div>
+                               <div className="flex items-center flex-wrap gap-1.5">
+                                 <span className="text-[10px] font-black bg-white px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">{item.roomCount} 間</span>
+                                 <span className="text-[10px] font-black bg-white px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">{item.guests} 人</span>
+                                 {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-0.5 rounded-md text-orange-600 border border-orange-100">含 {item.extraBeds} 床</span>}
                                </div>
                             </div>
                           </div>
-                          <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="px-4 text-slate-300 hover:text-white hover:bg-red-500 transition-colors shrink-0 flex items-center justify-center">
+                          <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors shrink-0">
                             <Trash2 className="w-4 h-4"/>
                           </button>
                        </div>
@@ -4560,53 +4407,51 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                </div>
 
                {(context && cart.length > 0) && (
-                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-5 rounded-2xl space-y-4 shadow-sm mb-8 animate-in slide-in-from-top-2">
+                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-3 shadow-sm mb-6 animate-in slide-in-from-top-2">
                      <div className="flex items-center gap-2">
                        <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
                        <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : context.type === 'dsd_discount' ? '體驗潛水專屬優惠' : '活動專屬優惠'}</p>
                      </div>
                      {context.type === 'course_upgrade' ? (
-                       <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
-                         <span className="text-xs font-bold text-amber-800 pl-1">套用折抵學員數</span>
-                         <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-2 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
+                       <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                         <span className="text-xs font-bold text-amber-800 pl-2">套用折抵學員數</span>
+                         <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-1.5 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
                            {Array.from({ length: maxStudents || 1 }, (_, i) => i + 1).map(num => (
                              <option key={num} value={num}>{num} 位</option>
                            ))}
                          </select>
                        </div>
                      ) : context.type === 'dsd_discount' ? (
-                       <p className="text-xs font-bold text-amber-800 bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
+                       <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
                           享體驗潛水專屬優惠：背包房床位每晚以 NT$ 500 計算
                        </p>
                      ) : (
-                       <p className="text-xs font-bold text-amber-800 bg-white p-3 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
+                       <p className="text-[10px] font-bold text-amber-800 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
                      )}
                   </div>
                )}
 
-               <div className="space-y-4 mb-8">
-                 <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">聯絡資料</h4>
-                 <div className="space-y-4">
-                   <input type="text" required value={f.name} onChange={v=>setF({...f, name: v.target.value})} placeholder="真實姓名 *" className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:font-medium" />
-                   <input type="tel" required value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v.target.value)})} placeholder="聯絡手機 (09xx-xxx-xxx) *" className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:font-medium" />
-                 </div>
+               <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100 mb-6">
+                 <h4 className="font-black text-xs text-slate-500 uppercase tracking-widest mb-1">聯絡資料填寫</h4>
+                 <FormInput label="真實姓名 *" required value={f.name} onChange={v=>setF({...f, name: v})} placeholder="請填寫姓名" />
+                 <FormInput label="聯絡手機 *" required type="tel" value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
                </div>
 
-               <div className="mt-auto border-t-2 border-slate-100 pt-6">
-                  <div className="flex justify-between items-end mb-5">
+               <div className="mt-auto">
+                  <div className="flex justify-between items-end mb-4">
                     <div>
-                       <span className="text-sm font-bold text-slate-500 block mb-1">總金額 Total</span>
-                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice.toLocaleString()}</span>}
+                       <span className="text-sm font-bold text-slate-500 block mb-1">總金額 (Total)</span>
+                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-rose-700 bg-rose-100 px-2 py-1 rounded-md shadow-sm">平均每人 NT$ {perPersonPrice}</span>}
                     </div>
                     <div className="text-right">
-                      {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal.toLocaleString()}</div>}
-                      <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total.toLocaleString()}</span>
+                      {priceInfo.discountTotal > 0 && <div className="text-[10px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
+                      <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-rose-700 to-pink-500">NT$ {priceInfo.total}</span>
                     </div>
                   </div>
                   <button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone} 
-                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:bg-rose-600 hover:shadow-[0_15px_40px_rgba(244,63,94,0.3)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-slate-900"
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-[0_10px_20px_rgba(0,0,0,0.15)] hover:bg-rose-600 hover:shadow-rose-500/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-slate-900"
                   >
                      {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '購物車為空' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-5 h-5"/>確認送出訂單</>}
                   </button>
@@ -4615,268 +4460,110 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
           </div>
         </div>
       </div>
-
-      {/* 智慧配房推薦視窗 */}
-      {recommendModalData && (
-        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-md animate-in fade-in">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-white max-h-[90vh] flex flex-col">
-            
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div> AI 智能演算
-                </div>
-                <h2 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
-                  智慧配房建議
-                </h2>
-                <p className="text-xs md:text-sm font-bold text-slate-500 mt-2">系統已為您 {searchGuests} 人的旅程，精算出最划算的入住組合！</p>
-              </div>
-              <button onClick={() => setRecommendModalData(null)} className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-500 shrink-0"><X className="w-5 h-5" /></button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-2 pb-4">
-              {recommendModalData.map((res, idx) => {
-                const isBest = idx === 0;
-                const perPersonPrice = Math.round(res.totalCost / parseInt(searchGuests));
-
-                return (
-                  <div key={idx} className={`p-6 rounded-[2rem] border-2 transition-all duration-300 relative group ${isBest ? 'bg-gradient-to-br from-rose-50/80 to-pink-50/30 border-rose-300 shadow-[0_15px_40px_rgba(244,63,94,0.15)] scale-[1.01]' : 'bg-white border-slate-100 hover:border-rose-200 hover:shadow-lg'}`}>
-                    
-                    {isBest && (
-                      <div className="absolute -top-3.5 -right-2 md:right-4 bg-gradient-to-r from-rose-600 to-pink-500 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-rose-500/30 animate-bounce flex items-center gap-1.5">
-                        <span className="text-base leading-none">🏆</span> 最高 CP 值首選
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-col gap-5">
-                      {/* 價格與人數總覽區 */}
-                      <div className="flex flex-wrap items-end justify-between gap-4">
-                        <div className="flex items-end gap-3">
-                          <span className={`text-4xl font-black tracking-tight ${isBest ? 'text-rose-600' : 'text-slate-800'}`}>NT$ {res.totalCost.toLocaleString()}</span>
-                          <span className="text-sm font-bold text-slate-400 mb-1">總花費</span>
-                        </div>
-                        <div className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1 shadow-sm ${isBest ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
-                           約 NT$ {perPersonPrice.toLocaleString()} / 人
-                        </div>
-                      </div>
-                      
-                      {/* 房型組合明細區 */}
-                      <div className={`space-y-2.5 p-4 rounded-2xl border ${isBest ? 'bg-white/80 border-rose-100 shadow-sm' : 'bg-slate-50/80 border-slate-100'}`}>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">搭配房型組合</div>
-                        {res.combo.map((c, i) => (
-                           <div key={i} className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isBest ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-400 shadow-sm border border-slate-100'}`}>
-                                <Home className="w-5 h-5"/>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-black text-slate-700 truncate">{c.opt.room.name}</p>
-                                <p className="text-[10px] font-bold text-slate-500 truncate">{c.opt.tier ? c.opt.tier.name : '單一床位計價'}</p>
-                              </div>
-                              <div className={`text-base font-black shrink-0 px-3 py-1 rounded-lg ${isBest ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
-                                × {c.count} <span className="text-xs">{c.opt.type === 'dorm' ? '床' : '間'}</span>
-                              </div>
-                           </div>
-                        ))}
-                      </div>
-
-                      {/* 底部按鈕與容納狀態 */}
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
-                        <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                          容納上限: 
-                          <span className={`px-2 py-0.5 rounded flex items-center gap-1 ${res.totalGuests > parseInt(searchGuests) ? 'bg-amber-50 text-amber-700 font-black' : 'bg-teal-50 text-teal-700 font-black'}`}>
-                            {res.totalGuests} 人
-                            {res.totalGuests > parseInt(searchGuests) && <span className="opacity-70">(多 {res.totalGuests - parseInt(searchGuests)} 位)</span>}
-                          </span>
-                        </div>
-                        <button 
-                          onClick={() => applyRecommendation(res.combo)} 
-                          className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black transition-all duration-300 shadow-sm flex items-center justify-center gap-2 ${isBest ? 'bg-rose-600 hover:bg-rose-700 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:-translate-y-1' : 'bg-slate-900 hover:bg-rose-600 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.2)] hover:-translate-y-1'}`}
-                        >
-                          <CheckCircle className="w-4 h-4"/> 立即套用此組合
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0, checkIn, sysConfig }) {
+function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
   const isDorm = room.isDorm === true;
-  const tiers = useMemo(() => migrateRoomTiers(room), [room]);
-  const [selectedTierId, setSelectedTierId] = useState(tiers.length > 0 ? tiers[0].id : null);
-  const [rc, setRc] = useState(1); // 預訂房數/床數
+  const [rc, setRc] = useState(1);
+  const [g, setG] = useState(1);
+  const [eb, setEb] = useState(0);
 
+  // 👉 動態計算剩餘數量 (如果是背包房，數量 = 房間數 x 每間床位數；否則 = 房間數)
   const maxUnits = isDorm ? (room.quantity * (room.bedCount || 1)) : room.quantity;
   const availableUnits = Math.max(0, maxUnits - inCartCount);
-  const isOutOfStock = availableUnits <= 0;
 
-  const selectedTier = useMemo(() => tiers.find(t => t.id === selectedTierId) || tiers[0], [tiers, selectedTierId]);
+  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : (room.priceExtraBed > 0 ? 1 : 0);
+  const maxEbAllowed = isDorm ? 0 : (parseInt(rc) || 0) * maxEbPerRoom;
 
   useEffect(() => {
-    if (rc > availableUnits && availableUnits > 0) setRc(availableUnits);
-    else if (availableUnits <= 0) setRc(0);
-    else if (rc <= 0 && availableUnits > 0) setRc(1);
-  }, [availableUnits, rc]);
+    if (eb > maxEbAllowed) setEb(maxEbAllowed);
+  }, [rc, maxEbAllowed, eb]);
 
-  // 動態計算指定日期區間的平均每晚價格
-  const dynamicPrice = useMemo(() => {
-      const pricingSource = isDorm ? room : (selectedTier || room);
-      if (!checkIn || nights <= 0 || !sysConfig) return pricingSource.priceLowWeekday || 0;
+  // 背包房自動同步入住人數與床位數，並禁用加床
+  useEffect(() => {
+    if (isDorm) {
+       setG(rc);
+       setEb(0);
+    }
+  }, [rc, isDorm]);
 
-      let total = 0;
-      const startDate = new Date(checkIn);
-      for (let i = 0; i < nights; i++) {
-          const currentDate = new Date(startDate);
-          currentDate.setDate(startDate.getDate() + i);
-          const y = currentDate.getFullYear();
-          const m = currentDate.getMonth() + 1;
-          const d = currentDate.getDate();
-          const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          const dayOfWeek = currentDate.getDay();
-
-          const pS = parseInt(sysConfig?.peakSeasonStart || '05');
-          const pE = parseInt(sysConfig?.peakSeasonEnd || '10');
-          const isPeak = pS <= pE ? (m >= pS && m <= pE) : (m >= pS || m <= pE);
-
-          let isHoliday = (sysConfig?.specialHolidays || []).includes(dateStr);
-          if (!isHoliday && sysConfig?.holidayRanges) {
-              for (const r of sysConfig.holidayRanges) {
-                  if (dateStr >= r.start && dateStr <= r.end) { isHoliday = true; break; }
-              }
-          }
-
-          const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
-
-          if (isHoliday) total += (pricingSource.priceHoliday || 0);
-          else if (isPeak) total += (isWeekend ? (pricingSource.pricePeakWeekend || 0) : (pricingSource.pricePeakWeekday || 0));
-          else total += (isWeekend ? (pricingSource.priceLowWeekend || 0) : (pricingSource.priceLowWeekday || 0));
-      }
-      return Math.round(total / nights);
-  }, [checkIn, nights, isDorm, room, selectedTier, sysConfig]);
-
-  const hasDates = checkIn && nights > 0;
-  const priceLabel = hasDates ? '指定區間均價' : '淡季平日起';
-  const priceSubLabel = hasDates ? 'Avg / Night' : 'Starting from';
-
-  // 優化：極簡高質感步進器 (Stepper)
-  const Stepper = ({ value, min, max, onChange, label, disabled }) => (
-    <div className={`flex items-center justify-between bg-white border ${disabled ? 'border-slate-100 opacity-50' : 'border-slate-200 hover:border-rose-200'} rounded-2xl p-2 pl-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-colors`}>
-       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-       <div className="flex items-center gap-1.5 bg-slate-50/80 rounded-xl p-1 border border-slate-100">
-           <button type="button" disabled={disabled || value <= min} onClick={() => onChange(Math.max(min, value - 1))} className="w-8 h-8 rounded-lg bg-white text-slate-400 border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-black transition-all shadow-sm disabled:opacity-30 disabled:shadow-none">-</button>
-           <span className="w-6 text-center font-black text-slate-800 text-sm">{value}</span>
-           <button type="button" disabled={disabled || value >= max} onClick={() => onChange(Math.min(max, value + 1))} className="w-8 h-8 rounded-lg bg-white text-slate-400 border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-black transition-all shadow-sm disabled:opacity-30 disabled:shadow-none">+</button>
-       </div>
-    </div>
-  );
+  const maxCap = isDorm ? parseInt(rc) : (parseInt(rc) || 0) * (room.bedCount || 1) + (parseInt(eb) || 0);
+  const isOverCap = (parseInt(g) || 0) > maxCap;
+  const isOverUnits = (parseInt(rc) || 0) > availableUnits;
 
   return (
-      <div className={`bg-white p-2.5 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-all duration-400 flex flex-col h-full relative group overflow-hidden ${isOutOfStock ? 'border-slate-200/50 grayscale-[0.4] opacity-90' : 'border-slate-200/80 hover:border-rose-300 hover:shadow-[0_20px_50px_rgba(244,63,94,0.12)]'}`}>
+      <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-[1.5rem] shadow-sm border border-slate-200 hover:border-rose-300 hover:shadow-[0_10px_30px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col h-full relative group overflow-hidden">
           
-          {/* SOLD OUT 滿房遮罩 */}
-          {isOutOfStock && (
-              <div className="absolute inset-0 z-30 flex items-center justify-center backdrop-blur-[2px] rounded-[2.5rem] bg-white/30">
-                  <div className="bg-slate-900/90 backdrop-blur-md text-white font-black px-8 py-3 rounded-2xl transform -rotate-12 text-xl shadow-2xl tracking-[0.2em] border border-slate-700/50 shadow-slate-900/20">SOLD OUT</div>
-              </div>
-          )}
-
-          {/* 內層容器 */}
-          <div className="bg-slate-50/40 rounded-[2rem] p-5 h-full flex flex-col relative overflow-hidden border border-slate-100/50">
-              <div className="absolute -bottom-8 -right-8 w-48 h-48 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.06] transition-all duration-700 pointer-events-none transform -rotate-12">
-                  <StaghornCoralWatermark className="w-full h-full text-rose-600" />
-              </div>
-
-              {/* 標題與標籤區 */}
-              <div className="flex justify-between items-start mb-5 relative z-10 gap-4">
-                  <div className="flex gap-3 items-start flex-1 min-w-0">
-                     <div className="w-11 h-11 bg-white border border-rose-100/80 rounded-2xl flex items-center justify-center text-rose-500 shadow-sm shrink-0 mt-0.5"><Home className="w-5 h-5"/></div>
-                     <div className="flex-1 min-w-0">
-                         <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors leading-tight truncate">
-                            {room.name}
-                         </h3>
-                         <div className="flex flex-wrap gap-1.5 mt-2.5">
-                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shadow-sm flex items-center gap-1 ${availableUnits <= 2 && availableUnits > 0 ? 'bg-orange-50 text-orange-600 border-orange-200/60' : 'bg-white text-slate-600 border-slate-200/60'}`}>
-                               {availableUnits <= 2 && availableUnits > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>}
-                               {isDorm ? `剩 ${availableUnits} 床` : `剩 ${availableUnits} 間`}
-                             </span>
-                             <span className="text-[10px] font-black text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200/60 shadow-sm">
-                               {isDorm ? '1 人 / 床' : (selectedTier ? `${selectedTier.guests} 人` : `容納 ${room.bedCount} 人`)}
-                             </span>
-                             {!isDorm && selectedTier?.extraBeds > 0 && (
-                                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/60 shadow-sm flex items-center gap-1">
-                                   <Plus className="w-3 h-3" /> 含 {selectedTier.extraBeds} 加床
-                                </span>
-                             )}
-                         </div>
-                     </div>
-                  </div>
-              </div>
-
-              {/* 價格標籤 (獨立橫幅) */}
-              <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-rose-100/50 shadow-sm mb-5 relative z-10 group-hover:border-rose-200 transition-colors">
-                  <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{priceLabel}<br/><span className="text-[8px] text-slate-400">{priceSubLabel}</span></span>
-                  <div className="flex items-baseline justify-end gap-0.5">
-                      <span className="text-xs font-bold text-rose-500">NT$</span>
-                      <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(dynamicPrice).toLocaleString()}</span>
-                      <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
-                  </div>
-              </div>
-
-              {/* 方案選擇選單 */}
-              {!isDorm && tiers.length > 0 && (
-                  <div className="mb-5 relative z-10">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1 flex items-center gap-1.5">
-                        <User className="w-3 h-3 text-slate-400" /> 選擇入住方案
-                      </label>
-                      <div className="relative group/select">
-                          <select 
-                              value={selectedTierId || ''} 
-                              onChange={e => setSelectedTierId(e.target.value)}
-                              disabled={isOutOfStock}
-                              className="w-full p-3.5 pl-4 pr-10 border border-slate-200 group-hover/select:border-rose-300 rounded-xl text-sm font-black outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 bg-white text-slate-800 appearance-none cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed"
-                          >
-                              {tiers.map(t => (
-                                  <option key={t.id} value={t.id}>{t.name} (共 {t.guests} 人入住)</option>
-                              ))}
-                          </select>
-                          <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover/select:text-rose-400 pointer-events-none transition-colors" />
-                      </div>
-                  </div>
-              )}
-
-              {/* 數量選擇與按鈕 */}
-              <div className="mt-auto relative z-10 pt-2">
-                  <Stepper value={rc} min={1} max={availableUnits} onChange={setRc} label={isDorm ? '預訂床位數' : '預訂間數'} disabled={isOutOfStock} />
-              </div>
-              
-              <button 
-                  onClick={() => {
-                      onAdd({ 
-                          id: Date.now() + Math.random(), 
-                          room, 
-                          roomCount: parseInt(rc)||1, 
-                          guests: isDorm ? (parseInt(rc)||1) : (selectedTier ? selectedTier.guests * (parseInt(rc)||1) : 1), 
-                          extraBeds: isDorm ? 0 : (selectedTier ? selectedTier.extraBeds * (parseInt(rc)||1) : 0), 
-                          isDorm,
-                          planId: isDorm ? null : selectedTier?.id,
-                          planName: isDorm ? null : selectedTier?.name,
-                          selectedTier: isDorm ? null : selectedTier
-                      });
-                      setRc(1);
-                  }} 
-                  disabled={hasFullDays || isOutOfStock || availableUnits <= 0 || nights <= 0}
-                  className="w-full mt-4 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-rose-600 hover:shadow-[0_10px_25px_rgba(244,63,94,0.3)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
-              >
-                  <ShoppingCart className="w-5 h-5"/> {isOutOfStock ? '已客滿 Sold Out' : nights <= 0 ? '請先選擇上方日期' : '加入預訂清單'}
-              </button>
+          {/* 珊瑚主題房型專屬背景浮水印 */}
+          <div className="absolute -bottom-6 -right-6 w-36 h-36 opacity-[0.05] group-hover:scale-110 group-hover:opacity-[0.12] transition-all duration-500 pointer-events-none transform -rotate-6">
+              <StaghornCoralWatermark className="w-full h-full text-rose-600" />
           </div>
+
+          <div className="flex justify-between items-start mb-2 relative z-10">
+              <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors pr-2">
+                 {room.name}
+                 {isDorm && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded ml-2 align-middle border border-slate-200">背包床位</span>}
+              </h3>
+              <div className="text-right shrink-0">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">淡季平日起</span>
+                  <span className="text-rose-600 font-black text-lg">NT$ {room.priceLowWeekday} {isDorm ? <span className="text-xs text-rose-400">/床</span> : ''}</span>
+              </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-4 mt-1 relative z-10">
+              <span className="text-[11px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-slate-200">
+                <CoralIcon className="w-3.5 h-3.5" /> {isDorm ? `共 ${maxUnits} 個床位` : `實體 ${room.quantity} 間`}
+              </span>
+              <span className="text-[11px] font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-rose-100">
+                <User className="w-3.5 h-3.5" /> {isDorm ? '1 人 / 床' : `容納 ${room.bedCount} 人/間`}
+              </span>
+              {!isDorm && room.priceExtraBed > 0 && maxEbPerRoom > 0 && (
+                 <span className="text-[11px] font-bold text-orange-600 flex items-center gap-1.5 bg-orange-50 w-fit px-2 py-1 rounded-md border border-orange-100">
+                    <Plus className="w-3 h-3" /> 最多加 {maxEbPerRoom} 床 (+${room.priceExtraBed})
+                 </span>
+              )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 mt-auto bg-slate-50/80 p-3 rounded-xl border border-slate-100 shadow-inner relative z-10">
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">{isDorm ? '預訂床位數' : '預訂房間數'}</label>
+                  <input type="number" min="1" max={availableUnits} value={rc} onChange={e => {
+                      let val = parseInt(e.target.value);
+                      if (isNaN(val)) val = '';
+                      setRc(val);
+                  }} className={`w-full p-2 text-center rounded-lg border font-bold text-sm outline-none transition-all ${isOverUnits ? 'border-red-500 bg-red-50 text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'}`} />
+              </div>
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">入住人數</label>
+                  <input type="number" min="1" value={g} onChange={e => setG(e.target.value)} disabled={isDorm} className={`w-full p-2 text-center rounded-lg border text-sm font-bold outline-none transition-all ${isOverCap ? 'border-red-500 bg-red-50 text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'} ${isDorm ? 'bg-slate-100 text-slate-400' : ''}`} />
+              </div>
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">加床數</label>
+                  <input type="number" min="0" max={maxEbAllowed} value={eb} onChange={e => {
+                     let val = parseInt(e.target.value);
+                     if (isNaN(val)) val = 0;
+                     if (val > maxEbAllowed) val = maxEbAllowed;
+                     if (val < 0) val = 0;
+                     setEb(val);
+                  }} disabled={isDorm || !(room.priceExtraBed > 0) || maxEbPerRoom <= 0} className="w-full p-2 text-center rounded-lg border border-slate-300 font-bold text-sm outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 disabled:bg-slate-100 disabled:text-slate-400 transition-all" />
+              </div>
+          </div>
+          
+          {isOverUnits && <p className="text-[10px] font-bold text-red-500 mt-2 text-center animate-pulse relative z-10"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>數量超過剩餘可選數 ({availableUnits})</p>}
+          {!isOverUnits && isOverCap && !isDorm && <p className="text-[10px] font-bold text-red-500 mt-2 text-center animate-pulse relative z-10"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5"/>人數超過容量上限 (最大 {maxCap} 人)</p>}
+
+          <button 
+              onClick={() => {
+                  onAdd({ id: Date.now() + Math.random(), room, roomCount: parseInt(rc)||1, guests: parseInt(g)||1, extraBeds: parseInt(eb)||0, isDorm });
+                  setRc(1); setG(1); setEb(0);
+              }} 
+              disabled={hasFullDays || isOverUnits || isOverCap || availableUnits <= 0 || nights <= 0}
+              className="w-full mt-4 py-3 bg-gradient-to-r from-rose-600 to-rose-500 text-white rounded-xl font-bold shadow-sm hover:from-rose-500 hover:to-rose-400 hover:shadow-rose-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
+          >
+              <Plus className="w-4 h-4"/> {availableUnits <= 0 ? '已達預訂上限' : nights <= 0 ? '請先於左側選擇日期' : '加入預訂清單'}
+          </button>
       </div>
   );
 }
@@ -5476,7 +5163,6 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
 function App() {
   const [user, setUser] = useState(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false); // 新增狀態：記錄是否已經驗證過管理員身分
   const [currentView, setCurrentView] = useState('home'); 
   const [adminSection, setAdminSection] = useState('book-activities'); 
   const [adminSubTab, setAdminSubTab] = useState('list'); 
@@ -5520,12 +5206,8 @@ function App() {
         // 權限判定：檢查 /artifacts/{appId}/public/data/admins/ 是否有對應 UID
         if (u && !u.isAnonymous) {
           const adminDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', u.uid));
-          setIsVerifiedAdmin(adminDoc.exists());
-          // 註解掉直接切換 isAdminMode 的行為，確保畫面一律先顯示前台
-        } else { 
-          setIsVerifiedAdmin(false);
-          setIsAdminMode(false); 
-        }
+          setIsAdminMode(adminDoc.exists());
+        } else { setIsAdminMode(false); }
     });
     return () => unsubscribe();
   }, []);
@@ -5589,7 +5271,7 @@ function App() {
   const handleLogout = async () => {
     await signOut(auth);
     await signInAnonymously(auth);
-    setIsAdminMode(false); setIsVerifiedAdmin(false); setCurrentView('home'); window.scrollTo(0,0);
+    setIsAdminMode(false); setCurrentView('home'); window.scrollTo(0,0);
   };
 
   useEffect(() => {
@@ -5657,22 +5339,12 @@ function App() {
   };
 
   const handleAdminToggle = () => { 
-    if (!isAdminMode) {
-      // 已經登入過管理員則免密碼直接切換
-      if (isVerifiedAdmin) {
-        setIsAdminMode(true);
-        setLastActivity(Date.now());
-      } else {
-        setShowLoginModal(true);
-      }
-    } else {
-      handleLogout();
-    }
+    if (!isAdminMode) setShowLoginModal(true);
+    else handleLogout();
   };
 
   const verifyAdmin = (success) => {
     if (success) {
-      setIsVerifiedAdmin(true);
       setIsAdminMode(true);
       setLastActivity(Date.now());
       setShowLoginModal(false);
