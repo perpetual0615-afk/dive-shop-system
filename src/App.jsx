@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -4438,7 +4439,11 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
            <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-rose-700 rounded-full hover:bg-white hover:shadow-md transition-all border border-white shadow-sm"><ChevronLeft className="w-6 h-6"/></button>
            <div>
              <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
-             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>挑選理想房型，系統為您自動試算</div>
+             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex flex-wrap items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>
+                挑選理想房型，系統為您自動試算
+                <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md shadow-sm border border-rose-200/50">指定區間：週末、旺季、連假</span>
+             </div>
            </div>
         </div>
 
