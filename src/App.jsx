@@ -4052,6 +4052,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const [cart, setCart] = useState([]); 
   const [courseStudents, setCourseStudents] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recommendModalData, setRecommendModalData] = useState(null); // 新增：用於儲存並顯示智慧配房的推薦選項
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -4094,6 +4095,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const handleAddToCart = (item) => setCart([...cart, item]);
   const handleRemoveFromCart = (id) => setCart(cart.filter(c => c.id !== id));
 
+  // 升級版：智慧最佳配房演算 (最高 CP 值優先)
   const handleAutoRecommend = () => {
     if (!checkIn || !checkOut || nights <= 0) {
       alert("請先選擇入住與退房日期"); return;
@@ -4106,68 +4108,152 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
       alert("請輸入有效的入住人數"); return;
     }
 
-    let newCart = [];
-    const usage = {}; 
-    accommodations.forEach(r => usage[r.id] = 0);
+    // 內部函式：計算指定區間內的實際花費
+    const calculateRoomCost = (room, tier, isDorm) => {
+        let total = 0;
+        const startDate = new Date(checkIn);
+        for (let i = 0; i < nights; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth() + 1;
+            const d = currentDate.getDate();
+            const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const dayOfWeek = currentDate.getDay();
 
-    let opts = [];
+            const pS = parseInt(sysConfig.peakSeasonStart || '05');
+            const pE = parseInt(sysConfig.peakSeasonEnd || '10');
+            const isPeak = pS <= pE ? (m >= pS && m <= pE) : (m >= pS || m <= pE);
+
+            let isHoliday = (sysConfig.specialHolidays || []).includes(dateStr);
+            if (!isHoliday && sysConfig.holidayRanges) {
+              for (const r of sysConfig.holidayRanges) {
+                if (dateStr >= r.start && dateStr <= r.end) { isHoliday = true; break; }
+              }
+            }
+
+            const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+            const pricingSource = isDorm ? room : tier;
+
+            if (isHoliday) total += (pricingSource.priceHoliday || 0);
+            else if (isPeak) total += (isWeekend ? (pricingSource.pricePeakWeekend || 0) : (pricingSource.pricePeakWeekday || 0));
+            else total += (isWeekend ? (pricingSource.priceLowWeekend || 0) : (pricingSource.priceLowWeekday || 0));
+        }
+        return total;
+    };
+
+    // 1. 扁平化所有可選方案並計算其實際成本
+    const options = [];
     accommodations.forEach(r => {
-      if (r.isDorm) {
-         opts.push({ type: 'dorm', room: r, guests: 1, capacity: r.quantity * (r.bedCount || 1) });
-      } else {
-         const tiers = migrateRoomTiers(r);
-         tiers.forEach(t => {
-            opts.push({ type: 'private', room: r, guests: t.guests, extraBeds: t.extraBeds, planId: t.id, planName: t.name, selectedTier: t, capacity: r.quantity });
-         });
-      }
-    });
-
-    opts.sort((a, b) => b.guests - a.guests);
-
-    while (remaining > 0) {
-      let bestOpt = opts.find(o => o.guests === remaining && usage[o.room.id] < o.capacity);
-      if (!bestOpt) bestOpt = opts.find(o => o.guests < remaining && usage[o.room.id] < o.capacity);
-      if (!bestOpt) {
-          let overshoots = opts.filter(o => o.guests > remaining && usage[o.room.id] < o.capacity);
-          if (overshoots.length > 0) {
-              overshoots.sort((a, b) => a.guests - b.guests);
-              bestOpt = overshoots[0];
-          }
-      }
-
-      if (bestOpt) {
-          if (bestOpt.type === 'dorm') {
-              const bedsToTake = Math.min(remaining, bestOpt.capacity - usage[bestOpt.room.id]);
-              newCart.push({ id: Date.now() + Math.random(), room: bestOpt.room, roomCount: bedsToTake, isDorm: true, guests: bedsToTake, extraBeds: 0, planId: null, planName: null, selectedTier: null });
-              usage[bestOpt.room.id] += bedsToTake;
-              remaining -= bedsToTake;
-          } else {
-              newCart.push({ id: Date.now() + Math.random(), room: bestOpt.room, roomCount: 1, isDorm: false, guests: bestOpt.guests, extraBeds: bestOpt.extraBeds, planId: bestOpt.planId, planName: bestOpt.planName, selectedTier: bestOpt.selectedTier });
-              usage[bestOpt.room.id] += 1;
-              remaining -= bestOpt.guests;
-          }
-      } else {
-          break;
-      }
-    }
-
-    if (remaining > 0) alert("目前的空房不足以完全容納您設定的人數，我們已為您盡可能分配房型，您可於右側自行調整或分開下單。");
-
-    const compressedCart = [];
-    newCart.forEach(item => {
-        let existing = compressedCart.find(c => c.room.id === item.room.id && c.planId === item.planId);
-        if (existing && !existing.isDorm) {
-            existing.roomCount += item.roomCount;
-            existing.guests += item.guests;
-            existing.extraBeds += item.extraBeds;
-        } else if (existing && existing.isDorm) {
-            existing.roomCount += item.roomCount;
-            existing.guests += item.guests;
+        if (r.isDorm) {
+            const cost = calculateRoomCost(r, null, true);
+            options.push({ type: 'dorm', room: r, guests: 1, cost, available: r.quantity * (r.bedCount || 1) });
         } else {
-            compressedCart.push({...item});
+            const tiers = migrateRoomTiers(r);
+            tiers.forEach(t => {
+                const cost = calculateRoomCost(r, t, false);
+                options.push({ type: 'private', room: r, tier: t, guests: t.guests, cost, available: r.quantity });
+            });
         }
     });
-    setCart(compressedCart);
+
+    // 依據平均每人成本排序 (優先考慮高 CP 值)
+    options.sort((a, b) => (a.cost / a.guests) - (b.cost / b.guests));
+
+    let results = [];
+    let iterations = 0;
+    const targetGuests = parseInt(searchGuests);
+
+    // 2. 深度優先搜尋 (DFS) 尋找所有組合
+    const dfs = (idx, currentGuests, currentCost, currentCombo, roomUsage) => {
+        iterations++;
+        if (iterations > 5000) return; // 安全機制：防止計算過久
+        
+        if (currentGuests >= targetGuests) {
+            results.push({ combo: [...currentCombo], totalGuests: currentGuests, totalCost: currentCost });
+            return;
+        }
+        if (idx >= options.length) return;
+
+        const opt = options[idx];
+        const maxCanPick = opt.available - (roomUsage[opt.room.id] || 0);
+
+        for (let count = 0; count <= maxCanPick; count++) {
+            if (count > 0) {
+                currentCombo.push({ opt, count });
+                roomUsage[opt.room.id] = (roomUsage[opt.room.id] || 0) + count;
+            }
+
+            dfs(idx + 1, currentGuests + (opt.guests * count), currentCost + (opt.cost * count), currentCombo, roomUsage);
+
+            if (count > 0) {
+                currentCombo.pop();
+                roomUsage[opt.room.id] -= count;
+            }
+        }
+    };
+
+    dfs(0, 0, 0, [], {});
+
+    if (results.length === 0) {
+        alert("目前的空房不足以容納您設定的人數，請分批預訂或減少人數。");
+        return;
+    }
+
+    // 3. 排序結果：總價最低優先，若總價相同則取人數剛好的
+    results.sort((a, b) => {
+        if (a.totalCost !== b.totalCost) return a.totalCost - b.totalCost;
+        return a.totalGuests - b.totalGuests;
+    });
+
+    // 4. 去除重複的房型組合
+    const uniqueResults = [];
+    const seenCombos = new Set();
+    for (const r of results) {
+        const sig = r.combo.map(c => `${c.opt.type}-${c.opt.room.id}-${c.opt.tier ? c.opt.tier.id : 'none'}-${c.count}`).sort().join('|');
+        if (!seenCombos.has(sig)) {
+            seenCombos.add(sig);
+            uniqueResults.push(r);
+        }
+    }
+
+    // 將最優的前 4 種組合顯示給用戶選擇
+    setRecommendModalData(uniqueResults.slice(0, 4));
+  };
+
+  // 套用選定的推薦方案
+  const applyRecommendation = (combo) => {
+      const newCart = [];
+      combo.forEach(c => {
+          const opt = c.opt;
+          if (opt.type === 'dorm') {
+              newCart.push({
+                  id: Date.now() + Math.random(),
+                  room: opt.room,
+                  roomCount: c.count,
+                  isDorm: true,
+                  guests: c.count,
+                  extraBeds: 0,
+                  planId: null,
+                  planName: null,
+                  selectedTier: null
+              });
+          } else {
+              newCart.push({
+                  id: Date.now() + Math.random(),
+                  room: opt.room,
+                  roomCount: c.count,
+                  isDorm: false,
+                  guests: opt.tier.guests * c.count,
+                  extraBeds: opt.tier.extraBeds * c.count,
+                  planId: opt.tier.id,
+                  planName: opt.tier.name,
+                  selectedTier: opt.tier
+              });
+          }
+      });
+      setCart(newCart);
+      setRecommendModalData(null);
   };
 
   const priceInfo = useMemo(() => {
@@ -4512,6 +4598,69 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
           </div>
         </div>
       </div>
+
+      {/* 智慧配房推薦視窗 */}
+      {recommendModalData && (
+        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-white max-h-[90vh] flex flex-col">
+            
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                  <span className="text-2xl">✨</span> 智慧配房建議
+                </h2>
+                <p className="text-xs font-bold text-slate-500 mt-1">系統已為您算出最划算的入住組合方案！</p>
+              </div>
+              <button onClick={() => setRecommendModalData(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-500"><X className="w-5 h-5" /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
+              {recommendModalData.map((res, idx) => (
+                <div key={idx} className={`p-5 rounded-2xl border-2 transition-all relative ${idx === 0 ? 'bg-rose-50/50 border-rose-400 shadow-[0_5px_20px_rgba(244,63,94,0.15)]' : 'bg-white border-slate-200 hover:border-rose-300'}`}>
+                  {idx === 0 && (
+                    <div className="absolute -top-3 -right-2 bg-gradient-to-r from-rose-600 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-md shadow-rose-500/30 animate-bounce">
+                      🏆 最高 CP 值
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="font-black text-2xl text-slate-800 tracking-tight">NT$ {res.totalCost.toLocaleString()}</span>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">總花費</span>
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        {res.combo.map((c, i) => (
+                           <div key={i} className="flex items-start gap-2 text-sm font-bold text-slate-700">
+                              <span className="text-rose-500 mt-0.5"><CheckCircle className="w-4 h-4"/></span>
+                              <span>
+                                {c.opt.room.name} {c.opt.tier ? `(${c.opt.tier.name})` : ''} 
+                                <span className="text-rose-600 ml-1">× {c.count} {c.opt.type === 'dorm' ? '床' : '間'}</span>
+                              </span>
+                           </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col justify-end items-end gap-3 sm:border-l sm:border-slate-100 sm:pl-5 shrink-0">
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-slate-500 block mb-0.5">總容納人數</span>
+                        <span className={`text-base font-black ${res.totalGuests > parseInt(searchGuests) ? 'text-amber-600' : 'text-teal-600'}`}>
+                          {res.totalGuests} 人 {res.totalGuests > parseInt(searchGuests) ? <span className="text-[10px] ml-1 opacity-70">(多 {res.totalGuests - parseInt(searchGuests)} 位)</span> : ''}
+                        </span>
+                      </div>
+                      <button onClick={() => applyRecommendation(res.combo)} className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-rose-600 text-white rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 hover:shadow-rose-500/30 hover:-translate-y-0.5">
+                        套用此組合 <ArrowRight className="w-4 h-4"/>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
