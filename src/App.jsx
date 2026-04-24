@@ -2365,20 +2365,42 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                     {String(room.name)}
                     {room.isDorm && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg ml-2 align-middle shadow-sm">背包床位計價</span>}
                   </h4>
-                  <div className="grid grid-cols-2 gap-3 text-xs font-bold">
-                     <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                        <p className="text-slate-400 mb-1">淡季 (平/假)</p>
-                        <p className="text-slate-700">${room.priceLowWeekday} / ${room.priceLowWeekend}</p>
-                     </div>
-                     <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
-                        <p className="text-amber-600 mb-1">旺季 (平/假)</p>
-                        <p className="text-amber-800">${room.pricePeakWeekday} / ${room.pricePeakWeekend}</p>
-                     </div>
-                     <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
-                        <p className="text-rose-600 mb-1">連假定價 (最後一晚免費)</p>
-                        <p className="text-rose-800">${room.priceHoliday}</p>
-                     </div>
-                  </div>
+                  
+                  {room.isDorm ? (
+                    <div className="grid grid-cols-2 gap-3 text-xs font-bold">
+                       <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                          <p className="text-slate-400 mb-1">淡季 (平/假)</p>
+                          <p className="text-slate-700">${Number(room.priceLowWeekday).toLocaleString()} / ${Number(room.priceLowWeekend).toLocaleString()}</p>
+                       </div>
+                       <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
+                          <p className="text-amber-600 mb-1">旺季 (平/假)</p>
+                          <p className="text-amber-800">${Number(room.pricePeakWeekday).toLocaleString()} / ${Number(room.pricePeakWeekend).toLocaleString()}</p>
+                       </div>
+                       <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
+                          <p className="text-rose-600 mb-1">連假定價</p>
+                          <p className="text-rose-800">${Number(room.priceHoliday).toLocaleString()}</p>
+                       </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
+                       {migrateRoomTiers(room).map((tier, idx) => (
+                         <div key={tier.id || idx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
+                           <div className="flex justify-between items-center mb-2 border-b border-slate-200/60 pb-2">
+                             <span className="font-black text-blue-800 text-sm">{tier.name}</span>
+                             <span className="text-[10px] bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold shadow-sm">
+                               {tier.guests} 人入住 {tier.extraBeds > 0 ? `(含 ${tier.extraBeds} 加床)` : ''}
+                             </span>
+                           </div>
+                           <div className="grid grid-cols-3 gap-2 text-[10px] font-bold">
+                              <div><p className="text-slate-400 mb-0.5">淡季(平/假)</p><p className="text-slate-700">${Number(tier.priceLowWeekday).toLocaleString()} / ${Number(tier.priceLowWeekend).toLocaleString()}</p></div>
+                              <div><p className="text-amber-500 mb-0.5">旺季(平/假)</p><p className="text-amber-700">${Number(tier.pricePeakWeekday).toLocaleString()} / ${Number(tier.pricePeakWeekend).toLocaleString()}</p></div>
+                              <div><p className="text-rose-500 mb-0.5">連假定價</p><p className="text-rose-700">${Number(tier.priceHoliday).toLocaleString()}</p></div>
+                           </div>
+                         </div>
+                       ))}
+                    </div>
+                  )}
+
                   <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm font-bold gap-2">
                      <span className="text-slate-500">實體房間：{room.quantity} 間</span>
                      <div className="flex flex-wrap gap-2">
