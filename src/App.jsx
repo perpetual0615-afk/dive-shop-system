@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -4668,30 +4667,23 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
 
 function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
   const isDorm = room.isDorm === true;
+  const tiers = useMemo(() => migrateRoomTiers(room), [room]);
+  const [selectedTierId, setSelectedTierId] = useState(tiers.length > 0 ? tiers[0].id : null);
   const [rc, setRc] = useState(1); // 預訂房數/床數
-  const [g, setG] = useState(1);   // 入住人數
-  const [eb, setEb] = useState(0); // 加床數
 
   const maxUnits = isDorm ? (room.quantity * (room.bedCount || 1)) : room.quantity;
   const availableUnits = Math.max(0, maxUnits - inCartCount);
+  const isOutOfStock = availableUnits <= 0;
 
-  const maxEbPerRoom = room.maxExtraBeds !== undefined ? parseInt(room.maxExtraBeds) : (room.priceExtraBed > 0 ? 1 : 0);
-  const maxEbAllowed = isDorm ? 0 : (parseInt(rc) || 0) * maxEbPerRoom;
-
-  useEffect(() => {
-    if (eb > maxEbAllowed) setEb(maxEbAllowed);
-  }, [rc, maxEbAllowed, eb]);
+  const selectedTier = useMemo(() => tiers.find(t => t.id === selectedTierId) || tiers[0], [tiers, selectedTierId]);
 
   useEffect(() => {
-    if (isDorm) {
-       setG(rc);
-       setEb(0);
-    }
-  }, [rc, isDorm]);
+    if (rc > availableUnits && availableUnits > 0) setRc(availableUnits);
+    else if (availableUnits <= 0) setRc(0);
+    else if (rc <= 0 && availableUnits > 0) setRc(1);
+  }, [availableUnits, rc]);
 
-  const maxCap = isDorm ? parseInt(rc) : (parseInt(rc) || 0) * (room.bedCount || 1) + (parseInt(eb) || 0);
-  const isOverCap = (parseInt(g) || 0) > maxCap;
-  const isOverUnits = (parseInt(rc) || 0) > availableUnits;
+  const displayPrice = isDorm ? room.priceLowWeekday : (selectedTier?.priceLowWeekday || 0);
 
   // 優化：精緻步進按鈕元件
   const Stepper = ({ value, min, max, onChange, label, disabled }) => (
@@ -4706,8 +4698,14 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
   );
 
   return (
-      <div className="bg-white p-2 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-200/60 hover:border-rose-300 hover:shadow-[0_15px_40px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col h-full relative group overflow-hidden">
+      <div className={`bg-white p-2 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-all duration-300 flex flex-col h-full relative group overflow-hidden ${isOutOfStock ? 'border-slate-200/40 opacity-80 grayscale-[0.5]' : 'border-slate-200/60 hover:border-rose-300 hover:shadow-[0_15px_40px_rgba(244,63,94,0.15)]'}`}>
           
+          {isOutOfStock && (
+              <div className="absolute inset-0 bg-white/40 z-20 flex items-center justify-center backdrop-blur-[1.5px] rounded-[2.5rem]">
+                  <div className="bg-slate-800/90 text-white font-black px-8 py-4 rounded-[1.5rem] transform -rotate-12 text-2xl shadow-2xl tracking-widest border border-slate-700">SOLD OUT</div>
+              </div>
+          )}
+
           <div className="bg-slate-50/50 rounded-[2rem] p-5 h-full flex flex-col relative overflow-hidden">
               <div className="absolute -bottom-6 -right-6 w-40 h-40 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.08] transition-all duration-500 pointer-events-none transform -rotate-6">
                   <StaghornCoralWatermark className="w-full h-full text-rose-600" />
@@ -4725,11 +4723,11 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
                                {isDorm ? `剩 ${availableUnits} 床` : `剩 ${availableUnits} 間`}
                              </span>
                              <span className="text-[10px] font-black text-slate-600 bg-white px-2.5 py-0.5 rounded border border-slate-200 shadow-sm">
-                               {isDorm ? '1 人 / 床' : `容納 ${room.bedCount} 人/間`}
+                               {isDorm ? '1 人 / 床' : (selectedTier ? `方案含 ${selectedTier.guests} 人` : `容納 ${room.bedCount} 人/間`)}
                              </span>
-                             {!isDorm && room.priceExtraBed > 0 && maxEbPerRoom > 0 && (
+                             {!isDorm && selectedTier?.extraBeds > 0 && (
                                 <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded border border-orange-100 shadow-sm">
-                                   可加床 (+${room.priceExtraBed})
+                                   含 {selectedTier.extraBeds} 加床
                                 </span>
                              )}
                          </div>
@@ -4739,38 +4737,54 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
                       <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-1">淡季平日起</span>
                       <div className="flex items-baseline justify-end gap-0.5">
                           <span className="text-xs font-bold text-rose-500">NT$</span>
-                          <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(room.priceLowWeekday).toLocaleString()}</span>
+                          <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(displayPrice).toLocaleString()}</span>
                           <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
                       </div>
                   </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-auto relative z-10 pt-2 border-t border-slate-200/60">
-                  <div className={isDorm ? 'col-span-2 md:col-span-3' : 'col-span-1'}>
-                     <Stepper value={rc} min={1} max={availableUnits} onChange={setRc} label={isDorm ? '預訂床位' : '預訂間數'} />
-                  </div>
-                  {!isDorm && (
-                    <>
-                      <Stepper value={g} min={1} max={maxCap} onChange={setG} label="入住總人數" />
-                      <div className="col-span-2 md:col-span-1">
-                        <Stepper value={eb} min={0} max={maxEbAllowed} onChange={setEb} label="加床數量" disabled={!(room.priceExtraBed > 0) || maxEbPerRoom <= 0} />
+              {!isDorm && tiers.length > 0 && (
+                  <div className="mb-4 relative z-10">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block ml-1">選擇入住方案 (Occupancy Plan)</label>
+                      <div className="relative">
+                          <select 
+                              value={selectedTierId || ''} 
+                              onChange={e => setSelectedTierId(e.target.value)}
+                              disabled={isOutOfStock}
+                              className="w-full p-3.5 pl-4 pr-10 border border-slate-200 hover:border-rose-300 rounded-[1rem] text-sm font-black outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 bg-white text-slate-800 appearance-none cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                          >
+                              {tiers.map(t => (
+                                  <option key={t.id} value={t.id}>{t.name} (共 {t.guests} 人入住)</option>
+                              ))}
+                          </select>
+                          <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-rose-400 pointer-events-none" />
                       </div>
-                    </>
-                  )}
+                  </div>
+              )}
+
+              <div className="mt-auto relative z-10 pt-4 border-t border-slate-200/60">
+                  <Stepper value={rc} min={1} max={availableUnits} onChange={setRc} label={isDorm ? '選擇要預訂幾床' : '選擇要預訂幾間'} disabled={isOutOfStock} />
               </div>
               
-              {isOverUnits && <div className="text-[11px] font-bold text-red-600 mt-4 text-center animate-in fade-in relative z-10 bg-red-50 py-2 rounded-xl border border-red-100 flex items-center justify-center gap-1.5"><AlertTriangle className="w-4 h-4"/> 數量超過剩餘可選數 ({availableUnits})</div>}
-              {!isOverUnits && isOverCap && !isDorm && <div className="text-[11px] font-bold text-red-600 mt-4 text-center animate-in fade-in relative z-10 bg-red-50 py-2 rounded-xl border border-red-100 flex items-center justify-center gap-1.5"><AlertTriangle className="w-4 h-4"/> 人數超過房型容量上限 (最大 {maxCap} 人)</div>}
-
               <button 
                   onClick={() => {
-                      onAdd({ id: Date.now() + Math.random(), room, roomCount: parseInt(rc)||1, guests: parseInt(g)||1, extraBeds: parseInt(eb)||0, isDorm });
-                      setRc(1); setG(1); setEb(0);
+                      onAdd({ 
+                          id: Date.now() + Math.random(), 
+                          room, 
+                          roomCount: parseInt(rc)||1, 
+                          guests: isDorm ? (parseInt(rc)||1) : (selectedTier ? selectedTier.guests * (parseInt(rc)||1) : 1), 
+                          extraBeds: isDorm ? 0 : (selectedTier ? selectedTier.extraBeds * (parseInt(rc)||1) : 0), 
+                          isDorm,
+                          planId: isDorm ? null : selectedTier?.id,
+                          planName: isDorm ? null : selectedTier?.name,
+                          selectedTier: isDorm ? null : selectedTier
+                      });
+                      setRc(1);
                   }} 
-                  disabled={hasFullDays || isOverUnits || isOverCap || availableUnits <= 0 || nights <= 0}
+                  disabled={hasFullDays || isOutOfStock || availableUnits <= 0 || nights <= 0}
                   className="w-full mt-4 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-md hover:bg-rose-600 hover:shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:-translate-y-0.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
               >
-                  <Plus className="w-5 h-5"/> {availableUnits <= 0 ? '已達預訂上限' : nights <= 0 ? '請先於上方選擇日期' : '加入預訂清單'}
+                  <Plus className="w-5 h-5"/> {isOutOfStock ? '已客滿 Sold Out' : nights <= 0 ? '請先於上方選擇日期' : '加入預訂清單'}
               </button>
           </div>
       </div>
