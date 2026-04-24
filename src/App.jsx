@@ -4666,7 +4666,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
               <button onClick={() => setRecommendModalData(null)} className="p-2.5 bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors"><X className="w-6 h-6" /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-2 pb-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-2 pt-4 pb-4">
               {recommendModalData.map((res, idx) => {
                 const avgPrice = Math.round(res.totalCost / parseInt(searchGuests));
                 const isBest = idx === 0;
@@ -4674,7 +4674,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                 <div key={idx} className={`p-5 md:p-6 rounded-[2rem] border-2 transition-all relative group ${isBest ? 'bg-gradient-to-br from-amber-50/50 to-orange-50/30 border-amber-300 shadow-[0_10px_30px_rgba(245,158,11,0.15)] hover:shadow-[0_15px_40px_rgba(245,158,11,0.25)]' : 'bg-slate-50/50 border-slate-200 hover:border-rose-300 hover:bg-white hover:shadow-md'}`}>
                   
                   {isBest && (
-                    <div className="absolute -top-4 -right-3 lg:-right-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] md:text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/40 animate-bounce border-[3px] border-white flex items-center gap-1.5 z-10">
+                    <div className="absolute -top-4 right-4 md:right-8 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] md:text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/40 animate-bounce border-[3px] border-white flex items-center gap-1.5 z-10">
                       👑 最高 CP 值推薦
                     </div>
                   )}
