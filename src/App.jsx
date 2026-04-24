@@ -453,6 +453,14 @@ function formatDateTs(ts) {
   return JSON.stringify(ts);
 }
 
+// 身分證/護照號碼遮蔽輔助函數 (保護個資)
+function maskIdNumber(id) {
+  if (!id) return '未提供';
+  const strId = String(id);
+  if (strId.length < 6) return '****';
+  return `${strId.slice(0, 3)}****${strId.slice(-3)}`;
+}
+
 // 手機號碼自動格式化輔助函數 (四碼-三碼-三碼)
 function formatPhoneNumber(value) {
   if (!value) return '';
@@ -5068,7 +5076,7 @@ function UserDashboard({ bookings }) {
                                <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                   <p className="font-black text-blue-800 border-b border-blue-100 pb-2 mb-3 flex items-center gap-2"><User className="w-4 h-4"/> 報名者詳細資料</p>
                                   <div className="grid grid-cols-2 gap-2">
-                                     <p className="text-slate-500 font-bold">證件號碼</p><p className="font-black text-slate-800">{b.idNumber || '未提供'}</p>
+                                     <p className="text-slate-500 font-bold">證件號碼</p><p className="font-black text-slate-800">{maskIdNumber(b.idNumber)}</p>
                                      <p className="text-slate-500 font-bold">出生日期</p><p className="font-black text-slate-800">{b.birthday || '未提供'}</p>
                                      <p className="text-slate-500 font-bold">身高 / 體重</p><p className="font-black text-slate-800">{b.height} cm / {b.weight} kg</p>
                                      <p className="text-slate-500 font-bold">鞋碼</p><p className="font-black text-slate-800">{b.shoeSize || '未提供'} cm</p>
