@@ -3239,6 +3239,12 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   const [rentals, setRentals] = useState([]); // { eqId, name, size, category, price }
   const [selectedElectives, setSelectedElectives] = useState([]); // 儲存已勾選的選修項目 ID
   
+  // 👉 新增：管理簽證費與收費必修項目的勾選狀態 (預設為勾選，讓顧客自行取消)
+  const [requireCert, setRequireCert] = useState(activity.certFee > 0); 
+  const [selectedCompulsories, setSelectedCompulsories] = useState(
+      (activity.compulsories || []).filter(c => typeof c === 'object' && c.price > 0).map(c => c.id)
+  );
+  
   // 潛旅當地租借裝備清單與完整選項
   const LOCAL_SHOP_GEARS = [
     { name: 'BCD', category: '重裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
@@ -3289,13 +3295,15 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     return rawTotal;
   };
 
-  // 總計金額計算 (活動基底 + 裝備 + 簽證 + 選修 + 強制必修)
+  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用
   const calculateTotal = () => {
     let total = activity.price + calculateEqPrice();
-    if (isCourse && activity.certFee) total += activity.certFee;
+    if (isCourse && requireCert && activity.certFee) total += activity.certFee;
     if (isCourse && activity.compulsories?.length > 0) {
        activity.compulsories.forEach(comp => {
-          if (typeof comp === 'object' && comp.price > 0) total += comp.price;
+          if (typeof comp === 'object' && comp.price > 0 && selectedCompulsories.includes(comp.id)) {
+              total += comp.price;
+          }
        });
     }
     if (isCourse && activity.electives?.length > 0) {
@@ -3333,8 +3341,9 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     setIsSubmitting(true);
     
     try {
-      // 提取被選中的選修項目詳細資料
+      // 提取被選中的選修與加購項目詳細資料
       const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
+      const finalCompulsories = isCourse && activity.compulsories ? activity.compulsories.filter(c => typeof c === 'object' && c.price > 0 && selectedCompulsories.includes(c.id)) : [];
 
       // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
       const medicalIssues = [];
@@ -3358,9 +3367,10 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         ...f,
         weights,
         rentals,
-        selectedElectives: finalElectives,
-        certFee: activity.certFee || 0,
-        certSystem: activity.certSystem || '',
+        // 👉 將勾選的必修與選修合併紀錄至 selectedElectives，供後台一併顯示
+        selectedElectives: [...finalCompulsories, ...finalElectives],
+        certFee: requireCert ? (activity.certFee || 0) : 0,
+        certSystem: requireCert ? (activity.certSystem || '') : '',
         useLocalShopEq,
         isReturningCustomer,
         accOption: isTrip ? 'trip' : accOption,
@@ -3484,29 +3494,15 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                    {/* 服務項目區塊 */}
                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
                       <h4 className="font-black text-slate-800 mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
-                         <CheckCircle className="w-5 h-5 text-teal-500"/> 課程提供服務
-                      </h4>
-                      <ul className="space-y-3">
-                         {(activity.services && activity.services.length > 0) ? activity.services.map((srv, idx) => (
-                            <li key={idx} className="text-sm font-bold text-slate-600 flex items-start gap-2.5">
-                               <span className="text-teal-500 mt-0.5"><Check className="w-4 h-4" /></span> <span className="leading-relaxed">{srv}</span>
-                            </li>
-                         )) : null}
-                      </ul>
-                   </div>
-
-                   {/* 必修與選修區塊 */}
-                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
-                      <h4 className="font-black text-slate-800 mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
-                         <Plus className="w-5 h-5 text-purple-500"/> 必修、選修與加購資訊
+                         <Plus className="w-5 h-5 text-purple-500"/> 簽證與額外加購資訊
                       </h4>
                       <div className="space-y-4">
                          <div>
-                            <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest">強制/必修項目</h5>
+                            <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest">可選加購與簽證</h5>
                             {activity.certFee > 0 && (
                                <div className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
                                   <span>{activity.certSystem} 簽證費</span>
-                                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">+NT$ {activity.certFee}</span>
+                                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">+NT$ {Number(activity.certFee).toLocaleString()}</span>
                                </div>
                             )}
                             {(activity.compulsories || []).map((c, i) => {
@@ -3515,7 +3511,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                                return (
                                   <div key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
                                      <span>{name}</span>
-                                     <span className={price > 0 ? 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100' : 'text-slate-400'}>{price > 0 ? `+NT$ ${price}` : '免費/內含'}</span>
+                                     <span className={price > 0 ? 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100' : 'text-slate-400'}>{price > 0 ? `+NT$ ${Number(price).toLocaleString()}` : '免費/內含'}</span>
                                   </div>
                                );
                             })}
@@ -3526,7 +3522,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                                {activity.electives.map((el, i) => (
                                   <div key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
                                      <span>{el.name}</span>
-                                     <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">+NT$ {el.price}</span>
+                                     <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">+NT$ {Number(el.price).toLocaleString()}</span>
                                   </div>
                                ))}
                             </div>
@@ -3641,27 +3637,39 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                        {(activity.certFee > 0 || activity.electives?.length > 0 || activity.compulsories?.some(c => typeof c === 'object' && c.price > 0)) && (
                          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-                             <h4 className="font-black text-slate-800 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-500"/> 課程選修加購與強制費用</h4>
-                             <span className="text-xl font-black text-blue-600">小計: NT$ {calculateTotal() - activity.price - calculateEqPrice()}</span>
+                             <h4 className="font-black text-slate-800 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-500"/> 課程加購與簽證選項</h4>
+                             <span className="text-xl font-black text-blue-600">小計: NT$ {(calculateTotal() - activity.price - calculateEqPrice()).toLocaleString()}</span>
                            </div>
                            
                            <div className="space-y-3">
+                              {/* 費用大於0的必修項目現在改為可自由勾選 */}
                               {activity.compulsories?.filter(c => typeof c === 'object' && c.price > 0).map(comp => (
-                                <div key={comp.id} className="flex items-center justify-between p-3 border border-blue-200 bg-blue-50 rounded-xl">
-                                  <span className="font-bold text-blue-900 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-500"/> {comp.name} (必修費用)</span>
-                                  <span className="font-black text-blue-700 text-sm">+NT$ {comp.price}</span>
-                                </div>
+                                <label key={comp.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedCompulsories.includes(comp.id) ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
+                                  <div className="flex items-center gap-3">
+                                    <input type="checkbox" checked={selectedCompulsories.includes(comp.id)} onChange={e => {
+                                      if (e.target.checked) setSelectedCompulsories([...selectedCompulsories, comp.id]);
+                                      else setSelectedCompulsories(selectedCompulsories.filter(id => id !== comp.id));
+                                    }} className="w-4 h-4 text-blue-600 rounded" />
+                                    <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-500"/> {comp.name}</span>
+                                  </div>
+                                  <span className="font-black text-blue-700 text-sm">+NT$ {Number(comp.price).toLocaleString()}</span>
+                                </label>
                               ))}
 
+                              {/* 簽證費現在改為可自由勾選 */}
                               {activity.certFee > 0 && (
-                                <div className="flex items-center justify-between p-3 border border-amber-200 bg-amber-50 rounded-xl">
-                                  <span className="font-bold text-amber-900 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-500"/> {activity.certSystem || '系統'} 簽證費 (必收)</span>
-                                  <span className="font-black text-amber-700 text-sm">+NT$ {activity.certFee}</span>
-                                </div>
+                                <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${requireCert ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
+                                  <div className="flex items-center gap-3">
+                                    <input type="checkbox" checked={requireCert} onChange={e => setRequireCert(e.target.checked)} className="w-4 h-4 text-amber-600 rounded" />
+                                    <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-500"/> {activity.certSystem || '系統'} 簽證費</span>
+                                  </div>
+                                  <span className="font-black text-amber-700 text-sm">+NT$ {Number(activity.certFee).toLocaleString()}</span>
+                                </label>
                               )}
                               
+                              {/* 原始的選修項目 */}
                               {activity.electives?.length > 0 && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 mt-2">
                                   {activity.electives.map(el => (
                                     <label key={el.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedElectives.includes(el.id) ? 'bg-purple-50 border-purple-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
                                       <div className="flex items-center gap-3">
@@ -3671,7 +3679,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                                         }} className="w-4 h-4 text-purple-600 rounded" />
                                         <span className="font-bold text-slate-700 text-sm">{el.name}</span>
                                       </div>
-                                      <span className="font-black text-purple-700 text-sm">+NT$ {el.price}</span>
+                                      <span className="font-black text-purple-700 text-sm">+NT$ {Number(el.price).toLocaleString()}</span>
                                     </label>
                                   ))}
                                 </div>
@@ -3840,7 +3848,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                          {rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 最優惠組合</span>}
                          {isReturningCustomer && rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-orange-700 font-bold bg-orange-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 回客折扣</span>}
                        </div>
-                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice()}</span>
+                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice().toLocaleString()}</span>
                      </div>
                    </div>
                  )}
@@ -4026,10 +4034,25 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
              type="button" 
              disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
              onClick={handleSubmit} 
-             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
+             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-between px-6"
           >
-            {isSubmitting ? '處理中...' : step < totalSteps ? '下一步，繼續填寫' : '確認無誤，送出報名單'}
-            {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
+            {isSubmitting ? <span className="mx-auto">處理中...</span> : step < totalSteps ? (
+               <>
+                  <div className="flex flex-col text-left">
+                     <span className="text-[10px] text-blue-200 uppercase tracking-widest leading-none mb-1">預估總計 Total</span>
+                     <span className="leading-none text-xl">NT$ {calculateTotal().toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">下一步 <ChevronRight className="w-5 h-5" /></div>
+               </>
+            ) : (
+               <>
+                  <div className="flex flex-col text-left">
+                     <span className="text-[10px] text-blue-200 uppercase tracking-widest leading-none mb-1">應繳總計 Total</span>
+                     <span className="leading-none text-xl">NT$ {calculateTotal().toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1"><CheckCircle className="w-5 h-5"/>確認送出</div>
+               </>
+            )}
           </button>
         </div>
       </div>
@@ -4048,7 +4071,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
     return '';
   });
 
-  const [searchGuests, setSearchGuests] = useState(2); 
+  const [searchGuests, setSearchGuests] = useState(1); 
   const [f, setF] = useState({ name: '', phone: '' });
   const [cart, setCart] = useState([]); 
   const [courseStudents, setCourseStudents] = useState(1);
@@ -4460,7 +4483,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                        <div className="col-span-2 lg:w-40 shrink-0 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors rounded-b-2xl lg:rounded-b-none lg:rounded-r-[2rem] flex flex-col justify-center">
                            <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">人數 Guests</label>
                            <div className="flex items-center">
-                              <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none m-0 p-0" placeholder="例如: 2" />
+                              <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none m-0 p-0" placeholder="例如: 1" />
                            </div>
                        </div>
                    </div>
