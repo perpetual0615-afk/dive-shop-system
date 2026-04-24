@@ -4049,50 +4049,25 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
           </div>
         </div>
 
-        {/* Footer Navigation & 即時總計金額顯示 */}
-        <div className="bg-white p-5 md:p-6 border-t border-slate-100 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
-          <div className="flex flex-col w-full sm:w-auto">
-             <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-blue-50/50 sm:bg-transparent p-4 sm:p-0 rounded-2xl border sm:border-0 border-blue-100/50">
-                 <div className="flex flex-col">
-                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 flex items-center gap-1.5"><CircleDollarSign className="w-3.5 h-3.5"/> 即時總計金額</span>
-                   <span className="text-2xl md:text-3xl font-black text-blue-700 leading-none">NT$ {calculateTotal().toLocaleString()}</span>
-                 </div>
-                 {/* 手機版：若在加購頁面，額外提示加購的小計 */}
-                 {step === 3 && isCourse && (
-                    <div className="text-[10px] font-bold text-slate-500 text-right sm:hidden">
-                       (含加購 NT$ {calculateTotal() - activity.price - calculateEqPrice()})
-                    </div>
-                 )}
-             </div>
-             {/* 報名表明細提示：讓學員清楚知道總金額包含了哪些加購 */}
-             {step === 3 && isCourse && (calculateTotal() - activity.price - calculateEqPrice() > 0) && (
-                 <div className="text-[10px] font-bold text-blue-600/80 mt-2 pl-1 hidden sm:block animate-in fade-in">
-                     包含加購項目：{isCertSelected ? '簽證費 ' : ''} 
-                     {selectedCompulsories.length > 0 ? `必修(${selectedCompulsories.length}) ` : ''} 
-                     {selectedElectives.length > 0 ? `選修(${selectedElectives.length})` : ''}
-                 </div>
-             )}
-          </div>
+        {/* Footer Navigation */}
+        <div className="bg-white p-6 border-t border-slate-100 shrink-0 flex gap-4">
+          {step > 1 ? (
+             <button type="button" disabled={isSubmitting} onClick={() => setStep(step - 1)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+               <ChevronLeft className="w-5 h-5" /> 上一步
+             </button>
+          ) : (
+             <button type="button" disabled={isSubmitting} onClick={onClose} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
+          )}
           
-          <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none mt-2 sm:mt-0">
-            {step > 1 ? (
-               <button type="button" disabled={isSubmitting} onClick={() => setStep(step - 1)} className="px-5 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-1 disabled:opacity-50 shrink-0">
-                 <ChevronLeft className="w-5 h-5" /> <span className="hidden sm:inline">上一步</span>
-               </button>
-            ) : (
-               <button type="button" disabled={isSubmitting} onClick={onClose} className="px-5 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50 shrink-0">取消</button>
-            )}
-            
-            <button 
-               type="button" 
-               disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
-               onClick={handleSubmit} 
-               className="flex-1 sm:flex-none px-8 py-3.5 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? '處理中...' : step < totalSteps ? '下一步' : '確認送出報名'}
-              {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
-            </button>
-          </div>
+          <button 
+             type="button" 
+             disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
+             onClick={handleSubmit} 
+             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? '處理中...' : step < totalSteps ? '下一步，繼續填寫' : '確認無誤，送出報名單'}
+            {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
+          </button>
         </div>
       </div>
     </div>
@@ -5027,6 +5002,20 @@ function UserDashboard({ bookings }) {
                                   <p className="font-black text-blue-800 border-b border-blue-100 pb-2 mb-3 flex items-center gap-2"><ShoppingCart className="w-4 h-4"/> 預約配置與選修</p>
                                   <p className="flex justify-between border-b border-slate-200/50 pb-2"><span className="text-slate-500 font-bold">住宿安排</span> <span className="font-black text-slate-800">{b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '內附背包床' : b.accOption === 'upgrade' ? `升級房型` : b.accOption === 'release' ? '釋出床位' : '住宿自理'}</span></p>
                                   <p className="flex justify-between border-b border-slate-200/50 pb-2"><span className="text-slate-500 font-bold">使用當地裝備</span> <span className="font-black text-slate-800">{b.useLocalShopEq ? '是' : '否'}</span></p>
+                                  
+                                  {b.certFee > 0 && (
+                                     <p className="flex justify-between border-b border-slate-200/50 pb-2"><span className="text-slate-500 font-bold">簽證費用</span> <span className="font-black text-amber-600">+{b.certFee} ({b.certSystem})</span></p>
+                                  )}
+                                  
+                                  {b.selectedCompulsories?.length > 0 && (
+                                     <div className="pt-1 space-y-1.5">
+                                        <p className="text-slate-500 font-bold">必修加購：</p>
+                                        <div className="flex flex-wrap gap-1">
+                                           {b.selectedCompulsories.map((c, i)=><span key={i} className="text-[11px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded">{c.name}</span>)}
+                                        </div>
+                                     </div>
+                                  )}
+
                                   <div className="pt-1 space-y-1.5">
                                      <p className="text-slate-500 font-bold">選修加購：</p>
                                      <div className="flex flex-wrap gap-1">
