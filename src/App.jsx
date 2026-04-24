@@ -3884,190 +3884,44 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
 
               </div>
             )}
-
-            {/* STEP: Accommodation (Course Only) */}
-            {isStepAcc && (
-              <div className="space-y-5">
-                 <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl font-bold text-sm mb-6">
-                    🎁 您的潛水課程已免費包含【背包房床位】。您可以選擇維持原狀、升級獨立房型，或是將床位釋出。
-                 </div>
-                 
-                 <label className={`flex gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${accOption === 'included' ? 'border-blue-500 bg-white shadow-md' : 'border-slate-200 bg-slate-50 hover:bg-white'}`}>
-                   <input type="radio" checked={accOption === 'included'} onChange={() => setAccOption('included')} className="mt-1 w-5 h-5 text-blue-600" />
-                   <div>
-                     <span className="font-black text-lg text-slate-800 block">維持背包房床位</span>
-                     <span className="text-sm font-bold text-slate-500 mt-1 block">由店裡為您安排乾淨舒適的背包床位 (免加價)</span>
-                   </div>
-                 </label>
-
-                 <label className={`flex gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${accOption === 'upgrade' ? 'border-amber-500 bg-white shadow-md' : 'border-slate-200 bg-slate-50 hover:bg-white'}`}>
-                   <input type="radio" checked={accOption === 'upgrade'} onChange={() => setAccOption('upgrade')} className="mt-1 w-5 h-5 text-amber-600" />
-                   <div>
-                     <span className="font-black text-lg text-amber-700 block">升級獨立房型</span>
-                     <span className="text-sm font-bold text-slate-500 mt-1 block">補差額升級雙人/四人房。報名完成後將導向訂房頁面，並自動為您扣除床位費用！</span>
-                   </div>
-                 </label>
-
-                 <label className={`flex gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${accOption === 'release' ? 'border-slate-400 bg-white shadow-md' : 'border-slate-200 bg-slate-50 hover:bg-white'}`}>
-                   <input type="radio" checked={accOption === 'release'} onChange={() => setAccOption('release')} className="mt-1 w-5 h-5 text-slate-600" />
-                   <div>
-                     <span className="font-black text-lg text-slate-700 block">釋出床位 (與同行友人同住)</span>
-                     <span className="text-sm font-bold text-slate-500 mt-1 block">朋友已升級房型，我不需要額外的背包床位了。</span>
-                   </div>
-                 </label>
-              </div>
-            )}
-
-            {/* STEP: Diving Experience */}
-            {isStepExp && !isDSD && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
-                 <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-2">
-                       <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><ClipboardList className="w-5 h-5"/></div>
-                       <div>
-                          <h4 className="font-black text-lg text-slate-800">潛水經驗調查</h4>
-                          <p className="text-xs font-bold text-slate-500 mt-1">幫助教練更了解您的潛水狀況，以便安排合適的行程與配對。</p>
-                       </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                       <div className="space-y-2">
-                         <label className="text-sm font-bold text-slate-700 ml-1">持有證照系統</label>
-                         <select value={exp.certSystem} onChange={e => setExp({...exp, certSystem: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-bold bg-slate-50 hover:bg-white transition-colors cursor-pointer">
-                            <option value="無/不適用">無 / 不適用 (初學或體驗)</option>
-                            <option value="PADI">PADI</option>
-                            <option value="SSI">SSI</option>
-                            <option value="AIDA">AIDA</option>
-                            <option value="Molchanovs">Molchanovs</option>
-                            <option value="SDI">SDI</option>
-                            <option value="TDI">TDI</option>
-                            <option value="CMAS">CMAS</option>
-                            <option value="NAUI">NAUI</option>
-                            <option value="其他">其他系統</option>
-                         </select>
-                       </div>
-                       <div className="space-y-2">
-                         <label className="text-sm font-bold text-slate-700 ml-1">證照等級</label>
-                         <select value={exp.certLevel} onChange={e => setExp({...exp, certLevel: e.target.value})} className="w-full p-3.5 border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-bold bg-slate-50 hover:bg-white transition-colors cursor-pointer">
-                            <option value="無/不適用">無 / 不適用</option>
-                            <option value="OWD (初階)">OWD (初階)</option>
-                            <option value="AOWD (進階)">AOWD (進階)</option>
-                            <option value="Rescue (救援)">Rescue (救援)</option>
-                            <option value="Divemaster (潛水長)">Divemaster (潛水長)</option>
-                            <option value="Instructor (教練)">Instructor (教練)</option>
-                            <option value="其他">其他等級</option>
-                         </select>
-                       </div>
-                    </div>
-                    
-                    <div className="w-full md:w-1/2 pr-2">
-                       <FormInput label="大約總潛水支數 (Log)" type="number" value={exp.loggedDives} onChange={v => setExp({...exp, loggedDives: v})} placeholder="例：25" />
-                    </div>
-
-                    <div className="space-y-3 pt-4 border-t border-slate-100">
-                       <label className="text-sm font-bold text-slate-700 ml-1">擁有特殊潛水專長 (可複選)</label>
-                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                         {['高氧 Nitrox', '深潛 Deep', '船潛 Boat', '夜潛 Night', '頂尖中性浮力 PPB', '水下攝影', '乾衣 Dry Suit', '洞穴/沉船'].map(spec => (
-                            <label key={spec} className="flex items-center gap-2 cursor-pointer p-1">
-                              <input type="checkbox" checked={exp.specialties.includes(spec)} onChange={(e) => {
-                                  if(e.target.checked) setExp({...exp, specialties: [...exp.specialties, spec]});
-                                  else setExp({...exp, specialties: exp.specialties.filter(s => s !== spec)});
-                              }} className="w-4 h-4 text-blue-600 rounded border-slate-300" />
-                              <span className="text-sm font-bold text-slate-700">{spec}</span>
-                            </label>
-                         ))}
-                       </div>
-                    </div>
-
-                    <div className="space-y-2 pt-2">
-                       <label className="text-sm font-bold text-slate-700 ml-1">個人備註提醒事項 (選填)</label>
-                       <textarea value={exp.personalNotes} onChange={e => setExp({...exp, personalNotes: e.target.value})} className="w-full p-4 border border-slate-200 rounded-2xl h-28 text-sm font-medium outline-none focus:border-blue-500 bg-slate-50 focus:bg-white transition-colors" placeholder="例如：容易暈船、特別怕冷、曾有一段時間未下水...等，讓教練能更了解您的狀況。" />
-                    </div>
-                 </div>
-              </div>
-            )}
-
-            {/* STEP: Medical Form */}
-            {isStepMedical && (
-              <div className="space-y-6 pb-20">
-                 <div className="space-y-4">
-                   {sysConfig.medicalForm.map((q, idx) => (
-                     <div key={q.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-                        <div className="mb-2">
-                           <p className="font-bold text-slate-800 mb-3">{String(q.text)}</p>
-                           <div className="flex gap-4">
-                              <label className={`flex-1 py-2.5 rounded-xl border-2 flex justify-center items-center gap-2 cursor-pointer transition-colors ${medicalAnswers[q.id] === false ? 'bg-green-50 border-green-500 text-green-700 font-black' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
-                                <input type="radio" name={`med_${q.id}`} className="hidden" checked={medicalAnswers[q.id] === false} onChange={() => setMedicalAnswers({...medicalAnswers, [q.id]: false})} />
-                                否 / 無此狀況
-                              </label>
-                              <label className={`flex-1 py-2.5 rounded-xl border-2 flex justify-center items-center gap-2 cursor-pointer transition-colors ${medicalAnswers[q.id] === true ? 'bg-rose-50 border-rose-500 text-rose-700 font-black' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
-                                <input type="radio" name={`med_${q.id}`} className="hidden" checked={medicalAnswers[q.id] === true} onChange={() => setMedicalAnswers({...medicalAnswers, [q.id]: true})} />
-                                是 / 有此狀況
-                              </label>
-                           </div>
-                        </div>
-                        
-                        {/* 只有在母題目勾選「是」時，才展開子題目 */}
-                        {q.subItems && q.subItems.length > 0 && medicalAnswers[q.id] === true && (
-                          <div className="pl-4 pt-4 mt-4 border-t border-rose-100 space-y-3 animate-in slide-in-from-top-2">
-                             <div className="text-xs font-black text-rose-600 mb-2 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5"/> 請進一步確認以下延伸狀況：</div>
-                             {q.subItems.map(sub => (
-                                <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-rose-50/50 p-3 rounded-xl border border-rose-100">
-                                   <p className="text-sm text-slate-700 font-bold flex-1">{String(sub.text)}</p>
-                                   <div className="flex gap-2 shrink-0">
-                                      <label className={`px-4 py-2 rounded-lg border-2 flex justify-center items-center cursor-pointer transition-colors ${medicalAnswers[sub.id] === false ? 'bg-green-50 border-green-500 text-green-700 font-black' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
-                                        <input type="radio" name={`med_${sub.id}`} className="hidden" checked={medicalAnswers[sub.id] === false} onChange={() => setMedicalAnswers({...medicalAnswers, [sub.id]: false})} />
-                                        否
-                                      </label>
-                                      <label className={`px-4 py-2 rounded-lg border-2 flex justify-center items-center cursor-pointer transition-colors ${medicalAnswers[sub.id] === true ? 'bg-rose-50 border-rose-500 text-rose-700 font-black' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
-                                        <input type="radio" name={`med_${sub.id}`} className="hidden" checked={medicalAnswers[sub.id] === true} onChange={() => setMedicalAnswers({...medicalAnswers, [sub.id]: true})} />
-                                        是
-                                      </label>
-                                   </div>
-                                </div>
-                             ))}
-                          </div>
-                        )}
-                     </div>
-                   ))}
-                 </div>
-
-                 {hasMedicalIssue && (
-                   <div className="bg-rose-50 border-2 border-rose-400 p-5 rounded-2xl text-rose-800 flex items-start gap-3 shadow-sm animate-in slide-in-from-bottom-4">
-                     <AlertTriangle className="w-6 h-6 shrink-0 mt-0.5" />
-                     <div>
-                       <h4 className="font-black text-lg mb-1">健康聲明提醒</h4>
-                       <p className="text-sm font-bold opacity-90 leading-relaxed">
-                         根據您的勾選，您可能有潛在的健康風險。為了您的安全，參加潛水活動前，<span className="bg-rose-200 px-1 rounded text-rose-900">必須攜帶醫生開立的「適宜潛水」診斷證明書</span>。如無法提供，我們將有權拒絕您下水。
-                       </p>
-                     </div>
-                   </div>
-                 )}
-              </div>
-            )}
             
           </div>
         </div>
 
-        {/* Footer Navigation */}
-        <div className="bg-white p-6 border-t border-slate-100 shrink-0 flex gap-4">
-          {step > 1 ? (
-             <button type="button" disabled={isSubmitting} onClick={() => setStep(step - 1)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-               <ChevronLeft className="w-5 h-5" /> 上一步
-             </button>
-          ) : (
-             <button type="button" disabled={isSubmitting} onClick={onClose} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
-          )}
+        {/* Footer Navigation & 即時總計金額顯示 */}
+        <div className="bg-white p-5 md:p-6 border-t border-slate-100 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-6 sm:gap-8 bg-blue-50/50 sm:bg-transparent p-4 sm:p-0 rounded-2xl border sm:border-0 border-blue-100/50">
+             <div className="flex flex-col">
+               <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 flex items-center gap-1.5"><CircleDollarSign className="w-3.5 h-3.5"/> 即時總計金額</span>
+               <span className="text-2xl md:text-3xl font-black text-blue-700 leading-none">NT$ {calculateTotal().toLocaleString()}</span>
+             </div>
+             {/* 手機版：若在加購頁面，額外提示加購的小計 */}
+             {step === 3 && isCourse && (
+                <div className="text-[10px] font-bold text-slate-500 text-right sm:hidden">
+                   (含加購 NT$ {calculateTotal() - activity.price - calculateEqPrice()})
+                </div>
+             )}
+          </div>
           
-          <button 
-             type="button" 
-             disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
-             onClick={handleSubmit} 
-             className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? '處理中...' : step < totalSteps ? '下一步，繼續填寫' : '確認無誤，送出報名單'}
-            {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
-          </button>
+          <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none">
+            {step > 1 ? (
+               <button type="button" disabled={isSubmitting} onClick={() => setStep(step - 1)} className="px-5 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-1 disabled:opacity-50 shrink-0">
+                 <ChevronLeft className="w-5 h-5" /> <span className="hidden sm:inline">上一步</span>
+               </button>
+            ) : (
+               <button type="button" disabled={isSubmitting} onClick={onClose} className="px-5 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50 shrink-0">取消</button>
+            )}
+            
+            <button 
+               type="button" 
+               disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
+               onClick={handleSubmit} 
+               className="flex-1 sm:flex-none px-8 py-3.5 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? '處理中...' : step < totalSteps ? '下一步' : '確認送出報名'}
+              {step < totalSteps && !isSubmitting && <ChevronRight className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
     </div>
