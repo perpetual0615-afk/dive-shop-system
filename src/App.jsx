@@ -517,16 +517,38 @@ function migrateRoomTiers(room) {
   return tiers.sort((a, b) => (parseInt(a.guests) || 0) - (parseInt(b.guests) || 0));
 }
 
-// 👉 升級版：全域統一的房型排序邏輯 (精準判斷方案內最少人數)
+// 👉 旗艦版：全域統一的房型排序邏輯 (關鍵字權重 + 容納人數 + 名稱)
 function sortAccommodations(accommodations) {
   return [...(accommodations || [])].sort((a, b) => {
-    // 1. 背包房優先
+    // 1. 絕對優先：背包房 / 青旅
     if (a.isDorm && !b.isDorm) return -1;
     if (!a.isDorm && b.isDorm) return 1;
     
-    // 2. 依床位/容納人數由少到多排序
+    // 2. 關鍵字智慧權重 (確保「1張床/雙人房」絕對優先於「2張床/四人房」)
+    const getKeywordWeight = (name) => {
+      if (!name) return 99;
+      const n = name.toLowerCase();
+      if (n.includes('背包') || n.includes('青旅') || n.includes('dorm')) return 1;
+      if (n.includes('單人') || n.includes('1人')) return 2;
+      if (n.includes('1張') || n.includes('一張') || n.includes('雙人')) return 3;
+      if (n.includes('2張') || n.includes('兩張') || n.includes('四人')) return 4;
+      if (n.includes('3張') || n.includes('三張') || n.includes('六人')) return 5;
+      if (n.includes('4張') || n.includes('四張') || n.includes('八人')) return 6;
+      if (n.includes('包棟') || n.includes('包層')) return 90;
+      return 50; // 一般名稱則依循人數排序
+    };
+    
+    const weightA = getKeywordWeight(a.name);
+    const weightB = getKeywordWeight(b.name);
+    
+    // 若名稱含有明確的房型/床位關鍵字，強制優先以此排序
+    if (weightA !== weightB && (weightA < 50 || weightB < 50)) {
+       return weightA - weightB;
+    }
+
+    // 3. 若關鍵字權重相同(或皆無)，依最少容納人數由少到多排序
     const getCap = (r) => {
-      if (r.isDorm) return 1; // 背包房以單一床位為基礎單位
+      if (r.isDorm) return 1;
       const tiers = migrateRoomTiers(r);
       if (tiers && tiers.length > 0) {
          // 掃描方案，抓出該房型的最少入住基準人數
@@ -539,7 +561,7 @@ function sortAccommodations(accommodations) {
     const capB = getCap(b);
     if (capA !== capB) return capA - capB;
     
-    // 3. 相同基準人數時以名稱排序
+    // 4. 最後依名稱字母自然排序
     return (a.name || '').localeCompare(b.name || '');
   });
 }
@@ -3150,37 +3172,26 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
                         </p>
 
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
-                           <span className="text-[11px] font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">總額: {totalSlots} 人</span>
-                           <span className={`text-[11px] font-black px-2 py-1 rounded-md ${remainingSlots > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-                             剩餘: {remainingSlots} 人
-                           </span>
-                        </div>
-
-                        {/* 👉 新增：在活動卡片上顯示報名前的注意事項 */}
-                        {item.notes && (
-                           <div className="mt-3 p-2.5 bg-amber-50 rounded-xl border border-amber-100/50">
-                              <p className="text-xs font-bold text-amber-800 flex items-start gap-1.5 leading-relaxed line-clamp-2" title={item.notes}>
-                                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500"/>
-                                 {item.notes}
-                              </p>
-                           </div>
-                        )}
-                      </div>
-                    )}
-
-                    {type === 'accommodation' && (
-                      <div className="flex flex-wrap gap-2 mb-2 mt-3">
-                        <span className="text-sm font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
-                          <CoralIcon className="w-4 h-4" /> 房間數: {Number(item.quantity || 1)} 間
-                        </span>
-                        <span className="text-sm font-bold text-pink-700 bg-pink-50 px-3 py-1 rounded-lg flex items-center gap-1.5">
-                          <User className="w-4 h-4" /> 每間容納: {Number(item.bedCount || 1)} 人/床
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                   <span className="text-[11px] font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md">總額: {totalSlots} 人</span>
+                   <span className={`text-[11px] font-black px-2 py-1 rounded-md ${remainingSlots > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>剩餘: {remainingSlots} 人</span>
+                </div>
+                {item.notes && (
+                   <div className="mt-4 bg-amber-50/80 rounded-xl border border-amber-200/60 overflow-hidden transition-all duration-300">
+                      <button onClick={(e) => { e.stopPropagation(); setIsNotesExpanded(!isNotesExpanded); }} className="w-full flex items-center justify-between p-3.5 hover:bg-amber-100/50 transition-colors group/note outline-none">
+                         <span className="text-xs font-black text-amber-700 flex items-center gap-2"><Info className="w-4 h-4 text-amber-500 group-hover/note:scale-110 transition-transform"/> 行前須知與注意事項</span>
+                         <ChevronDown className={`w-4 h-4 text-amber-500 transition-transform duration-300 ${isNotesExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                      {isNotesExpanded && (
+                         <div className="p-4 pt-1 border-t border-amber-200/50 bg-amber-50/50 animate-in slide-in-from-top-2 duration-200">
+                            <p className="text-xs font-bold text-amber-800/80 whitespace-pre-wrap leading-relaxed mt-2">{item.notes}</p>
+                         </div>
+                      )}
+                   </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
                        {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
                        <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
@@ -3607,11 +3618,11 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
 
                 {/* 備註及注意事項 */}
                 {activity.notes && (
-                   <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 shadow-sm">
+                   <div className="bg-amber-50/80 p-5 rounded-2xl border border-amber-200/60 shadow-sm mt-6">
                       <h4 className="font-black text-amber-900 mb-3 flex items-center gap-2">
-                         <AlertTriangle className="w-5 h-5 text-amber-500"/> 備註與注意事項
+                         <Info className="w-5 h-5 text-amber-500"/> 行前須知與注意事項
                       </h4>
-                      <p className="text-sm font-bold text-amber-800 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm font-bold text-amber-800/90 whitespace-pre-wrap leading-relaxed">
                          {activity.notes}
                       </p>
                    </div>
@@ -3625,11 +3636,11 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                 
                 {/* 👉 新增：非課程活動的備註與注意事項顯示區塊 */}
                 {!isCourse && activity.notes && (
-                   <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 shadow-sm">
+                   <div className="bg-amber-50/80 p-5 rounded-2xl border border-amber-200/60 shadow-sm mb-6">
                       <h4 className="font-black text-amber-900 mb-3 flex items-center gap-2">
-                         <AlertTriangle className="w-5 h-5 text-amber-500"/> 活動備註與注意事項
+                         <Info className="w-5 h-5 text-amber-500"/> 行前須知與注意事項
                       </h4>
-                      <p className="text-sm font-bold text-amber-800 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm font-bold text-amber-800/90 whitespace-pre-wrap leading-relaxed">
                          {activity.notes}
                       </p>
                    </div>
