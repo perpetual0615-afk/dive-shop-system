@@ -4619,87 +4619,62 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
 
       {/* 智慧配房推薦視窗 */}
       {recommendModalData && (
-        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-md animate-in fade-in">
+        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
           <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-white max-h-[90vh] flex flex-col">
             
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div> AI 智能演算
-                </div>
-                <h2 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
-                  智慧配房建議
+                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                  <span className="text-2xl">✨</span> 智慧配房建議
                 </h2>
-                <p className="text-xs md:text-sm font-bold text-slate-500 mt-2">系統已為您 {searchGuests} 人的旅程，精算出最划算的入住組合！</p>
+                <p className="text-xs font-bold text-slate-500 mt-1">系統已為您算出最划算的入住組合方案！</p>
               </div>
-              <button onClick={() => setRecommendModalData(null)} className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-500 shrink-0"><X className="w-5 h-5" /></button>
+              <button onClick={() => setRecommendModalData(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-500"><X className="w-5 h-5" /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-2 pb-4">
-              {recommendModalData.map((res, idx) => {
-                const isBest = idx === 0;
-                const perPersonPrice = Math.round(res.totalCost / parseInt(searchGuests));
-
-                return (
-                  <div key={idx} className={`p-6 rounded-[2rem] border-2 transition-all duration-300 relative group ${isBest ? 'bg-gradient-to-br from-rose-50/80 to-pink-50/30 border-rose-300 shadow-[0_15px_40px_rgba(244,63,94,0.15)] scale-[1.01]' : 'bg-white border-slate-100 hover:border-rose-200 hover:shadow-lg'}`}>
-                    
-                    {isBest && (
-                      <div className="absolute -top-3.5 -right-2 md:right-4 bg-gradient-to-r from-rose-600 to-pink-500 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-rose-500/30 animate-bounce flex items-center gap-1.5">
-                        <span className="text-base leading-none">🏆</span> 最高 CP 值首選
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-col gap-5">
-                      {/* 價格與人數總覽區 */}
-                      <div className="flex flex-wrap items-end justify-between gap-4">
-                        <div className="flex items-end gap-3">
-                          <span className={`text-4xl font-black tracking-tight ${isBest ? 'text-rose-600' : 'text-slate-800'}`}>NT$ {res.totalCost.toLocaleString()}</span>
-                          <span className="text-sm font-bold text-slate-400 mb-1">總花費</span>
-                        </div>
-                        <div className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1 shadow-sm ${isBest ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
-                           約 NT$ {perPersonPrice.toLocaleString()} / 人
-                        </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
+              {recommendModalData.map((res, idx) => (
+                <div key={idx} className={`p-5 rounded-2xl border-2 transition-all relative ${idx === 0 ? 'bg-rose-50/50 border-rose-400 shadow-[0_5px_20px_rgba(244,63,94,0.15)]' : 'bg-white border-slate-200 hover:border-rose-300'}`}>
+                  {idx === 0 && (
+                    <div className="absolute -top-3 -right-2 bg-gradient-to-r from-rose-600 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-md shadow-rose-500/30 animate-bounce">
+                      🏆 最高 CP 值
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="font-black text-2xl text-slate-800 tracking-tight">NT$ {res.totalCost.toLocaleString()}</span>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">總花費</span>
                       </div>
                       
-                      {/* 房型組合明細區 */}
-                      <div className={`space-y-2.5 p-4 rounded-2xl border ${isBest ? 'bg-white/80 border-rose-100 shadow-sm' : 'bg-slate-50/80 border-slate-100'}`}>
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">搭配房型組合</div>
+                      <div className="space-y-1.5">
                         {res.combo.map((c, i) => (
-                           <div key={i} className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isBest ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-400 shadow-sm border border-slate-100'}`}>
-                                <Home className="w-5 h-5"/>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-black text-slate-700 truncate">{c.opt.room.name}</p>
-                                <p className="text-[10px] font-bold text-slate-500 truncate">{c.opt.tier ? c.opt.tier.name : '單一床位計價'}</p>
-                              </div>
-                              <div className={`text-base font-black shrink-0 px-3 py-1 rounded-lg ${isBest ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
-                                × {c.count} <span className="text-xs">{c.opt.type === 'dorm' ? '床' : '間'}</span>
-                              </div>
+                           <div key={i} className="flex items-start gap-2 text-sm font-bold text-slate-700">
+                              <span className="text-rose-500 mt-0.5"><CheckCircle className="w-4 h-4"/></span>
+                              <span>
+                                {c.opt.room.name} {c.opt.tier ? `(${c.opt.tier.name})` : ''} 
+                                <span className="text-rose-600 ml-1">× {c.count} {c.opt.type === 'dorm' ? '床' : '間'}</span>
+                              </span>
                            </div>
                         ))}
                       </div>
+                    </div>
 
-                      {/* 底部按鈕與容納狀態 */}
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
-                        <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                          容納上限: 
-                          <span className={`px-2 py-0.5 rounded flex items-center gap-1 ${res.totalGuests > parseInt(searchGuests) ? 'bg-amber-50 text-amber-700 font-black' : 'bg-teal-50 text-teal-700 font-black'}`}>
-                            {res.totalGuests} 人
-                            {res.totalGuests > parseInt(searchGuests) && <span className="opacity-70">(多 {res.totalGuests - parseInt(searchGuests)} 位)</span>}
-                          </span>
-                        </div>
-                        <button 
-                          onClick={() => applyRecommendation(res.combo)} 
-                          className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black transition-all duration-300 shadow-sm flex items-center justify-center gap-2 ${isBest ? 'bg-rose-600 hover:bg-rose-700 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:-translate-y-1' : 'bg-slate-900 hover:bg-rose-600 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.2)] hover:-translate-y-1'}`}
-                        >
-                          <CheckCircle className="w-4 h-4"/> 立即套用此組合
-                        </button>
+                    <div className="flex flex-col justify-end items-end gap-3 sm:border-l sm:border-slate-100 sm:pl-5 shrink-0">
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-slate-500 block mb-0.5">總容納人數</span>
+                        <span className={`text-base font-black ${res.totalGuests > parseInt(searchGuests) ? 'text-amber-600' : 'text-teal-600'}`}>
+                          {res.totalGuests} 人 {res.totalGuests > parseInt(searchGuests) ? <span className="text-[10px] ml-1 opacity-70">(多 {res.totalGuests - parseInt(searchGuests)} 位)</span> : ''}
+                        </span>
                       </div>
+                      <button onClick={() => applyRecommendation(res.combo)} className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-rose-600 text-white rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 hover:shadow-rose-500/30 hover:-translate-y-0.5">
+                        套用此組合 <ArrowRight className="w-4 h-4"/>
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         </div>
