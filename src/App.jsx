@@ -2366,20 +2366,42 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                     {String(room.name)}
                     {room.isDorm && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg ml-2 align-middle shadow-sm">背包床位計價</span>}
                   </h4>
-                  <div className="grid grid-cols-2 gap-3 text-xs font-bold">
-                     <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                        <p className="text-slate-400 mb-1">淡季 (平/假)</p>
-                        <p className="text-slate-700">${room.priceLowWeekday} / ${room.priceLowWeekend}</p>
-                     </div>
-                     <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
-                        <p className="text-amber-600 mb-1">旺季 (平/假)</p>
-                        <p className="text-amber-800">${room.pricePeakWeekday} / ${room.pricePeakWeekend}</p>
-                     </div>
-                     <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
-                        <p className="text-rose-600 mb-1">連假定價 (最後一晚免費)</p>
-                        <p className="text-rose-800">${room.priceHoliday}</p>
-                     </div>
-                  </div>
+                  
+                  {room.isDorm ? (
+                    <div className="grid grid-cols-2 gap-3 text-xs font-bold">
+                       <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                          <p className="text-slate-400 mb-1">淡季 (平/假)</p>
+                          <p className="text-slate-700">${Number(room.priceLowWeekday).toLocaleString()} / ${Number(room.priceLowWeekend).toLocaleString()}</p>
+                       </div>
+                       <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
+                          <p className="text-amber-600 mb-1">旺季 (平/假)</p>
+                          <p className="text-amber-800">${Number(room.pricePeakWeekday).toLocaleString()} / ${Number(room.pricePeakWeekend).toLocaleString()}</p>
+                       </div>
+                       <div className="bg-rose-50 p-2 rounded-lg border border-rose-100 col-span-2">
+                          <p className="text-rose-600 mb-1">連假定價</p>
+                          <p className="text-rose-800">${Number(room.priceHoliday).toLocaleString()}</p>
+                       </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
+                       {migrateRoomTiers(room).map((tier, idx) => (
+                         <div key={tier.id || idx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
+                           <div className="flex justify-between items-center mb-2 border-b border-slate-200/60 pb-2">
+                             <span className="font-black text-blue-800 text-sm">{tier.name}</span>
+                             <span className="text-[10px] bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold shadow-sm">
+                               {tier.guests} 人入住 {tier.extraBeds > 0 ? `(含 ${tier.extraBeds} 加床)` : ''}
+                             </span>
+                           </div>
+                           <div className="grid grid-cols-3 gap-2 text-[10px] font-bold">
+                              <div><p className="text-slate-400 mb-0.5">淡季(平/假)</p><p className="text-slate-700">${Number(tier.priceLowWeekday).toLocaleString()} / ${Number(tier.priceLowWeekend).toLocaleString()}</p></div>
+                              <div><p className="text-amber-500 mb-0.5">旺季(平/假)</p><p className="text-amber-700">${Number(tier.pricePeakWeekday).toLocaleString()} / ${Number(tier.pricePeakWeekend).toLocaleString()}</p></div>
+                              <div><p className="text-rose-500 mb-0.5">連假定價</p><p className="text-rose-700">${Number(tier.priceHoliday).toLocaleString()}</p></div>
+                           </div>
+                         </div>
+                       ))}
+                    </div>
+                  )}
+
                   <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm font-bold gap-2">
                      <span className="text-slate-500">實體房間：{room.quantity} 間</span>
                      <div className="flex flex-wrap gap-2">
@@ -3131,7 +3153,7 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
                     <div>
                        {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
                        <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
-                          NT$ {Number(item.price || item.priceLowWeekday || 0)}
+                          NT$ {Number(item.price || item.priceLowWeekday || 0).toLocaleString()}
                        </span>
                     </div>
                     <button 
@@ -4470,11 +4492,11 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   <div className="flex justify-between items-end mb-5">
                     <div>
                        <span className="text-sm font-bold text-slate-500 block mb-1">總金額 Total</span>
-                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice}</span>}
+                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice.toLocaleString()}</span>}
                     </div>
                     <div className="text-right">
-                      {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
-                      <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total}</span>
+                      {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal.toLocaleString()}</div>}
+                      <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total.toLocaleString()}</span>
                     </div>
                   </div>
                   <button 
@@ -4558,9 +4580,13 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
                      )}
                  </div>
               </div>
-              <div className="text-right shrink-0 bg-rose-50/50 px-3 py-2 rounded-xl border border-rose-100">
-                  <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-0.5">淡季平日起</span>
-                  <span className="text-rose-600 font-black text-xl leading-none">NT$ {room.priceLowWeekday}</span>
+              <div className="text-right shrink-0 bg-rose-50/50 px-3 py-2.5 rounded-xl border border-rose-100 shadow-sm">
+                  <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-1">淡季平日起</span>
+                  <div className="flex items-baseline justify-end gap-0.5">
+                      <span className="text-xs font-bold text-rose-500">NT$</span>
+                      <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(room.priceLowWeekday).toLocaleString()}</span>
+                      <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
+                  </div>
               </div>
           </div>
 
