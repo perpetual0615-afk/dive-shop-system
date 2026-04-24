@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -3494,38 +3493,81 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                    {/* 服務項目區塊 */}
                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
                       <h4 className="font-black text-slate-800 mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
-                         <Plus className="w-5 h-5 text-purple-500"/> 簽證與額外加購資訊
+                         <CheckCircle className="w-5 h-5 text-teal-500"/> 課程提供服務
                       </h4>
-                      <div className="space-y-4">
-                         <div>
-                            <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest">可選加購與簽證</h5>
-                            {activity.certFee > 0 && (
-                               <div className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
-                                  <span>{activity.certSystem} 簽證費</span>
-                                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">+NT$ {Number(activity.certFee).toLocaleString()}</span>
-                               </div>
-                            )}
-                            {(activity.compulsories || []).map((c, i) => {
-                               const name = typeof c === 'string' ? c : c.name;
-                               const price = typeof c === 'object' && c.price > 0 ? c.price : 0;
-                               return (
-                                  <div key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
-                                     <span>{name}</span>
-                                     <span className={price > 0 ? 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100' : 'text-slate-400'}>{price > 0 ? `+NT$ ${Number(price).toLocaleString()}` : '免費/內含'}</span>
-                                  </div>
-                               );
-                            })}
-                         </div>
-                         {activity.electives && activity.electives.length > 0 && (
-                            <div className="pt-2 border-t border-slate-100">
-                               <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest mt-2">可自由加購選修 (稍後可選)</h5>
-                               {activity.electives.map((el, i) => (
-                                  <div key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center mb-2 bg-slate-50 p-2 rounded-lg">
-                                     <span>{el.name}</span>
-                                     <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">+NT$ {Number(el.price).toLocaleString()}</span>
-                                  </div>
-                               ))}
+                      <ul className="space-y-3">
+                         {(activity.services && activity.services.length > 0) ? activity.services.map((srv, idx) => (
+                            <li key={idx} className="text-sm font-bold text-slate-600 flex items-start gap-2.5">
+                               <span className="text-teal-500 mt-0.5"><Check className="w-4 h-4" /></span> <span className="leading-relaxed">{srv}</span>
+                            </li>
+                         )) : null}
+                      </ul>
+                   </div>
+
+                   {/* 必修與選修區塊 (改為可互動勾選) */}
+                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                      <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4 gap-2">
+                         <h4 className="font-black text-slate-800 flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-purple-500 shrink-0"/> 簽證與額外加購選項
+                         </h4>
+                         <span className="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0">
+                            小計: NT$ {(calculateTotal() - activity.price - calculateEqPrice()).toLocaleString()}
+                         </span>
+                      </div>
+                      
+                      <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
+                         {/* 費用大於0的必修項目 */}
+                         {activity.compulsories?.filter(c => typeof c === 'object' && c.price > 0).map(comp => (
+                           <label key={comp.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedCompulsories.includes(comp.id) ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
+                             <div className="flex items-center gap-3">
+                               <input type="checkbox" checked={selectedCompulsories.includes(comp.id)} onChange={e => {
+                                 if (e.target.checked) setSelectedCompulsories([...selectedCompulsories, comp.id]);
+                                 else setSelectedCompulsories(selectedCompulsories.filter(id => id !== comp.id));
+                               }} className="w-4 h-4 text-blue-600 rounded" />
+                               <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-500"/> {comp.name}</span>
+                             </div>
+                             <span className="font-black text-blue-700 text-sm">+NT$ {Number(comp.price).toLocaleString()}</span>
+                           </label>
+                         ))}
+
+                         {/* 免費的必修項目 (純展示) */}
+                         {activity.compulsories?.filter(c => typeof c === 'string' || (typeof c === 'object' && c.price <= 0)).map((comp, i) => (
+                            <div key={`free-${i}`} className="flex items-center justify-between p-3 border border-slate-100 bg-slate-50 rounded-xl opacity-70">
+                               <span className="font-bold text-slate-600 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-slate-400"/> {typeof comp === 'string' ? comp : comp.name}</span>
+                               <span className="font-black text-slate-500 text-sm">免費/內含</span>
                             </div>
+                         ))}
+
+                         {/* 簽證費 */}
+                         {activity.certFee > 0 && (
+                           <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${requireCert ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
+                             <div className="flex items-center gap-3">
+                               <input type="checkbox" checked={requireCert} onChange={e => setRequireCert(e.target.checked)} className="w-4 h-4 text-amber-600 rounded" />
+                               <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-500"/> {activity.certSystem || '系統'} 簽證費</span>
+                             </div>
+                             <span className="font-black text-amber-700 text-sm">+NT$ {Number(activity.certFee).toLocaleString()}</span>
+                           </label>
+                         )}
+                         
+                         {/* 選修項目 */}
+                         {activity.electives?.length > 0 && (
+                           <div className="pt-2 border-t border-slate-100 mt-2">
+                             <h5 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest">可自由加購選修</h5>
+                             <div className="grid grid-cols-1 gap-2">
+                               {activity.electives.map(el => (
+                                 <label key={el.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedElectives.includes(el.id) ? 'bg-purple-50 border-purple-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
+                                   <div className="flex items-center gap-3">
+                                     <input type="checkbox" checked={selectedElectives.includes(el.id)} onChange={(e) => {
+                                       if (e.target.checked) setSelectedElectives([...selectedElectives, el.id]);
+                                       else setSelectedElectives(selectedElectives.filter(id => id !== el.id));
+                                     }} className="w-4 h-4 text-purple-600 rounded" />
+                                     <span className="font-bold text-slate-700 text-sm">{el.name}</span>
+                                   </div>
+                                   <span className="font-black text-purple-700 text-sm">+NT$ {Number(el.price).toLocaleString()}</span>
+                                 </label>
+                               ))}
+                             </div>
+                           </div>
                          )}
                       </div>
                    </div>
@@ -3627,66 +3669,12 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                    </div>
                  </div>
 
-                 {/* 課程專屬加購與簽證費 */}
+                 {/* 課程裝備提示 */}
                  {isCourse && (
                     <div className="space-y-4 mb-8">
                        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm">
                          <Info className="w-5 h-5 shrink-0" /> 課程費用已包含裝備租借，請安心選擇下方的裝備尺寸。
                        </div>
-
-                       {(activity.certFee > 0 || activity.electives?.length > 0 || activity.compulsories?.some(c => typeof c === 'object' && c.price > 0)) && (
-                         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                           <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-                             <h4 className="font-black text-slate-800 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-500"/> 課程加購與簽證選項</h4>
-                             <span className="text-xl font-black text-blue-600">小計: NT$ {(calculateTotal() - activity.price - calculateEqPrice()).toLocaleString()}</span>
-                           </div>
-                           
-                           <div className="space-y-3">
-                              {/* 費用大於0的必修項目現在改為可自由勾選 */}
-                              {activity.compulsories?.filter(c => typeof c === 'object' && c.price > 0).map(comp => (
-                                <label key={comp.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedCompulsories.includes(comp.id) ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
-                                  <div className="flex items-center gap-3">
-                                    <input type="checkbox" checked={selectedCompulsories.includes(comp.id)} onChange={e => {
-                                      if (e.target.checked) setSelectedCompulsories([...selectedCompulsories, comp.id]);
-                                      else setSelectedCompulsories(selectedCompulsories.filter(id => id !== comp.id));
-                                    }} className="w-4 h-4 text-blue-600 rounded" />
-                                    <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-500"/> {comp.name}</span>
-                                  </div>
-                                  <span className="font-black text-blue-700 text-sm">+NT$ {Number(comp.price).toLocaleString()}</span>
-                                </label>
-                              ))}
-
-                              {/* 簽證費現在改為可自由勾選 */}
-                              {activity.certFee > 0 && (
-                                <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${requireCert ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
-                                  <div className="flex items-center gap-3">
-                                    <input type="checkbox" checked={requireCert} onChange={e => setRequireCert(e.target.checked)} className="w-4 h-4 text-amber-600 rounded" />
-                                    <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-500"/> {activity.certSystem || '系統'} 簽證費</span>
-                                  </div>
-                                  <span className="font-black text-amber-700 text-sm">+NT$ {Number(activity.certFee).toLocaleString()}</span>
-                                </label>
-                              )}
-                              
-                              {/* 原始的選修項目 */}
-                              {activity.electives?.length > 0 && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 mt-2">
-                                  {activity.electives.map(el => (
-                                    <label key={el.id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedElectives.includes(el.id) ? 'bg-purple-50 border-purple-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`}>
-                                      <div className="flex items-center gap-3">
-                                        <input type="checkbox" checked={selectedElectives.includes(el.id)} onChange={(e) => {
-                                          if (e.target.checked) setSelectedElectives([...selectedElectives, el.id]);
-                                          else setSelectedElectives(selectedElectives.filter(id => id !== el.id));
-                                        }} className="w-4 h-4 text-purple-600 rounded" />
-                                        <span className="font-bold text-slate-700 text-sm">{el.name}</span>
-                                      </div>
-                                      <span className="font-black text-purple-700 text-sm">+NT$ {Number(el.price).toLocaleString()}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              )}
-                           </div>
-                         </div>
-                       )}
                     </div>
                  )}
                  
@@ -4076,7 +4064,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const [cart, setCart] = useState([]); 
   const [courseStudents, setCourseStudents] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recommendModalData, setRecommendModalData] = useState(null); // 新增：用於儲存並顯示智慧配房的推薦選項
+  const [recommendModalData, setRecommendModalData] = useState(null);
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -4514,7 +4502,8 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {accommodations.map(room => {
                      const inCartCount = cart.filter(c => c.room.id === room.id).reduce((sum, c) => sum + c.roomCount, 0);
-                     return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} />;
+                     // 傳遞 sysConfig 與 checkIn 屬性，確保卡片能計算動態定價
+                     return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
                   })}
                 </div>
              </div>
@@ -4690,7 +4679,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   );
 }
 
-function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
+function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0, checkIn, sysConfig }) {
   const isDorm = room.isDorm === true;
   const tiers = useMemo(() => migrateRoomTiers(room), [room]);
   const [selectedTierId, setSelectedTierId] = useState(tiers.length > 0 ? tiers[0].id : null);
@@ -4708,7 +4697,45 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
     else if (rc <= 0 && availableUnits > 0) setRc(1);
   }, [availableUnits, rc]);
 
-  const displayPrice = isDorm ? room.priceLowWeekday : (selectedTier?.priceLowWeekday || 0);
+  // 動態計算指定日期區間的平均每晚價格
+  const dynamicPrice = useMemo(() => {
+      const pricingSource = isDorm ? room : (selectedTier || room);
+      if (!checkIn || nights <= 0 || !sysConfig) return pricingSource.priceLowWeekday || 0;
+
+      let total = 0;
+      const startDate = new Date(checkIn);
+      for (let i = 0; i < nights; i++) {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + i);
+          const y = currentDate.getFullYear();
+          const m = currentDate.getMonth() + 1;
+          const d = currentDate.getDate();
+          const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const dayOfWeek = currentDate.getDay();
+
+          const pS = parseInt(sysConfig?.peakSeasonStart || '05');
+          const pE = parseInt(sysConfig?.peakSeasonEnd || '10');
+          const isPeak = pS <= pE ? (m >= pS && m <= pE) : (m >= pS || m <= pE);
+
+          let isHoliday = (sysConfig?.specialHolidays || []).includes(dateStr);
+          if (!isHoliday && sysConfig?.holidayRanges) {
+              for (const r of sysConfig.holidayRanges) {
+                  if (dateStr >= r.start && dateStr <= r.end) { isHoliday = true; break; }
+              }
+          }
+
+          const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+
+          if (isHoliday) total += (pricingSource.priceHoliday || 0);
+          else if (isPeak) total += (isWeekend ? (pricingSource.pricePeakWeekend || 0) : (pricingSource.pricePeakWeekday || 0));
+          else total += (isWeekend ? (pricingSource.priceLowWeekend || 0) : (pricingSource.priceLowWeekday || 0));
+      }
+      return Math.round(total / nights);
+  }, [checkIn, nights, isDorm, room, selectedTier, sysConfig]);
+
+  const hasDates = checkIn && nights > 0;
+  const priceLabel = hasDates ? '指定區間均價' : '淡季平日起';
+  const priceSubLabel = hasDates ? 'Avg / Night' : 'Starting from';
 
   // 優化：極簡高質感步進器 (Stepper)
   const Stepper = ({ value, min, max, onChange, label, disabled }) => (
@@ -4766,10 +4793,10 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
 
               {/* 價格標籤 (獨立橫幅) */}
               <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-rose-100/50 shadow-sm mb-5 relative z-10 group-hover:border-rose-200 transition-colors">
-                  <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">淡季平日起<br/><span className="text-[8px] text-slate-400">Starting from</span></span>
+                  <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{priceLabel}<br/><span className="text-[8px] text-slate-400">{priceSubLabel}</span></span>
                   <div className="flex items-baseline justify-end gap-0.5">
                       <span className="text-xs font-bold text-rose-500">NT$</span>
-                      <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(displayPrice).toLocaleString()}</span>
+                      <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(dynamicPrice).toLocaleString()}</span>
                       <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
                   </div>
               </div>
