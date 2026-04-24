@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -492,6 +493,24 @@ function exportToCSV(filename, rows) {
     link.click();
     document.body.removeChild(link);
   }
+}
+
+// 確保房型資料相容新版階梯定價的轉換函式
+function migrateRoomTiers(room) {
+  if (room.pricingTiers && room.pricingTiers.length > 0) return room.pricingTiers;
+  if (room.isDorm) return [];
+  // 若為舊版單一定價資料，自動轉換為預設入住方案
+  return [{
+     id: Date.now().toString(),
+     name: '基本入住方案',
+     guests: room.bedCount || 2,
+     extraBeds: 0,
+     priceLowWeekday: room.priceLowWeekday || '',
+     priceLowWeekend: room.priceLowWeekend || '',
+     pricePeakWeekday: room.pricePeakWeekday || '',
+     pricePeakWeekend: room.pricePeakWeekend || '',
+     priceHoliday: room.priceHoliday || ''
+  }];
 }
 
 // --- AI 尺寸與配重分析工具 ---
@@ -2339,11 +2358,11 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
              </button>
              {accommodations.map(room => (
                <div key={room.id} className="bg-white border border-slate-200 p-6 rounded-3xl group relative shadow-sm hover:shadow-md transition-shadow">
-                  <div className="absolute top-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditingRoom(room); setIsRoomModalOpen(true); }} className="p-2 bg-slate-100 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm"><Edit3 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDeleteRoom(room.id)} className="p-2 bg-slate-100 rounded-xl hover:bg-red-600 hover:text-white transition-colors shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                  <div className="absolute top-5 right-5 flex gap-2 z-10 transition-opacity">
+                    <button onClick={() => { setEditingRoom(room); setIsRoomModalOpen(true); }} className="p-2 bg-slate-100 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm" title="編輯房型"><Edit3 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDeleteRoom(room.id)} className="p-2 bg-slate-100 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-colors shadow-sm" title="刪除房型"><Trash2 className="w-4 h-4" /></button>
                   </div>
-                  <h4 className="font-black text-slate-900 text-xl mb-4">
+                  <h4 className="font-black text-slate-900 text-xl mb-4 pr-20">
                     {String(room.name)}
                     {room.isDorm && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg ml-2 align-middle shadow-sm">背包床位計價</span>}
                   </h4>
