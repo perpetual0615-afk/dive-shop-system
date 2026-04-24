@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -4686,85 +4687,95 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
 
   const displayPrice = isDorm ? room.priceLowWeekday : (selectedTier?.priceLowWeekday || 0);
 
-  // 優化：精緻步進按鈕元件
+  // 優化：極簡高質感步進器 (Stepper)
   const Stepper = ({ value, min, max, onChange, label, disabled }) => (
-    <div className={`flex items-center justify-between bg-slate-50/80 border ${disabled ? 'border-slate-100 opacity-50' : 'border-slate-200 hover:border-rose-200'} rounded-[1.25rem] p-1.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] transition-colors`}>
-       <button type="button" disabled={disabled || value <= min} onClick={() => onChange(Math.max(min, value - 1))} className="w-8 h-8 rounded-xl bg-white text-slate-500 border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-black transition-all shadow-sm disabled:opacity-30 disabled:shadow-none">-</button>
-       <div className="flex flex-col items-center justify-center flex-1 px-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</span>
-          <span className="font-black text-slate-800 leading-none text-base">{value}</span>
+    <div className={`flex items-center justify-between bg-white border ${disabled ? 'border-slate-100 opacity-50' : 'border-slate-200 hover:border-rose-200'} rounded-2xl p-2 pl-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-colors`}>
+       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
+       <div className="flex items-center gap-1.5 bg-slate-50/80 rounded-xl p-1 border border-slate-100">
+           <button type="button" disabled={disabled || value <= min} onClick={() => onChange(Math.max(min, value - 1))} className="w-8 h-8 rounded-lg bg-white text-slate-400 border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-black transition-all shadow-sm disabled:opacity-30 disabled:shadow-none">-</button>
+           <span className="w-6 text-center font-black text-slate-800 text-sm">{value}</span>
+           <button type="button" disabled={disabled || value >= max} onClick={() => onChange(Math.min(max, value + 1))} className="w-8 h-8 rounded-lg bg-white text-slate-400 border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-black transition-all shadow-sm disabled:opacity-30 disabled:shadow-none">+</button>
        </div>
-       <button type="button" disabled={disabled || value >= max} onClick={() => onChange(Math.min(max, value + 1))} className="w-8 h-8 rounded-xl bg-white text-slate-500 border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-black transition-all shadow-sm disabled:opacity-30 disabled:shadow-none">+</button>
     </div>
   );
 
   return (
-      <div className={`bg-white p-2 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-all duration-300 flex flex-col h-full relative group overflow-hidden ${isOutOfStock ? 'border-slate-200/40 opacity-80 grayscale-[0.5]' : 'border-slate-200/60 hover:border-rose-300 hover:shadow-[0_15px_40px_rgba(244,63,94,0.15)]'}`}>
+      <div className={`bg-white p-2.5 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-all duration-400 flex flex-col h-full relative group overflow-hidden ${isOutOfStock ? 'border-slate-200/50 grayscale-[0.4] opacity-90' : 'border-slate-200/80 hover:border-rose-300 hover:shadow-[0_20px_50px_rgba(244,63,94,0.12)]'}`}>
           
+          {/* SOLD OUT 滿房遮罩 */}
           {isOutOfStock && (
-              <div className="absolute inset-0 bg-white/40 z-20 flex items-center justify-center backdrop-blur-[1.5px] rounded-[2.5rem]">
-                  <div className="bg-slate-800/90 text-white font-black px-8 py-4 rounded-[1.5rem] transform -rotate-12 text-2xl shadow-2xl tracking-widest border border-slate-700">SOLD OUT</div>
+              <div className="absolute inset-0 z-30 flex items-center justify-center backdrop-blur-[2px] rounded-[2.5rem] bg-white/30">
+                  <div className="bg-slate-900/90 backdrop-blur-md text-white font-black px-8 py-3 rounded-2xl transform -rotate-12 text-xl shadow-2xl tracking-[0.2em] border border-slate-700/50 shadow-slate-900/20">SOLD OUT</div>
               </div>
           )}
 
-          <div className="bg-slate-50/50 rounded-[2rem] p-5 h-full flex flex-col relative overflow-hidden">
-              <div className="absolute -bottom-6 -right-6 w-40 h-40 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.08] transition-all duration-500 pointer-events-none transform -rotate-6">
+          {/* 內層容器 */}
+          <div className="bg-slate-50/40 rounded-[2rem] p-5 h-full flex flex-col relative overflow-hidden border border-slate-100/50">
+              <div className="absolute -bottom-8 -right-8 w-48 h-48 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.06] transition-all duration-700 pointer-events-none transform -rotate-12">
                   <StaghornCoralWatermark className="w-full h-full text-rose-600" />
               </div>
 
-              <div className="flex justify-between items-start mb-5 relative z-10">
-                  <div className="flex gap-3 items-start">
-                     <div className="w-10 h-10 bg-white border border-rose-100 rounded-2xl flex items-center justify-center text-rose-500 shadow-sm shrink-0 mt-1"><Home className="w-5 h-5"/></div>
-                     <div>
-                         <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors pr-2 leading-tight">
+              {/* 標題與標籤區 */}
+              <div className="flex justify-between items-start mb-5 relative z-10 gap-4">
+                  <div className="flex gap-3 items-start flex-1 min-w-0">
+                     <div className="w-11 h-11 bg-white border border-rose-100/80 rounded-2xl flex items-center justify-center text-rose-500 shadow-sm shrink-0 mt-0.5"><Home className="w-5 h-5"/></div>
+                     <div className="flex-1 min-w-0">
+                         <h3 className="font-black text-xl text-slate-900 group-hover:text-rose-700 transition-colors leading-tight truncate">
                             {room.name}
                          </h3>
-                         <div className="flex flex-wrap gap-1.5 mt-2">
-                             <span className="text-[10px] font-black text-slate-600 bg-white px-2.5 py-0.5 rounded border border-slate-200 shadow-sm">
+                         <div className="flex flex-wrap gap-1.5 mt-2.5">
+                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shadow-sm flex items-center gap-1 ${availableUnits <= 2 && availableUnits > 0 ? 'bg-orange-50 text-orange-600 border-orange-200/60' : 'bg-white text-slate-600 border-slate-200/60'}`}>
+                               {availableUnits <= 2 && availableUnits > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>}
                                {isDorm ? `剩 ${availableUnits} 床` : `剩 ${availableUnits} 間`}
                              </span>
-                             <span className="text-[10px] font-black text-slate-600 bg-white px-2.5 py-0.5 rounded border border-slate-200 shadow-sm">
-                               {isDorm ? '1 人 / 床' : (selectedTier ? `方案含 ${selectedTier.guests} 人` : `容納 ${room.bedCount} 人/間`)}
+                             <span className="text-[10px] font-black text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200/60 shadow-sm">
+                               {isDorm ? '1 人 / 床' : (selectedTier ? `${selectedTier.guests} 人` : `容納 ${room.bedCount} 人`)}
                              </span>
                              {!isDorm && selectedTier?.extraBeds > 0 && (
-                                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded border border-orange-100 shadow-sm">
-                                   含 {selectedTier.extraBeds} 加床
+                                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/60 shadow-sm flex items-center gap-1">
+                                   <Plus className="w-3 h-3" /> 含 {selectedTier.extraBeds} 加床
                                 </span>
                              )}
                          </div>
                      </div>
                   </div>
-                  <div className="text-right shrink-0 bg-white px-4 py-3 rounded-2xl border border-rose-100 shadow-sm">
-                      <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-1">淡季平日起</span>
-                      <div className="flex items-baseline justify-end gap-0.5">
-                          <span className="text-xs font-bold text-rose-500">NT$</span>
-                          <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(displayPrice).toLocaleString()}</span>
-                          <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
-                      </div>
+              </div>
+
+              {/* 價格標籤 (獨立橫幅) */}
+              <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-rose-100/50 shadow-sm mb-5 relative z-10 group-hover:border-rose-200 transition-colors">
+                  <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">淡季平日起<br/><span className="text-[8px] text-slate-400">Starting from</span></span>
+                  <div className="flex items-baseline justify-end gap-0.5">
+                      <span className="text-xs font-bold text-rose-500">NT$</span>
+                      <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(displayPrice).toLocaleString()}</span>
+                      <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
                   </div>
               </div>
 
+              {/* 方案選擇選單 */}
               {!isDorm && tiers.length > 0 && (
-                  <div className="mb-4 relative z-10">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block ml-1">選擇入住方案 (Occupancy Plan)</label>
-                      <div className="relative">
+                  <div className="mb-5 relative z-10">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1 flex items-center gap-1.5">
+                        <User className="w-3 h-3 text-slate-400" /> 選擇入住方案
+                      </label>
+                      <div className="relative group/select">
                           <select 
                               value={selectedTierId || ''} 
                               onChange={e => setSelectedTierId(e.target.value)}
                               disabled={isOutOfStock}
-                              className="w-full p-3.5 pl-4 pr-10 border border-slate-200 hover:border-rose-300 rounded-[1rem] text-sm font-black outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 bg-white text-slate-800 appearance-none cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                              className="w-full p-3.5 pl-4 pr-10 border border-slate-200 group-hover/select:border-rose-300 rounded-xl text-sm font-black outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 bg-white text-slate-800 appearance-none cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed"
                           >
                               {tiers.map(t => (
                                   <option key={t.id} value={t.id}>{t.name} (共 {t.guests} 人入住)</option>
                               ))}
                           </select>
-                          <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-rose-400 pointer-events-none" />
+                          <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover/select:text-rose-400 pointer-events-none transition-colors" />
                       </div>
                   </div>
               )}
 
-              <div className="mt-auto relative z-10 pt-4 border-t border-slate-200/60">
-                  <Stepper value={rc} min={1} max={availableUnits} onChange={setRc} label={isDorm ? '選擇要預訂幾床' : '選擇要預訂幾間'} disabled={isOutOfStock} />
+              {/* 數量選擇與按鈕 */}
+              <div className="mt-auto relative z-10 pt-2">
+                  <Stepper value={rc} min={1} max={availableUnits} onChange={setRc} label={isDorm ? '預訂床位數' : '預訂間數'} disabled={isOutOfStock} />
               </div>
               
               <button 
@@ -4783,9 +4794,9 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
                       setRc(1);
                   }} 
                   disabled={hasFullDays || isOutOfStock || availableUnits <= 0 || nights <= 0}
-                  className="w-full mt-4 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-md hover:bg-rose-600 hover:shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:-translate-y-0.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
+                  className="w-full mt-4 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-rose-600 hover:shadow-[0_10px_25px_rgba(244,63,94,0.3)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0 flex items-center justify-center gap-2 relative z-10"
               >
-                  <Plus className="w-5 h-5"/> {isOutOfStock ? '已客滿 Sold Out' : nights <= 0 ? '請先於上方選擇日期' : '加入預訂清單'}
+                  <ShoppingCart className="w-5 h-5"/> {isOutOfStock ? '已客滿 Sold Out' : nights <= 0 ? '請先選擇上方日期' : '加入預訂清單'}
               </button>
           </div>
       </div>
