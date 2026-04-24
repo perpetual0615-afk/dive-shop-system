@@ -513,6 +513,23 @@ function migrateRoomTiers(room) {
   }];
 }
 
+// 房型顯示排序輔助函數 (背包房 > 1張雙人床 > 2張雙人床)
+function sortAccommodations(rooms) {
+  return [...rooms].sort((a, b) => {
+    const getRank = (room) => {
+      if (room.isDorm) return 1; // 背包房最優先
+      const n = room.name || '';
+      if (n.includes('1張雙人') || n.includes('雙人')) return 2; // 1張雙人床次之
+      if (n.includes('2張雙人') || n.includes('四人')) return 3; // 2張雙人床第三
+      return 4; // 其他房型排最後
+    };
+    if (getRank(a) === getRank(b)) {
+       return (a.name || '').localeCompare(b.name || '', 'zh-TW'); // 同級別依名稱排序
+    }
+    return getRank(a) - getRank(b);
+  });
+}
+
 // --- AI 尺寸與配重分析工具 ---
 function calculateRecommendedSize(h, w) {
   if (!h || !w) return '';
@@ -2356,7 +2373,7 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
              <button onClick={() => { setEditingRoom(null); setIsRoomModalOpen(true); }} className="p-8 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-black hover:border-blue-400 hover:text-blue-500 transition-all flex flex-col items-center justify-center gap-3">
                 <Plus className="w-8 h-8" /> 新增房型與價格
              </button>
-             {accommodations.map(room => (
+             {sortAccommodations(accommodations).map(room => (
                <div key={room.id} className="bg-white border border-slate-200 p-6 rounded-3xl group relative shadow-sm hover:shadow-md transition-shadow">
                   <div className="absolute top-5 right-5 flex gap-2 z-10 transition-opacity">
                     <button onClick={() => { setEditingRoom(room); setIsRoomModalOpen(true); }} className="p-2 bg-slate-100 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm" title="編輯房型"><Edit3 className="w-4 h-4" /></button>
@@ -4521,7 +4538,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                    </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {accommodations.map(room => {
+                  {sortAccommodations(accommodations).map(room => {
                      const inCartCount = cart.filter(c => c.room.id === room.id).reduce((sum, c) => sum + c.roomCount, 0);
                      // 傳遞 sysConfig 與 checkIn 屬性，確保卡片能計算動態定價
                      return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
