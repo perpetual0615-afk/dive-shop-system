@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -3131,7 +3130,7 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
                     <div>
                        {type === 'accommodation' && <span className="text-[10px] font-black text-slate-400 block mb-0.5 tracking-widest uppercase">淡季平日起 (Starting from)</span>}
                        <span className={`${type === 'accommodation' ? 'text-rose-600' : 'text-blue-600'} font-black text-lg md:text-xl`}>
-                          NT$ {Number(item.price || item.priceLowWeekday || 0)}
+                          NT$ {Number(item.price || item.priceLowWeekday || 0).toLocaleString()}
                        </span>
                     </div>
                     <button 
@@ -4470,11 +4469,11 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   <div className="flex justify-between items-end mb-5">
                     <div>
                        <span className="text-sm font-bold text-slate-500 block mb-1">總金額 Total</span>
-                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice}</span>}
+                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice.toLocaleString()}</span>}
                     </div>
                     <div className="text-right">
-                      {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal}</div>}
-                      <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total}</span>
+                      {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal.toLocaleString()}</div>}
+                      <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total.toLocaleString()}</span>
                     </div>
                   </div>
                   <button 
@@ -4558,9 +4557,13 @@ function AccRoomCard({ room, onAdd, hasFullDays, nights, inCartCount = 0 }) {
                      )}
                  </div>
               </div>
-              <div className="text-right shrink-0 bg-rose-50/50 px-3 py-2 rounded-xl border border-rose-100">
-                  <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-0.5">淡季平日起</span>
-                  <span className="text-rose-600 font-black text-xl leading-none">NT$ {room.priceLowWeekday}</span>
+              <div className="text-right shrink-0 bg-rose-50/50 px-3 py-2.5 rounded-xl border border-rose-100 shadow-sm">
+                  <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-1">淡季平日起</span>
+                  <div className="flex items-baseline justify-end gap-0.5">
+                      <span className="text-xs font-bold text-rose-500">NT$</span>
+                      <span className="text-rose-600 font-black text-2xl leading-none tracking-tight">{Number(room.priceLowWeekday).toLocaleString()}</span>
+                      <span className="text-[10px] font-bold text-rose-400 ml-0.5">{isDorm ? '/床' : '/晚'}</span>
+                  </div>
               </div>
           </div>
 
