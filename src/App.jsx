@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -518,16 +517,38 @@ function migrateRoomTiers(room) {
   return tiers.sort((a, b) => (parseInt(a.guests) || 0) - (parseInt(b.guests) || 0));
 }
 
-// 👉 升級版：全域統一的房型排序邏輯 (精準判斷方案內最少人數)
+// 👉 旗艦版：全域統一的房型排序邏輯 (關鍵字權重 + 容納人數 + 名稱)
 function sortAccommodations(accommodations) {
   return [...(accommodations || [])].sort((a, b) => {
-    // 1. 背包房優先
+    // 1. 絕對優先：背包房 / 青旅
     if (a.isDorm && !b.isDorm) return -1;
     if (!a.isDorm && b.isDorm) return 1;
     
-    // 2. 依床位/容納人數由少到多排序
+    // 2. 關鍵字智慧權重 (確保「1張床/雙人房」絕對優先於「2張床/四人房」)
+    const getKeywordWeight = (name) => {
+      if (!name) return 99;
+      const n = name.toLowerCase();
+      if (n.includes('背包') || n.includes('青旅') || n.includes('dorm')) return 1;
+      if (n.includes('單人') || n.includes('1人')) return 2;
+      if (n.includes('1張') || n.includes('一張') || n.includes('雙人')) return 3;
+      if (n.includes('2張') || n.includes('兩張') || n.includes('四人')) return 4;
+      if (n.includes('3張') || n.includes('三張') || n.includes('六人')) return 5;
+      if (n.includes('4張') || n.includes('四張') || n.includes('八人')) return 6;
+      if (n.includes('包棟') || n.includes('包層')) return 90;
+      return 50; // 一般名稱則依循人數排序
+    };
+    
+    const weightA = getKeywordWeight(a.name);
+    const weightB = getKeywordWeight(b.name);
+    
+    // 若名稱含有明確的房型/床位關鍵字，強制優先以此排序
+    if (weightA !== weightB && (weightA < 50 || weightB < 50)) {
+       return weightA - weightB;
+    }
+
+    // 3. 若關鍵字權重相同(或皆無)，依最少容納人數由少到多排序
     const getCap = (r) => {
-      if (r.isDorm) return 1; // 背包房以單一床位為基礎單位
+      if (r.isDorm) return 1;
       const tiers = migrateRoomTiers(r);
       if (tiers && tiers.length > 0) {
          // 掃描方案，抓出該房型的最少入住基準人數
@@ -540,7 +561,7 @@ function sortAccommodations(accommodations) {
     const capB = getCap(b);
     if (capA !== capB) return capA - capB;
     
-    // 3. 相同基準人數時以名稱排序
+    // 4. 最後依名稱字母自然排序
     return (a.name || '').localeCompare(b.name || '');
   });
 }
