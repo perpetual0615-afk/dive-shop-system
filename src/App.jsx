@@ -4438,31 +4438,32 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   1. 選擇入住日期與人數
                 </h3>
                 
-                {/* 極簡流線型膠囊搜尋列 (Modern Pill Search Bar) */}
-                <div className="bg-white rounded-3xl md:rounded-[2.5rem] p-2 md:p-3 shadow-[0_8px_30px_rgba(244,63,94,0.08)] border border-rose-50 flex flex-col lg:flex-row gap-3 items-stretch relative z-10 transition-all hover:shadow-[0_12px_40px_rgba(244,63,94,0.12)]">
-                   <div className="flex-1 flex flex-col sm:flex-row items-center divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-slate-50/80 hover:bg-slate-50 rounded-2xl md:rounded-full border border-slate-100/80 overflow-hidden transition-colors">
-                       <div className="w-full sm:flex-1 px-6 py-3.5 relative group cursor-pointer hover:bg-white transition-colors">
-                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1 block">入住 Check-in</label>
-                           <input type="date" min={todayStr} required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-base outline-none cursor-pointer" />
-                       </div>
+                {/* 極簡流線型膠囊搜尋列 (Modern Pill Search Bar) - 解決空間不足與遮擋問題 */}
+                <div className="bg-white rounded-3xl md:rounded-[2.5rem] p-2 md:p-3 shadow-[0_8px_30px_rgba(244,63,94,0.08)] border border-rose-50 flex flex-col lg:flex-row gap-2 lg:gap-3 items-stretch relative z-10 transition-all hover:shadow-[0_12px_40px_rgba(244,63,94,0.12)]">
+                   <div className="flex-1 grid grid-cols-2 lg:flex lg:flex-row items-stretch bg-slate-50/80 hover:bg-slate-50 rounded-2xl md:rounded-[2rem] border border-slate-100/80 transition-colors relative">
                        
-                       <div className="hidden sm:flex items-center justify-center shrink-0 px-2 z-10 relative">
-                           <div className="text-[11px] font-black text-white bg-rose-500 px-3 py-1 rounded-full shadow-sm whitespace-nowrap">{nights} 晚</div>
+                       <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-r border-b lg:border-b-0 border-slate-200/60 rounded-tl-2xl lg:rounded-l-[2rem]">
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">入住 Check-in</label>
+                           <input type="date" min={todayStr} required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0" />
                        </div>
 
-                       <div className="w-full sm:flex-1 px-6 py-3.5 relative group cursor-pointer hover:bg-white transition-colors">
-                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1 block sm:text-right">退房 Check-out</label>
-                           <input type="date" min={checkIn || todayStr} required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-base outline-none cursor-pointer sm:text-right" />
+                       <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-b lg:border-b-0 lg:border-r border-slate-200/60 rounded-tr-2xl lg:rounded-tr-none flex flex-col justify-center">
+                           {/* 浮動 N晚 標籤 (完美跨越中央分隔線) */}
+                           <div className="absolute top-1/2 -left-[24px] sm:-left-[28px] -translate-y-1/2 z-20 pointer-events-none flex items-center justify-center">
+                               <div className="text-[10px] font-black text-white bg-rose-500 px-3 py-1 rounded-full shadow-md whitespace-nowrap border-[3px] border-white">{nights} 晚</div>
+                           </div>
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block sm:text-right group-hover:text-rose-600 transition-colors">退房 Check-out</label>
+                           <input type="date" min={checkIn || todayStr} required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0 sm:text-right" />
                        </div>
                        
-                       <div className="w-full sm:w-36 shrink-0 px-6 py-3.5 relative group cursor-pointer hover:bg-white transition-colors">
-                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1 block">人數 Guests</label>
+                       <div className="col-span-2 lg:w-40 shrink-0 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors rounded-b-2xl lg:rounded-b-none lg:rounded-r-[2rem] flex flex-col justify-center">
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">人數 Guests</label>
                            <div className="flex items-center">
-                              <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-base outline-none" />
+                              <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none m-0 p-0" placeholder="例如: 2" />
                            </div>
                        </div>
                    </div>
-                   <button onClick={handleAutoRecommend} disabled={hasFullDays || nights <= 0} className="w-full lg:w-auto px-8 py-4 bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 rounded-2xl md:rounded-full font-black transition-all shadow-lg shadow-rose-500/30 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 shrink-0 hover:scale-[1.02]">
+                   <button onClick={handleAutoRecommend} disabled={hasFullDays || nights <= 0} className="w-full lg:w-auto px-6 py-4 bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 rounded-2xl md:rounded-[2rem] font-black transition-all shadow-md disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 shrink-0 hover:scale-[1.02]">
                       ✨ 智慧最佳配房
                    </button>
                 </div>
