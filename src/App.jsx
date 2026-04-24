@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -4422,305 +4421,290 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const todayStr = new Date().toLocaleDateString('en-CA'); 
 
   return (
-    <>
-      <div className="relative animate-in fade-in duration-500 min-h-[calc(100vh-80px)] pb-24 lg:pb-12">
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
-           <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-rose-100/50 via-pink-50/30 to-transparent"></div>
-           <div className="absolute -top-20 right-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/60 to-transparent transform -rotate-[15deg] blur-3xl opacity-80"></div>
-           <div className="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] opacity-[0.15] pointer-events-none text-rose-400">
-              <StaghornCoralWatermark className="w-full h-full" />
-           </div>
-           <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[400px] opacity-[0.1] pointer-events-none transform -rotate-45 text-pink-500">
-              <StaghornCoralWatermark className="w-full h-full" />
+    <div className="relative animate-in fade-in duration-500 min-h-[calc(100vh-80px)] pb-24 lg:pb-12">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
+         <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-rose-100/50 via-pink-50/30 to-transparent"></div>
+         <div className="absolute -top-20 right-[10%] w-[40%] h-[80vh] bg-gradient-to-b from-white/60 to-transparent transform -rotate-[15deg] blur-3xl opacity-80"></div>
+         <div className="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] opacity-[0.15] pointer-events-none text-rose-400">
+            <StaghornCoralWatermark className="w-full h-full" />
+         </div>
+         <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[400px] opacity-[0.1] pointer-events-none transform -rotate-45 text-pink-500">
+            <StaghornCoralWatermark className="w-full h-full" />
+         </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4 border-b border-rose-200/50 pb-5 mb-6 px-2">
+           <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-rose-700 rounded-full hover:bg-white hover:shadow-md transition-all border border-white shadow-sm"><ChevronLeft className="w-6 h-6"/></button>
+           <div>
+             <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
+             <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex flex-wrap items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>
+                挑選理想房型，系統為您自動試算
+                <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md shadow-sm border border-rose-200/50">指定區間：週末、旺季、連假</span>
+             </div>
            </div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto space-y-6 pt-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 border-b border-rose-200/50 pb-5 mb-6 px-2">
-             <button onClick={onBack} className="p-2.5 bg-white/60 backdrop-blur-sm text-rose-700 rounded-full hover:bg-white hover:shadow-md transition-all border border-white shadow-sm"><ChevronLeft className="w-6 h-6"/></button>
-             <div>
-               <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-700 to-pink-700 drop-shadow-sm">住宿預訂 / Accommodation</h2>
-               <div className="text-xs md:text-sm font-bold text-rose-800/60 mt-1.5 flex flex-wrap items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>
-                  挑選理想房型，系統為您自動試算
-                  <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md shadow-sm border border-rose-200/50">指定區間：週末、旺季、連假</span>
-               </div>
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+          <div className="xl:col-span-8 space-y-8">
+             <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)] relative overflow-hidden">
+                <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-5 flex items-center gap-3">
+                  <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CalendarDays className="w-5 h-5"/></div>
+                  1. 選擇入住日期與人數
+                </h3>
+                
+                {/* 極簡流線型膠囊搜尋列 (Modern Pill Search Bar) - 解決空間不足與遮擋問題 */}
+                <div className="bg-white rounded-3xl md:rounded-[2.5rem] p-2 md:p-3 shadow-[0_8px_30px_rgba(244,63,94,0.08)] border border-rose-50 flex flex-col lg:flex-row gap-2 lg:gap-3 items-stretch relative z-10 transition-all hover:shadow-[0_12px_40px_rgba(244,63,94,0.12)]">
+                   <div className="flex-1 grid grid-cols-2 lg:flex lg:flex-row items-stretch bg-slate-50/80 hover:bg-slate-50 rounded-2xl md:rounded-[2rem] border border-slate-100/80 transition-colors relative">
+                       
+                       <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-r border-b lg:border-b-0 border-slate-200/60 rounded-tl-2xl lg:rounded-l-[2rem]">
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">入住 Check-in</label>
+                           <input type="date" min={todayStr} required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0" />
+                       </div>
+
+                       <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-b lg:border-b-0 lg:border-r border-slate-200/60 rounded-tr-2xl lg:rounded-tr-none flex flex-col justify-center">
+                           {/* 浮動 N晚 標籤 (完美跨越中央分隔線) */}
+                           <div className="absolute top-1/2 -left-[24px] sm:-left-[28px] -translate-y-1/2 z-20 pointer-events-none flex items-center justify-center">
+                               <div className="text-[10px] font-black text-white bg-rose-500 px-3 py-1 rounded-full shadow-md whitespace-nowrap border-[3px] border-white">{nights} 晚</div>
+                           </div>
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block sm:text-right group-hover:text-rose-600 transition-colors">退房 Check-out</label>
+                           <input type="date" min={checkIn || todayStr} required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0 sm:text-right" />
+                       </div>
+                       
+                       <div className="col-span-2 lg:w-40 shrink-0 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors rounded-b-2xl lg:rounded-b-none lg:rounded-r-[2rem] flex flex-col justify-center">
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">人數 Guests</label>
+                           <div className="flex items-center">
+                              <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none m-0 p-0" placeholder="例如: 1" />
+                           </div>
+                       </div>
+                   </div>
+                   <button onClick={handleAutoRecommend} disabled={hasFullDays || nights <= 0} className="w-full lg:w-auto px-6 py-4 bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 rounded-2xl md:rounded-[2rem] font-black transition-all shadow-md disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 shrink-0 hover:scale-[1.02]">
+                      ✨ 智慧最佳配房
+                   </button>
+                </div>
+
+                {hasFullDays && (
+                  <div className="mt-5 bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in slide-in-from-top-2 relative z-10">
+                     <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                     <div>
+                       <p className="text-sm font-black text-rose-800">區間包含已滿房日期</p>
+                       <p className="text-[10px] font-bold text-rose-600 mt-1 leading-relaxed">客滿日期：{fullDaysInRange.join(', ')}<br/>請調整入住/退房日期才能預訂。</p>
+                     </div>
+                  </div>
+                )}
+             </div>
+
+             <div className="bg-white/60 backdrop-blur-md p-6 md:p-8 rounded-[2rem] border border-white shadow-sm">
+                <div className="flex items-center gap-3 mb-6 border-b border-slate-200/50 pb-4">
+                   <div className="bg-rose-100 p-2.5 rounded-xl text-rose-600"><Home className="w-6 h-6"/></div>
+                   <div>
+                      <h3 className="font-black text-xl text-slate-800 leading-tight">2. 選擇您的理想房型</h3>
+                      <p className="text-xs font-bold text-slate-500 mt-1">下方顯示各房型資訊，價格會隨選擇的「方案」即時變動</p>
+                   </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {accommodations.map(room => {
+                     const inCartCount = cart.filter(c => c.room.id === room.id).reduce((sum, c) => sum + c.roomCount, 0);
+                     // 傳遞 sysConfig 與 checkIn 屬性，確保卡片能計算動態定價
+                     return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
+                  })}
+                </div>
              </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-            <div className="xl:col-span-8 space-y-8">
-               <div className="bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-white shadow-[0_15px_40px_rgba(244,63,94,0.1)] relative overflow-hidden">
-                  <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-3 mb-5 flex items-center gap-3">
-                    <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><CalendarDays className="w-5 h-5"/></div>
-                    1. 選擇入住日期與人數
-                  </h3>
-                  
-                  {/* 極簡流線型膠囊搜尋列 (Modern Pill Search Bar) - 解決空間不足與遮擋問題 */}
-                  <div className="bg-white rounded-3xl md:rounded-[2.5rem] p-2 md:p-3 shadow-[0_8px_30px_rgba(244,63,94,0.08)] border border-rose-50 flex flex-col lg:flex-row gap-2 lg:gap-3 items-stretch relative z-10 transition-all hover:shadow-[0_12px_40px_rgba(244,63,94,0.12)]">
-                     <div className="flex-1 grid grid-cols-2 lg:flex lg:flex-row items-stretch bg-slate-50/80 hover:bg-slate-50 rounded-2xl md:rounded-[2rem] border border-slate-100/80 transition-colors relative">
-                         
-                         <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-r border-b lg:border-b-0 border-slate-200/60 rounded-tl-2xl lg:rounded-l-[2rem]">
-                             <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">入住 Check-in</label>
-                             <input type="date" min={todayStr} required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0" />
-                         </div>
-
-                         <div className="col-span-1 lg:flex-1 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors border-b lg:border-b-0 lg:border-r border-slate-200/60 rounded-tr-2xl lg:rounded-tr-none flex flex-col justify-center">
-                             {/* 浮動 N晚 標籤 (完美跨越中央分隔線) */}
-                             <div className="absolute top-1/2 -left-[24px] sm:-left-[28px] -translate-y-1/2 z-20 pointer-events-none flex items-center justify-center">
-                                 <div className="text-[10px] font-black text-white bg-rose-500 px-3 py-1 rounded-full shadow-md whitespace-nowrap border-[3px] border-white">{nights} 晚</div>
-                             </div>
-                             <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block sm:text-right group-hover:text-rose-600 transition-colors">退房 Check-out</label>
-                             <input type="date" min={checkIn || todayStr} required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none cursor-pointer m-0 p-0 sm:text-right" />
-                         </div>
-                         
-                         <div className="col-span-2 lg:w-40 shrink-0 px-4 sm:px-6 py-4 relative group cursor-pointer hover:bg-white transition-colors rounded-b-2xl lg:rounded-b-none lg:rounded-r-[2rem] flex flex-col justify-center">
-                             <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 block group-hover:text-rose-600 transition-colors">人數 Guests</label>
-                             <div className="flex items-center">
-                                <input type="number" required min="1" value={searchGuests} onChange={e => setSearchGuests(e.target.value)} className="w-full bg-transparent font-black text-slate-800 text-sm sm:text-base outline-none m-0 p-0" placeholder="例如: 1" />
-                             </div>
-                         </div>
-                     </div>
-                     <button onClick={handleAutoRecommend} disabled={hasFullDays || nights <= 0} className="w-full lg:w-auto px-6 py-4 bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 rounded-2xl md:rounded-[2rem] font-black transition-all shadow-md disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 shrink-0 hover:scale-[1.02]">
-                        ✨ 智慧最佳配房
-                     </button>
-                  </div>
-
-                  {hasFullDays && (
-                    <div className="mt-5 bg-rose-50 border border-rose-200 p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in slide-in-from-top-2 relative z-10">
-                       <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                       <div>
-                         <p className="text-sm font-black text-rose-800">區間包含已滿房日期</p>
-                         <p className="text-[10px] font-bold text-rose-600 mt-1 leading-relaxed">客滿日期：{fullDaysInRange.join(', ')}<br/>請調整入住/退房日期才能預訂。</p>
-                       </div>
-                    </div>
-                  )}
-               </div>
-
-               <div className="bg-white/60 backdrop-blur-md p-6 md:p-8 rounded-[2rem] border border-white shadow-sm">
-                  <div className="flex items-center gap-3 mb-6 border-b border-slate-200/50 pb-4">
-                     <div className="bg-rose-100 p-2.5 rounded-xl text-rose-600"><Home className="w-6 h-6"/></div>
-                     <div>
-                        <h3 className="font-black text-xl text-slate-800 leading-tight">2. 選擇您的理想房型</h3>
-                        <p className="text-xs font-bold text-slate-500 mt-1">下方顯示各房型資訊，價格會隨選擇的「方案」即時變動</p>
-                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {sortedAccommodations.map(room => {
-                       const inCartCount = cart.filter(c => c.room.id === room.id).reduce((sum, c) => sum + c.roomCount, 0);
-                       // 傳遞 sysConfig 與 checkIn 屬性，確保卡片能計算動態定價
-                       return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
-                    })}
-                  </div>
-               </div>
-            </div>
-
-            <div className="xl:col-span-4 xl:sticky xl:top-24 space-y-6 scroll-mt-24">
-               <div className="bg-white/95 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.12)] flex flex-col">
-                 <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-6 flex items-center gap-3">
-                    <div className="bg-pink-100 p-2 rounded-xl text-pink-600"><ClipboardList className="w-5 h-5"/></div> 
-                    3. 預訂明細與結帳
-                 </h3>
+          <div className="xl:col-span-4 xl:sticky xl:top-24 space-y-6 scroll-mt-24">
+             <div className="bg-white/95 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] border border-white shadow-[0_20px_50px_rgba(244,63,94,0.12)] flex flex-col">
+               <h3 className="font-black text-xl text-slate-800 border-b border-rose-100/50 pb-4 mb-6 flex items-center gap-3">
+                  <div className="bg-pink-100 p-2 rounded-xl text-pink-600"><ClipboardList className="w-5 h-5"/></div> 
+                  3. 預訂明細與結帳
+               </h3>
+               
+               <div className="mb-8">
+                 <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+                   <span>已選房型清單</span>
+                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md font-black">{cart.length} 筆</span>
+                 </div>
                  
-                 <div className="mb-8">
-                   <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
-                     <span>已選房型清單</span>
-                     <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md font-black">{cart.length} 筆</span>
-                   </div>
-                   
-                   {cart.length === 0 ? (
-                     <div className="text-center py-12 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-rose-100">
-                       <div className="w-14 h-14 bg-white rounded-full shadow-sm text-rose-200 mx-auto mb-4 flex items-center justify-center">
-                          <ShoppingCart className="w-6 h-6" />
-                       </div>
-                       <div className="text-sm font-black text-slate-400">尚未選擇任何房型</div>
-                       <p className="text-xs font-bold text-slate-400/70 mt-1">請從左側挑選或使用智慧配房</p>
+                 {cart.length === 0 ? (
+                   <div className="text-center py-12 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-rose-100">
+                     <div className="w-14 h-14 bg-white rounded-full shadow-sm text-rose-200 mx-auto mb-4 flex items-center justify-center">
+                        <ShoppingCart className="w-6 h-6" />
                      </div>
-                   ) : (
-                     <div className="space-y-3 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2">
-                       {cart.map((item) => (
-                         <div key={item.id} className="flex items-stretch justify-between bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-rose-300 hover:shadow-md transition-all relative overflow-hidden">
-                            <div className="w-1.5 bg-gradient-to-b from-rose-400 to-pink-500 shrink-0"></div>
-                            <div className="flex-1 min-w-0 p-4 pr-2 flex items-start gap-3">
-                              <div className="bg-rose-50 p-2 rounded-xl text-rose-500 shrink-0 shadow-inner"><Home className="w-4 h-4"/></div>
-                              <div>
-                                 <div className="font-black text-slate-800 text-sm leading-tight mb-1 truncate">{item.room.name}</div>
-                                 {item.planName && <div className="text-[10px] font-bold text-slate-500 mb-2 truncate">方案: {item.planName}</div>}
-                                 <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                   <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 shadow-sm">{item.roomCount} 間</span>
-                                   <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 shadow-sm">{item.guests} 人</span>
-                                   {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100 text-orange-600 shadow-sm">加 {item.extraBeds} 床</span>}
-                                 </div>
-                              </div>
+                     <div className="text-sm font-black text-slate-400">尚未選擇任何房型</div>
+                     <p className="text-xs font-bold text-slate-400/70 mt-1">請從左側挑選或使用智慧配房</p>
+                   </div>
+                 ) : (
+                   <div className="space-y-3 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2">
+                     {cart.map((item) => (
+                       <div key={item.id} className="flex items-stretch justify-between bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-rose-300 hover:shadow-md transition-all relative overflow-hidden">
+                          <div className="w-1.5 bg-gradient-to-b from-rose-400 to-pink-500 shrink-0"></div>
+                          <div className="flex-1 min-w-0 p-4 pr-2 flex items-start gap-3">
+                            <div className="bg-rose-50 p-2 rounded-xl text-rose-500 shrink-0 shadow-inner"><Home className="w-4 h-4"/></div>
+                            <div>
+                               <div className="font-black text-slate-800 text-sm leading-tight mb-1 truncate">{item.room.name}</div>
+                               {item.planName && <div className="text-[10px] font-bold text-slate-500 mb-2 truncate">方案: {item.planName}</div>}
+                               <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                 <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 shadow-sm">{item.roomCount} 間</span>
+                                 <span className="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 shadow-sm">{item.guests} 人</span>
+                                 {item.extraBeds > 0 && <span className="text-[10px] font-black bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100 text-orange-600 shadow-sm">加 {item.extraBeds} 床</span>}
+                               </div>
                             </div>
-                            <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="px-4 text-slate-300 hover:text-white hover:bg-red-500 transition-colors shrink-0 flex items-center justify-center">
-                              <Trash2 className="w-4 h-4"/>
-                            </button>
-                         </div>
-                       ))}
-                     </div>
-                   )}
-                 </div>
-
-                 {(context && cart.length > 0) && (
-                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-5 rounded-2xl space-y-4 shadow-sm mb-8 animate-in slide-in-from-top-2">
-                       <div className="flex items-center gap-2">
-                         <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
-                         <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : context.type === 'dsd_discount' ? '體驗潛水專屬優惠' : '活動專屬優惠'}</p>
+                          </div>
+                          <button type="button" onClick={() => handleRemoveFromCart(item.id)} className="px-4 text-slate-300 hover:text-white hover:bg-red-500 transition-colors shrink-0 flex items-center justify-center">
+                            <Trash2 className="w-4 h-4"/>
+                          </button>
                        </div>
-                       {context.type === 'course_upgrade' ? (
-                         <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
-                           <span className="text-xs font-bold text-amber-800 pl-1">套用折抵學員數</span>
-                           <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-2 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
-                             {Array.from({ length: maxStudents || 1 }, (_, i) => i + 1).map(num => (
-                               <option key={num} value={num}>{num} 位</option>
-                             ))}
-                           </select>
-                         </div>
-                       ) : context.type === 'dsd_discount' ? (
-                         <p className="text-xs font-bold text-amber-800 bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
-                            享體驗潛水專屬優惠：背包房床位每晚以 NT$ 500 計算
-                         </p>
-                       ) : (
-                         <p className="text-xs font-bold text-amber-800 bg-white p-3 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
-                       )}
-                    </div>
-                 )}
-
-                 <div className="space-y-4 mb-8">
-                   <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">聯絡資料</h4>
-                   <div className="space-y-4">
-                     <input type="text" required value={f.name} onChange={v=>setF({...f, name: v.target.value})} placeholder="真實姓名 *" className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:font-medium" />
-                     <input type="tel" required value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v.target.value)})} placeholder="聯絡手機 (09xx-xxx-xxx) *" className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:font-medium" />
+                     ))}
                    </div>
-                 </div>
+                 )}
+               </div>
 
-                 <div className="mt-auto border-t-2 border-slate-100 pt-6">
-                    <div className="flex justify-between items-end mb-5">
-                      <div>
-                         <span className="text-sm font-bold text-slate-500 block mb-1">總金額 Total</span>
-                         {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice.toLocaleString()}</span>}
-                      </div>
-                      <div className="text-right">
-                        {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal.toLocaleString()}</div>}
-                        <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={handleSubmit} 
-                      disabled={isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone} 
-                      className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:bg-rose-600 hover:shadow-[0_15px_40px_rgba(244,63,94,0.3)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-slate-900"
-                    >
-                       {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '購物車為空' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-5 h-5"/>確認送出訂單</>}
-                    </button>
+               {(context && cart.length > 0) && (
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-5 rounded-2xl space-y-4 shadow-sm mb-8 animate-in slide-in-from-top-2">
+                     <div className="flex items-center gap-2">
+                       <div className="bg-amber-100 p-1.5 rounded-lg shrink-0"><BookOpen className="w-4 h-4 text-amber-700" /></div>
+                       <p className="text-sm font-black text-amber-900">{context.type === 'course_upgrade' ? '課程學員專屬折抵' : context.type === 'dsd_discount' ? '體驗潛水專屬優惠' : '活動專屬優惠'}</p>
+                     </div>
+                     {context.type === 'course_upgrade' ? (
+                       <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
+                         <span className="text-xs font-bold text-amber-800 pl-1">套用折抵學員數</span>
+                         <select value={courseStudents} onChange={e => setCourseStudents(Number(e.target.value))} className="p-2 border border-amber-200 rounded-lg text-sm font-black outline-none bg-amber-50 focus:bg-white cursor-pointer text-amber-900">
+                           {Array.from({ length: maxStudents || 1 }, (_, i) => i + 1).map(num => (
+                             <option key={num} value={num}>{num} 位</option>
+                           ))}
+                         </select>
+                       </div>
+                     ) : context.type === 'dsd_discount' ? (
+                       <p className="text-xs font-bold text-amber-800 bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
+                          享體驗潛水專屬優惠：背包房床位每晚以 NT$ 500 計算
+                       </p>
+                     ) : (
+                       <p className="text-xs font-bold text-amber-800 bg-white p-3 rounded-xl border border-amber-100 shadow-sm">{getDiscountInfo()}</p>
+                     )}
+                  </div>
+               )}
+
+               <div className="space-y-4 mb-8">
+                 <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-2">聯絡資料</h4>
+                 <div className="space-y-4">
+                   <input type="text" required value={f.name} onChange={v=>setF({...f, name: v.target.value})} placeholder="真實姓名 *" className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:font-medium" />
+                   <input type="tel" required value={f.phone} onChange={v=>setF({...f, phone: formatPhoneNumber(v.target.value)})} placeholder="聯絡手機 (09xx-xxx-xxx) *" className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:font-medium" />
                  </div>
                </div>
-            </div>
+
+               <div className="mt-auto border-t-2 border-slate-100 pt-6">
+                  <div className="flex justify-between items-end mb-5">
+                    <div>
+                       <span className="text-sm font-bold text-slate-500 block mb-1">總金額 Total</span>
+                       {currentCartGuests > 0 && <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">平均每人 NT$ {perPersonPrice.toLocaleString()}</span>}
+                    </div>
+                    <div className="text-right">
+                      {priceInfo.discountTotal > 0 && <div className="text-[11px] text-rose-600 font-bold mb-1">已扣除優惠 NT$ {priceInfo.discountTotal.toLocaleString()}</div>}
+                      <span className="text-3xl font-black text-slate-900 tracking-tight">NT$ {priceInfo.total.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleSubmit} 
+                    disabled={isSubmitting || hasFullDays || cart.length === 0 || !f.name || !f.phone} 
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:bg-rose-600 hover:shadow-[0_15px_40px_rgba(244,63,94,0.3)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-slate-900"
+                  >
+                     {isSubmitting ? '預訂處理中... Processing' : cart.length === 0 ? '購物車為空' : (!f.name || !f.phone) ? '請填寫基本資料' : <><CheckCircle className="w-5 h-5"/>確認送出訂單</>}
+                  </button>
+               </div>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* 智慧配房推薦視窗 (旗艦級高質感介面 - 移出主容器確保不被遮擋) */}
+      {/* 智慧配房推薦視窗 */}
       {recommendModalData && (
-         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white/95 w-full max-w-3xl rounded-[2rem] md:rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white flex flex-col max-h-[95vh] overflow-hidden">
-            {/* Header */}
-            <div className="px-6 py-6 sm:px-10 sm:py-8 border-b border-slate-100 flex justify-between items-start bg-gradient-to-b from-slate-50/50 to-white shrink-0">
+        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-white max-h-[90vh] flex flex-col">
+            
+            <div className="flex justify-between items-start mb-6">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100/50 border border-rose-200/50 text-rose-600 text-[10px] font-black uppercase tracking-widest mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div> AI 智能精算配房
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div> AI 智能演算
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">
-                  最佳入住組合建議
+                <h2 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
+                  智慧配房建議
                 </h2>
-                <p className="text-xs sm:text-sm font-bold text-slate-500 mt-2">為您 {searchGuests} 人的旅程，精選出以下最超值的方案</p>
+                <p className="text-xs md:text-sm font-bold text-slate-500 mt-2">系統已為您 {searchGuests} 人的旅程，精算出最划算的入住組合！</p>
               </div>
-              <button onClick={() => setRecommendModalData(null)} className="p-3 bg-white hover:bg-slate-100 rounded-full transition-transform duration-300 hover:rotate-90 text-slate-500 border border-slate-200 shadow-sm shrink-0">
-                 <X className="w-5 h-5" />
-              </button>
+              <button onClick={() => setRecommendModalData(null)} className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-500 shrink-0"><X className="w-5 h-5" /></button>
             </div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-8 space-y-6 bg-slate-50/50">
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-2 pb-4">
               {recommendModalData.map((res, idx) => {
                 const isBest = idx === 0;
                 const perPersonPrice = Math.round(res.totalCost / parseInt(searchGuests));
 
                 return (
-                  <div key={idx} className={`rounded-[2rem] p-1 transition-all duration-300 relative group ${isBest ? 'bg-gradient-to-br from-rose-400 via-pink-400 to-rose-500 shadow-[0_15px_40px_rgba(244,63,94,0.2)] scale-[1.02] z-10' : 'bg-white border border-slate-200 hover:border-rose-200 hover:shadow-lg'}`}>
+                  <div key={idx} className={`p-6 rounded-[2rem] border-2 transition-all duration-300 relative group ${isBest ? 'bg-gradient-to-br from-rose-50/80 to-pink-50/30 border-rose-300 shadow-[0_15px_40px_rgba(244,63,94,0.15)] scale-[1.01]' : 'bg-white border-slate-100 hover:border-rose-200 hover:shadow-lg'}`}>
                     
                     {isBest && (
-                      <div className="absolute -top-3.5 right-6 sm:right-8 bg-slate-900 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border-2 border-white z-20">
-                        <span className="text-yellow-400 text-sm sm:text-base leading-none">★</span> 最高 CP 值首選
+                      <div className="absolute -top-3.5 -right-2 md:right-4 bg-gradient-to-r from-rose-600 to-pink-500 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-rose-500/30 animate-bounce flex items-center gap-1.5">
+                        <span className="text-base leading-none">🏆</span> 最高 CP 值首選
                       </div>
                     )}
-
-                    <div className={`rounded-[1.8rem] flex flex-col gap-0 overflow-hidden ${isBest ? 'bg-white/95 backdrop-blur-md' : 'bg-transparent'}`}>
-                      
-                      {/* 上半部：價格與人數總覽區 */}
-                      <div className="p-5 sm:p-6 pb-4 flex flex-wrap items-end justify-between gap-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">總計花費</span>
-                          <div className="flex items-baseline gap-2">
-                             <span className="text-lg font-bold text-slate-400">NT$</span>
-                             <span className={`text-3xl sm:text-4xl font-black tracking-tight leading-none ${isBest ? 'text-rose-600' : 'text-slate-800'}`}>
-                               {res.totalCost.toLocaleString()}
-                             </span>
-                          </div>
+                    
+                    <div className="flex flex-col gap-5">
+                      {/* 價格與人數總覽區 */}
+                      <div className="flex flex-wrap items-end justify-between gap-4">
+                        <div className="flex items-end gap-3">
+                          <span className={`text-4xl font-black tracking-tight ${isBest ? 'text-rose-600' : 'text-slate-800'}`}>NT$ {res.totalCost.toLocaleString()}</span>
+                          <span className="text-sm font-bold text-slate-400 mb-1">總花費</span>
                         </div>
-                        
-                        <div className="flex flex-col items-end gap-2">
-                          <div className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1 shadow-sm border ${isBest ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-                             約 NT$ {perPersonPrice.toLocaleString()} / 人
-                          </div>
-                          <div className="text-[10px] sm:text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                            可住: 
-                            <span className={`px-1.5 py-0.5 rounded flex items-center gap-1 font-black ${res.totalGuests > parseInt(searchGuests) ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800'}`}>
-                              {res.totalGuests} 人
-                            </span>
-                          </div>
+                        <div className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1 shadow-sm ${isBest ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                           約 NT$ {perPersonPrice.toLocaleString()} / 人
                         </div>
                       </div>
                       
-                      {/* 下半部：房型明細清單 + 套用按鈕 (桌面並排/手機直排) */}
-                      <div className={`p-4 sm:p-6 pt-0 flex flex-col lg:flex-row gap-4 lg:items-end justify-between`}>
-                        {/* 關鍵：加入 max-h 避免過多房型撐爆視窗 */}
-                        <div className="flex-1 space-y-2 max-h-[140px] sm:max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
-                           {res.combo.map((c, i) => (
-                              <div key={i} className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${isBest ? 'bg-white border-rose-100/50 shadow-sm hover:border-rose-200' : 'bg-slate-50/50 border-slate-100 hover:bg-slate-50'}`}>
-                                 <div className="flex items-center gap-3 min-w-0">
-                                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isBest ? 'bg-rose-100/50 text-rose-500' : 'bg-white text-slate-400 shadow-sm border border-slate-100'}`}>
-                                     <Home className="w-5 h-5"/>
-                                   </div>
-                                   <div className="min-w-0">
-                                     <p className="text-sm font-black text-slate-800 truncate">{c.opt.room.name}</p>
-                                     <p className="text-[10px] font-bold text-slate-500 truncate mt-0.5">{c.opt.tier ? c.opt.tier.name : '單一床位計價'}</p>
-                                   </div>
-                                 </div>
-                                 <div className={`text-sm font-black shrink-0 px-3 py-1.5 rounded-xl ${isBest ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
-                                   × {c.count} <span className="text-[10px]">{c.opt.type === 'dorm' ? '床' : '間'}</span>
-                                 </div>
+                      {/* 房型組合明細區 */}
+                      <div className={`space-y-2.5 p-4 rounded-2xl border ${isBest ? 'bg-white/80 border-rose-100 shadow-sm' : 'bg-slate-50/80 border-slate-100'}`}>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">搭配房型組合</div>
+                        {res.combo.map((c, i) => (
+                           <div key={i} className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isBest ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-400 shadow-sm border border-slate-100'}`}>
+                                <Home className="w-5 h-5"/>
                               </div>
-                           ))}
-                        </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-black text-slate-700 truncate">{c.opt.room.name}</p>
+                                <p className="text-[10px] font-bold text-slate-500 truncate">{c.opt.tier ? c.opt.tier.name : '單一床位計價'}</p>
+                              </div>
+                              <div className={`text-base font-black shrink-0 px-3 py-1 rounded-lg ${isBest ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
+                                × {c.count} <span className="text-xs">{c.opt.type === 'dorm' ? '床' : '間'}</span>
+                              </div>
+                           </div>
+                        ))}
+                      </div>
 
+                      {/* 底部按鈕與容納狀態 */}
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+                        <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                          容納上限: 
+                          <span className={`px-2 py-0.5 rounded flex items-center gap-1 ${res.totalGuests > parseInt(searchGuests) ? 'bg-amber-50 text-amber-700 font-black' : 'bg-teal-50 text-teal-700 font-black'}`}>
+                            {res.totalGuests} 人
+                            {res.totalGuests > parseInt(searchGuests) && <span className="opacity-70">(多 {res.totalGuests - parseInt(searchGuests)} 位)</span>}
+                          </span>
+                        </div>
                         <button 
                           onClick={() => applyRecommendation(res.combo)} 
-                          className={`w-full lg:w-auto shrink-0 px-8 py-4 rounded-2xl font-black transition-all duration-300 shadow-sm flex items-center justify-center gap-2 ${isBest ? 'bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white hover:shadow-[0_10px_25px_rgba(244,63,94,0.4)] hover:-translate-y-1' : 'bg-slate-900 hover:bg-rose-600 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.2)] hover:-translate-y-1'}`}
+                          className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black transition-all duration-300 shadow-sm flex items-center justify-center gap-2 ${isBest ? 'bg-rose-600 hover:bg-rose-700 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:-translate-y-1' : 'bg-slate-900 hover:bg-rose-600 text-white hover:shadow-[0_10px_20px_rgba(244,63,94,0.2)] hover:-translate-y-1'}`}
                         >
-                          <CheckCircle className="w-5 h-5"/> 立即套用
+                          <CheckCircle className="w-4 h-4"/> 立即套用此組合
                         </button>
                       </div>
-
                     </div>
                   </div>
                 );
               })}
             </div>
           </div>
-         </div>
+        </div>
       )}
-    </>
+    </div>
   );
 }
 
