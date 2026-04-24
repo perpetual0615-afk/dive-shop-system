@@ -4654,61 +4654,87 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
       {/* 智慧配房推薦視窗 */}
       {recommendModalData && (
         <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-white max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-white max-h-[90vh] flex flex-col">
             
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
               <div>
-                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-                  <span className="text-2xl">✨</span> 智慧配房建議
+                <h2 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-2">
+                  <span className="text-2xl md:text-3xl">✨</span> 智慧配房建議
                 </h2>
-                <p className="text-xs font-bold text-slate-500 mt-1">系統已為您算出最划算的入住組合方案！</p>
+                <p className="text-xs md:text-sm font-bold text-slate-500 mt-1.5">系統已為您算出最划算、舒適的入住組合方案！</p>
               </div>
-              <button onClick={() => setRecommendModalData(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-500"><X className="w-5 h-5" /></button>
+              <button onClick={() => setRecommendModalData(null)} className="p-2.5 bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors"><X className="w-6 h-6" /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
-              {recommendModalData.map((res, idx) => (
-                <div key={idx} className={`p-5 rounded-2xl border-2 transition-all relative ${idx === 0 ? 'bg-rose-50/50 border-rose-400 shadow-[0_5px_20px_rgba(244,63,94,0.15)]' : 'bg-white border-slate-200 hover:border-rose-300'}`}>
-                  {idx === 0 && (
-                    <div className="absolute -top-3 -right-2 bg-gradient-to-r from-rose-600 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-md shadow-rose-500/30 animate-bounce">
-                      🏆 最高 CP 值
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-5 pr-2 pb-4">
+              {recommendModalData.map((res, idx) => {
+                const avgPrice = Math.round(res.totalCost / parseInt(searchGuests));
+                const isBest = idx === 0;
+                return (
+                <div key={idx} className={`p-5 md:p-6 rounded-[2rem] border-2 transition-all relative group ${isBest ? 'bg-gradient-to-br from-amber-50/50 to-orange-50/30 border-amber-300 shadow-[0_10px_30px_rgba(245,158,11,0.15)] hover:shadow-[0_15px_40px_rgba(245,158,11,0.25)]' : 'bg-slate-50/50 border-slate-200 hover:border-rose-300 hover:bg-white hover:shadow-md'}`}>
+                  
+                  {isBest && (
+                    <div className="absolute -top-4 -right-3 lg:-right-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[11px] md:text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-orange-500/40 animate-bounce border-[3px] border-white flex items-center gap-1.5 z-10">
+                      👑 最高 CP 值推薦
                     </div>
                   )}
                   
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="font-black text-2xl text-slate-800 tracking-tight">NT$ {res.totalCost.toLocaleString()}</span>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">總花費</span>
+                  <div className="flex flex-col lg:flex-row justify-between gap-6">
+                    <div className="flex-1 space-y-4">
+                      {/* 金額與均價區塊 */}
+                      <div className="flex flex-wrap items-end gap-3 md:gap-4">
+                        <div>
+                           <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${isBest ? 'text-orange-500' : 'text-slate-400'}`}>總花費 Total</span>
+                           <span className={`font-black text-3xl md:text-4xl tracking-tight leading-none ${isBest ? 'text-orange-600' : 'text-slate-800'}`}>
+                             NT$ {res.totalCost.toLocaleString()}
+                           </span>
+                        </div>
+                        <div className={`px-2.5 py-1 rounded-lg border flex flex-col mb-1 ${isBest ? 'bg-white border-orange-200' : 'bg-white border-slate-200'}`}>
+                           <span className={`text-[9px] font-black ${isBest ? 'text-orange-400' : 'text-slate-400'}`}>平均每人約</span>
+                           <span className={`text-sm font-black ${isBest ? 'text-orange-600' : 'text-slate-600'}`}>NT$ {avgPrice.toLocaleString()}</span>
+                        </div>
                       </div>
                       
-                      <div className="space-y-1.5">
-                        {res.combo.map((c, i) => (
-                           <div key={i} className="flex items-start gap-2 text-sm font-bold text-slate-700">
-                              <span className="text-rose-500 mt-0.5"><CheckCircle className="w-4 h-4"/></span>
-                              <span>
-                                {c.opt.room.name} {c.opt.tier ? `(${c.opt.tier.name})` : ''} 
-                                <span className="text-rose-600 ml-1">× {c.count} {c.opt.type === 'dorm' ? '床' : '間'}</span>
-                              </span>
-                           </div>
-                        ))}
+                      {/* 網格化房型小卡 */}
+                      <div className="space-y-2 pt-2">
+                        <span className="text-xs font-bold text-slate-500 block">為您安排的房型組合：</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {res.combo.map((c, i) => (
+                             <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border shadow-sm transition-colors ${isBest ? 'bg-white border-orange-100/50' : 'bg-white border-slate-100 group-hover:border-rose-100'}`}>
+                                <div className={`p-2 rounded-lg shrink-0 ${isBest ? 'bg-orange-50 text-orange-500' : 'bg-slate-50 text-slate-400'}`}>
+                                   <Home className="w-4 h-4"/>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                   <div className="text-sm font-black text-slate-800 truncate">{c.opt.room.name}</div>
+                                   {c.opt.tier && <div className="text-[10px] font-bold text-slate-500 truncate mt-0.5">{c.opt.tier.name}</div>}
+                                </div>
+                                <div className={`text-sm font-black px-2 py-1 rounded-lg shrink-0 ${isBest ? 'text-orange-700 bg-orange-100/50' : 'text-rose-600 bg-rose-50'}`}>
+                                   × {c.count} {c.opt.type === 'dorm' ? '床' : '間'}
+                                </div>
+                             </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col justify-end items-end gap-3 sm:border-l sm:border-slate-100 sm:pl-5 shrink-0">
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-slate-500 block mb-0.5">總容納人數</span>
-                        <span className={`text-base font-black ${res.totalGuests > parseInt(searchGuests) ? 'text-amber-600' : 'text-teal-600'}`}>
-                          {res.totalGuests} 人 {res.totalGuests > parseInt(searchGuests) ? <span className="text-[10px] ml-1 opacity-70">(多 {res.totalGuests - parseInt(searchGuests)} 位)</span> : ''}
+                    {/* 右側資訊與按鈕 */}
+                    <div className="flex flex-col justify-end lg:items-end gap-4 lg:border-l lg:border-slate-200/60 lg:pl-6 shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-200/60">
+                      <div className="lg:text-right flex lg:flex-col justify-between items-center lg:items-end w-full lg:w-auto">
+                        <span className="text-xs font-bold text-slate-500 lg:mb-1 block">總容納人數</span>
+                        <span className={`text-lg font-black bg-white px-3 py-1 rounded-xl shadow-sm border ${res.totalGuests > parseInt(searchGuests) ? 'text-amber-600 border-amber-200' : 'text-teal-600 border-teal-200'}`}>
+                          {res.totalGuests} 人 {res.totalGuests > parseInt(searchGuests) ? <span className="text-[10px] ml-1 opacity-70 border-l border-amber-200 pl-1.5">(空出 {res.totalGuests - parseInt(searchGuests)} 位)</span> : ''}
                         </span>
                       </div>
-                      <button onClick={() => applyRecommendation(res.combo)} className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-rose-600 text-white rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 hover:shadow-rose-500/30 hover:-translate-y-0.5">
+                      <button 
+                        onClick={() => applyRecommendation(res.combo)} 
+                        className={`w-full lg:w-auto px-8 py-3.5 rounded-2xl font-black transition-all shadow-md flex items-center justify-center gap-2 hover:-translate-y-0.5 ${isBest ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-500/30 hover:shadow-rose-500/50' : 'bg-slate-800 text-white hover:bg-slate-900 shadow-slate-500/20'}`}
+                      >
                         套用此組合 <ArrowRight className="w-4 h-4"/>
                       </button>
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         </div>
