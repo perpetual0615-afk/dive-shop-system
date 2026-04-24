@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -3239,8 +3238,8 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   const [rentals, setRentals] = useState([]); // { eqId, name, size, category, price }
   const [selectedElectives, setSelectedElectives] = useState([]); // 儲存已勾選的選修項目 ID
   
-  // 👉 新增：管理簽證費與收費必修項目的勾選狀態 (預設為勾選，讓顧客自行取消)
-  const [requireCert, setRequireCert] = useState(activity.certFee > 0); 
+  // 👉 調整：將簽證費預設改為「不勾選」(false)，讓顧客自行決定是否加購
+  const [requireCert, setRequireCert] = useState(false); 
   const [selectedCompulsories, setSelectedCompulsories] = useState(
       (activity.compulsories || []).filter(c => typeof c === 'object' && c.price > 0).map(c => c.id)
   );
