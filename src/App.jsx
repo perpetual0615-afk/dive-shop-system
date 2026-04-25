@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1590,6 +1589,10 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
   const [publishType, setPublishType] = useState(isEdit ? (editingActivity.isCourse ? 'course' : (editingActivity.diveCategory === '體驗潛水' ? 'dsd' : 'fundive')) : 'fundive');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 新增加購項目狀態
+  const [newElectiveName, setNewElectiveName] = useState('');
+  const [newElectivePrice, setNewElectivePrice] = useState('');
+
   let initData = { name: '', price: 0, date: '', diveCategory: '岸潛', capacity: 4, courseTemplateId: '', isCourse: false, airTanks: 2, nitroxTanks: 0, tanksShoreAir: 0, tanksShoreNitrox: 0, tanksBoatAir: 0, tanksBoatNitrox: 0, notes: '', coach: '', electives: [], services: [], certFee: 0, certSystem: '', schedule: [], airTankPrice: sysConfig.airTankPrice || 800, nitroxTankPrice: sysConfig.nitroxTankPrice || 1200 };
   if (editingActivity) {
     initData = { ...initData, ...editingActivity };
@@ -1768,6 +1771,30 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
             </div>
           ) : null}
           
+          {/* 加入非課程活動的加購項目設定區塊 */}
+          {!formData.isCourse && (
+            <div className="mt-4 space-y-2 p-4 bg-purple-50/50 rounded-xl border border-purple-100">
+              <label className="text-sm font-bold text-purple-800 flex items-center gap-2"><Plus className="w-4 h-4"/> 自由加購項目 (如：夜潛、攝影、高氧)</label>
+              <div className="space-y-2">
+                 {(formData.electives || []).map((el) => (
+                   <div key={el.id} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-purple-200 shadow-sm">
+                     <span className="font-bold text-slate-700 text-sm">{el.name}</span>
+                     <div className="flex items-center gap-4">
+                       <span className="font-black text-purple-600 text-sm">+NT$ {el.price}</span>
+                       <button type="button" onClick={()=>setFormData({...formData, electives: formData.electives.filter(x=>x.id!==el.id)})} className="text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
+                     </div>
+                   </div>
+                 ))}
+                 {(formData.electives || []).length === 0 && <span className="text-purple-400 text-xs font-bold w-full text-center block py-1">尚無加購項目...</span>}
+              </div>
+              <div className="flex gap-2 mt-2">
+                 <input type="text" value={newElectiveName} onChange={e=>setNewElectiveName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing && newElectiveName.trim()){e.preventDefault(); setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} placeholder="加購名稱 (例: 夜潛 1支)" className="flex-[2] p-2.5 border border-purple-200 rounded-lg text-sm font-bold outline-none focus:border-purple-500" />
+                 <input type="number" value={newElectivePrice} onChange={e=>setNewElectivePrice(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing && newElectiveName.trim()){e.preventDefault(); setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} placeholder="金額 $" className="flex-1 p-2.5 border border-purple-200 rounded-lg text-sm font-bold outline-none focus:border-purple-500" />
+                 <button type="button" onClick={()=>{if(newElectiveName.trim()){setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} className="px-5 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 transition-colors shadow-sm">新增</button>
+              </div>
+            </div>
+          )}
+
           <div className="mt-3 space-y-2">
             <label className="text-sm font-bold text-slate-700">注意事項備註</label>
                 <textarea value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full p-3 border border-slate-300 rounded-xl font-medium outline-none focus:border-blue-500 min-h-[80px]" placeholder="請填寫活動注意事項、集合地點、裝備需求等資訊..."></textarea>
@@ -3245,13 +3272,13 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     if (isDSD) {
       return [
         { num: 1, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
-        { num: 2, icon: LifeBuoy, title: '5米停留', sub: '裝備需求配置' },
+        { num: 2, icon: LifeBuoy, title: '5米停留', sub: '裝備與加購配置' },
         { num: 3, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' } // DSD 只有 3 步，略過經驗填寫
       ];
     }
     return [
       { num: 1, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
-      { num: 2, icon: LifeBuoy, title: '5米停留', sub: '裝備需求配置' },
+      { num: 2, icon: LifeBuoy, title: '5米停留', sub: '裝備與加購配置' },
       { num: 3, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
       { num: 4, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
     ];
@@ -3336,7 +3363,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     return rawTotal;
   };
 
-  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用
+  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用，並讓非課程也能計算選修
   const calculateTotal = () => {
     let total = activity.price + calculateEqPrice();
     if (isCourse && requireCert && activity.certFee) total += activity.certFee;
@@ -3347,7 +3374,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
           }
        });
     }
-    if (isCourse && activity.electives?.length > 0) {
+    if (activity.electives?.length > 0) {
        activity.electives.forEach(el => {
           if (selectedElectives.includes(el.id)) total += el.price;
        });
@@ -3383,7 +3410,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     
     try {
       // 提取被選中的選修與加購項目詳細資料
-      const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
+      const finalElectives = activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
       const finalCompulsories = isCourse && activity.compulsories ? activity.compulsories.filter(c => typeof c === 'object' && c.price > 0 && selectedCompulsories.includes(c.id)) : [];
 
       // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
@@ -3741,6 +3768,29 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                      </div>
                    </label>
                  )}
+                 
+                 {/* FUN DIVE / DSD 一般活動加購項目 */}
+                 {!isCourse && activity.electives?.length > 0 && (
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6 animate-in slide-in-from-bottom-4">
+                      <h3 className="font-black text-lg text-slate-800 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                        <Plus className="w-5 h-5 text-purple-500" /> 自由加購項目
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {activity.electives.map(el => (
+                          <label key={el.id} className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition-all shadow-sm ${selectedElectives.includes(el.id) ? 'bg-purple-50 border-purple-300' : 'bg-slate-50 border-slate-200 hover:bg-white hover:border-purple-200'}`}>
+                            <div className="flex items-center gap-3">
+                              <input type="checkbox" checked={selectedElectives.includes(el.id)} onChange={(e) => {
+                                if (e.target.checked) setSelectedElectives([...selectedElectives, el.id]);
+                                else setSelectedElectives(selectedElectives.filter(id => id !== el.id));
+                              }} className="w-4 h-4 text-purple-600 rounded" />
+                              <span className="font-bold text-slate-700 text-sm">{el.name}</span>
+                            </div>
+                            <span className="font-black text-purple-700 text-sm">+NT$ {Number(el.price).toLocaleString()}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                 )}
 
                  {/* 裝備選擇區 (依分類顯示) */}
                  <div className="space-y-8">
@@ -3872,13 +3922,15 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                  {/* 瘦身後的 FUN DIVE 一般裝備收費總計 (懸浮在最下方) */}
                  {!isCourse && !useLocalShopEq && (
                    <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-t-xl flex justify-between items-center mt-6 border border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.08)] sticky bottom-0 z-30 border-t-4 border-t-blue-500">
-                     <span className="font-black text-slate-700 text-sm sm:text-base">預估裝備總額</span>
+                     <span className="font-black text-slate-700 text-sm sm:text-base">裝備與加購總額</span>
                      <div className="flex items-center gap-2 sm:gap-3">
                        <div className="flex flex-col items-end gap-1">
-                         {rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 最優惠組合</span>}
+                         {rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 最佳裝備組合</span>}
                          {isReturningCustomer && rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-orange-700 font-bold bg-orange-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 回客折扣</span>}
                        </div>
-                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice().toLocaleString()}</span>
+                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">
+                         NT$ {(calculateEqPrice() + (activity.electives?.filter(e => selectedElectives.includes(e.id)).reduce((sum, e) => sum + e.price, 0) || 0)).toLocaleString()}
+                       </span>
                      </div>
                    </div>
                  )}
