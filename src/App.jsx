@@ -5,14 +5,15 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 
 // --- Firebase 基礎配置 (加上安全防護) ---
-let firebaseConfig = {};
-try {
-  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-    firebaseConfig = JSON.parse(__firebase_config);
-  }
-} catch (e) {
-  console.error("Firebase config parse error", e);
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
+  authDomain: "sharkenting777550.firebaseapp.com",
+  projectId: "sharkenting777550",
+  storageBucket: "sharkenting777550.firebasestorage.app",
+  messagingSenderId: "1092791454866",
+  appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
+  measurementId: "G-TYT7E313E2"
+};
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
