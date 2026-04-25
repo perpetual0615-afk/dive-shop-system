@@ -1221,15 +1221,33 @@ function BookingCard({ booking: b, type, db, appId }) {
 }
 
 function BookingAdminPanel({ db, appId, bookings, type, title }) {
+  const [filterGroup, setFilterGroup] = useState('ALL');
+
   const typeBookings = bookings.filter(b => b.type === type).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-  
+
+  const groupedBookings = useMemo(() => {
+    if (type !== 'activity') return null;
+    const groups = {};
+    typeBookings.forEach(b => {
+      const key = b.itemName || '未指定活動';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(b);
+    });
+    return groups;
+  }, [typeBookings, type]);
+
   const handleExport = () => {
     let headers = [];
     let rows = [];
 
+    let exportBookings = typeBookings;
+    if (type === 'activity' && filterGroup !== 'ALL') {
+       exportBookings = typeBookings.filter(b => (b.itemName || '未指定活動') === filterGroup);
+    }
+
     if (type === 'activity') {
       headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
-      rows = typeBookings.map(b => {
+      rows = exportBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
         const accStr = b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '維持背包房床位' : b.accOption === 'upgrade' ? '升級獨立房型' : b.accOption === 'release' ? '釋出床位' : '住宿自理';
@@ -1261,19 +1279,60 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
 
   return (
      <div className="h-full flex flex-col animate-in fade-in">
-       <div className="p-6 border-b bg-slate-50 shrink-0 rounded-t-2xl flex justify-between items-center">
+       <div className="p-6 border-b bg-slate-50 shrink-0 rounded-t-2xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
          <div>
            <h3 className="text-xl font-bold text-slate-800">{String(title)}</h3>
            <p className="text-slate-500 text-sm mt-1">處理顧客提交之預約單</p>
          </div>
-         {typeBookings.length > 0 && (
-           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-green-700 transition-colors">
-             <Download className="w-4 h-4" /> 匯出 EXCEL
-           </button>
-         )}
+         <div className="flex items-center gap-3">
+             {type === 'activity' && groupedBookings && Object.keys(groupedBookings).length > 0 && (
+               <select 
+                 value={filterGroup} 
+                 onChange={e => setFilterGroup(e.target.value)}
+                 className="p-2 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-500 bg-white shadow-sm"
+               >
+                  <option value="ALL">顯示全部分區</option>
+                  {Object.keys(groupedBookings).sort((a,b)=>a.localeCompare(b,'zh-TW')).map(k => <option key={k} value={k}>{k} ({groupedBookings[k].length}人)</option>)}
+               </select>
+             )}
+             {typeBookings.length > 0 && (
+               <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold shadow-sm hover:bg-green-700 transition-colors shrink-0">
+                 <Download className="w-4 h-4" /> 匯出 EXCEL
+               </button>
+             )}
+         </div>
        </div>
+       
        <div className="p-6 flex-1 overflow-y-auto bg-slate-50/20">
-         {typeBookings.length === 0 ? <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold">目前無相關紀錄</div> : typeBookings.map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
+         {typeBookings.length === 0 ? (
+           <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold">目前無相關紀錄</div>
+         ) : type === 'activity' ? (
+            Object.keys(groupedBookings)
+              .sort((a,b)=>a.localeCompare(b,'zh-TW'))
+              .filter(k => filterGroup === 'ALL' || filterGroup === k)
+              .map(groupName => (
+                <div key={groupName} className="mb-10 bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm relative animate-in slide-in-from-bottom-2">
+                   <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-blue-50/50 p-4 rounded-xl mb-4 border border-blue-100">
+                      <div className="flex items-center gap-3">
+                          <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                             <ClipboardList className="w-5 h-5" />
+                          </div>
+                          <h4 className="text-lg font-black text-slate-800">{groupName}</h4>
+                      </div>
+                      <span className="mt-3 sm:mt-0 text-xs font-black bg-white px-3 py-1.5 rounded-lg text-blue-700 shadow-sm border border-blue-100">
+                          共 {groupedBookings[groupName].length} 筆報名
+                      </span>
+                   </div>
+                   <div className="space-y-4">
+                       {groupedBookings[groupName].map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
+                   </div>
+                </div>
+            ))
+         ) : (
+            <div className="space-y-4">
+               {typeBookings.map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
+            </div>
+         )}
        </div>
      </div>
   );
@@ -3110,6 +3169,8 @@ function ActivityCardItem({ item, type, bookings, onBook }) {
 const ServiceSection = React.memo(function ServiceSection({ title, items, type, onBook, sysConfig, bookings = [] }) {
   const [viewMode, setViewMode] = useState('card');
   const [currentDate, setCurrentDate] = useState(new Date());
+  // 👉 新增：活動分類過濾狀態 ('all', 'courses', 'activities')
+  const [activeFilter, setActiveFilter] = useState('all');
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -3117,10 +3178,19 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
   const firstDay = new Date(year, month, 1).getDay();
   const calendarCells = Array(firstDay).fill(null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
 
+  // 👉 新增：根據過濾器篩選項目
+  const filteredItems = useMemo(() => {
+    if (type !== 'activity') return items;
+    if (activeFilter === 'courses') return items.filter(item => item.isCourse);
+    if (activeFilter === 'activities') return items.filter(item => !item.isCourse);
+    return items;
+  }, [items, type, activeFilter]);
+
+  // 👉 更新：月曆使用的資料改為 filteredItems
   const activitiesByDate = useMemo(() => {
     const map = {};
     if (type === 'activity') {
-      items.forEach(act => {
+      filteredItems.forEach(act => {
         if (act.date) {
           if (!map[act.date]) map[act.date] = [];
           map[act.date].push(act);
@@ -3128,11 +3198,11 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
       });
     }
     return map;
-  }, [items, type]);
+  }, [filteredItems, type]);
 
   return (
     <div className="animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 border-b border-slate-200 pb-4 gap-4">
         <h2 className="text-2xl md:text-3xl font-black text-slate-800">{title}</h2>
         
         {type === 'activity' && items.length > 0 && (
@@ -3147,9 +3217,18 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
         )}
       </div>
 
-      {items.length === 0 ? (
+      {/* 👉 新增：活動與課程分類切換按鈕 */}
+      {type === 'activity' && items.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 custom-scrollbar">
+          <button onClick={() => setActiveFilter('all')} className={`px-5 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all shadow-sm ${activeFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'}`}>全部項目</button>
+          <button onClick={() => setActiveFilter('courses')} className={`px-5 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all shadow-sm flex items-center gap-1.5 ${activeFilter === 'courses' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-indigo-600'}`}><BookOpen className="w-4 h-4"/> 證照課程</button>
+          <button onClick={() => setActiveFilter('activities')} className={`px-5 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all shadow-sm flex items-center gap-1.5 ${activeFilter === 'activities' ? 'bg-cyan-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-cyan-600'}`}><Fish className="w-4 h-4"/> 一般潛水活動</button>
+        </div>
+      )}
+
+      {filteredItems.length === 0 ? (
         <div className="text-center py-16 text-slate-400 border-2 border-dashed rounded-2xl font-bold bg-white">
-          目前暫無可預約的項目
+          {items.length === 0 ? '目前暫無可預約的項目' : '此分類下目前沒有活動'}
         </div>
       ) : (
         <>
@@ -3204,7 +3283,7 @@ const ServiceSection = React.memo(function ServiceSection({ title, items, type, 
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4">
-              {items.map(item => (
+              {filteredItems.map(item => (
                  <ActivityCardItem key={item.id} item={item} type={type} bookings={bookings} onBook={onBook} />
               ))}
             </div>
