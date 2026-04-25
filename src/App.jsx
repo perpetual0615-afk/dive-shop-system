@@ -1890,7 +1890,6 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                     </span>
                     <span className="text-blue-600 font-black text-base">NT$ {Number(act.price || 0).toLocaleString()}</span>
                   </div>
-                  <h4 className="font-black text-slate-900 text-lg mb-3">{String(act.name || '')}</h4>
 
                     {/* 明顯的課程名稱徽章 (僅顯示課程名稱) */}
                     {act.isCourse && tmpl && (
