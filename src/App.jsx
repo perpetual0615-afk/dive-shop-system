@@ -4662,39 +4662,34 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                    <h3 className="font-black text-lg text-slate-800 mb-5 flex items-center gap-2">
                       <Info className="w-5 h-5 text-rose-500" /> 住宿注意事項
                    </h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="bg-white/80 p-5 rounded-2xl border border-rose-100/50 shadow-sm">
-                         <h4 className="text-sm font-black text-slate-700 mb-3 flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-blue-500" /> 入退房時間
-                         </h4>
-                         <div className="space-y-3">
-                            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
-                               <span className="text-slate-500 font-bold">入住 (Check-in)</span>
-                               <span className="font-black text-blue-700">{sysConfig.checkInAcc || '15:00'} 後</span>
+                   <div className="bg-white/80 p-6 md:p-8 rounded-3xl border border-rose-100/50 shadow-sm">
+                      <ul className="space-y-5 text-sm md:text-base font-bold text-slate-600">
+                         {/* 入退房時間 */}
+                         <li className="flex items-start gap-3">
+                            <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                            <div className="leading-relaxed">
+                               <span className="text-slate-800 font-black mr-2">入退房時間：</span>
+                               入住 (Check-in) <span className="text-blue-700">{sysConfig.checkInAcc || '15:00'} 後</span>，
+                               退房 (Check-out) <span className="text-rose-700">{sysConfig.checkOutAcc || '11:00'} 前</span>。
                             </div>
-                            <div className="flex justify-between items-center text-sm">
-                               <span className="text-slate-500 font-bold">退房 (Check-out)</span>
-                               <span className="font-black text-rose-700">{sysConfig.checkOutAcc || '11:00'} 前</span>
-                            </div>
-                         </div>
-                      </div>
-                      <div className="bg-white/80 p-5 rounded-2xl border border-rose-100/50 shadow-sm">
-                         <h4 className="text-sm font-black text-slate-700 mb-3 flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-teal-500" /> 設施與服務內容
-                         </h4>
-                         <ul className="space-y-2 text-xs sm:text-sm font-bold text-slate-600">
-                            {(sysConfig.accFacilities || ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機']).map((fac, idx) => (
-                               <li key={idx} className="flex items-start gap-2">
-                                  <Check className="w-4 h-4 text-teal-500 shrink-0 mt-0.5"/> <span>{fac}</span>
-                               </li>
-                            ))}
-                            {(sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具') && (
-                               <li className="flex items-start gap-2 bg-rose-50 p-2.5 rounded-xl text-rose-700 border border-rose-100/80 mt-1">
-                                  <span className="text-rose-500 shrink-0 mt-0.5">※</span> <span>{sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具'}</span>
-                               </li>
-                            )}
-                         </ul>
-                      </div>
+                         </li>
+                         
+                         {/* 設施服務內容 */}
+                         {(sysConfig.accFacilities || ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機']).map((fac, idx) => (
+                            <li key={idx} className="flex items-start gap-3">
+                               <CheckCircle className="w-5 h-5 text-teal-500 shrink-0 mt-0.5"/> 
+                               <span className="leading-relaxed">{fac}</span>
+                            </li>
+                         ))}
+                         
+                         {/* 特別提醒與環保聲明 */}
+                         {(sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具') && (
+                            <li className="flex items-start gap-3 bg-rose-50 p-4 rounded-2xl text-rose-800 border border-rose-100/80 mt-2 shadow-sm">
+                               <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" /> 
+                               <span className="leading-relaxed">{sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具'}</span>
+                            </li>
+                         )}
+                      </ul>
                    </div>
                 </div>
              </div>
