@@ -1092,9 +1092,10 @@ function BookingCard({ booking: b, type, db, appId }) {
              {b.status === 'pending' ? <Clock className="w-5 h-5" /> : b.status === 'confirmed' ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
            </div>
            <div>
-             <div className="flex items-center gap-2 mb-1">
+             <div className="flex flex-wrap items-center gap-2 mb-1">
                <h4 className="font-bold text-lg text-slate-900">{String(b.itemName || '未知')}</h4>
                {b.isReturningCustomer && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-black">回客優惠</span>}
+               {b.hasMedicalIssue && <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1 shadow-sm"><AlertTriangle className="w-3 h-3" />醫療聲明異常</span>}
                {type === 'accommodation' && b.details?.breakdown && <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded text-[10px] font-black">系統試算</span>}
              </div>
              <div className="flex gap-3 text-sm text-slate-500 font-medium">
@@ -1588,8 +1589,6 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
   const isEdit = !!editingActivity;
   const [publishType, setPublishType] = useState(isEdit ? (editingActivity.isCourse ? 'course' : (editingActivity.diveCategory === '體驗潛水' ? 'dsd' : 'fundive')) : 'fundive');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newElectiveName, setNewElectiveName] = useState('');
-  const [newElectivePrice, setNewElectivePrice] = useState('');
 
   let initData = { name: '', price: 0, date: '', diveCategory: '岸潛', capacity: 4, courseTemplateId: '', isCourse: false, airTanks: 2, nitroxTanks: 0, tanksShoreAir: 0, tanksShoreNitrox: 0, tanksBoatAir: 0, tanksBoatNitrox: 0, notes: '', coach: '', electives: [], services: [], certFee: 0, certSystem: '', schedule: [], airTankPrice: sysConfig.airTankPrice || 800, nitroxTankPrice: sysConfig.nitroxTankPrice || 1200 };
   if (editingActivity) {
@@ -1707,6 +1706,7 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
           </div>
           
           {publishType === 'fundive' && (
+            <>
               <div className="mt-4">
                 <label className="block text-sm font-bold text-slate-700 mb-2 mt-2">潛水類型</label>
                 <div className="flex gap-2">
@@ -1725,9 +1725,7 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
                    ))}
                 </div>
               </div>
-          )}
-
-          {publishType === 'fundive' && formData.diveCategory === '潛旅' && (
+              {formData.diveCategory === '潛旅' ? (
                 <div className="mt-4 p-5 bg-blue-50/50 rounded-xl border border-blue-100 space-y-5">
                    <div>
                       <p className="text-sm font-black text-blue-800 mb-3 border-b border-blue-200/50 pb-1">岸潛規劃</p>
@@ -1748,59 +1746,34 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
                       <span className="text-xl font-black text-blue-700">{(formData.tanksShoreAir || 0) + (formData.tanksShoreNitrox || 0) + (formData.tanksBoatAir || 0) + (formData.tanksBoatNitrox || 0)} 支</span>
                    </div>
                 </div>
-          )}
-          
-          {publishType === 'fundive' && formData.diveCategory === '岸潛' && (
+              ) : formData.diveCategory === '岸潛' ? (
                 <div className="grid grid-cols-2 gap-4 mt-3 p-5 bg-blue-50/60 rounded-2xl border border-blue-200/60 shadow-sm">
                    <div className="col-span-2 pb-2 border-b border-blue-200/50 mb-1">
                       <h4 className="text-sm font-black text-blue-900 flex items-center gap-2"><Waves className="w-4 h-4 text-blue-600"/>岸潛氣瓶配置與計價</h4>
                       <p className="text-xs font-bold text-blue-600 mt-1">系統將依據此處單價與數量，自動為您結算本梯次活動總售價</p>
                    </div>
                    <FormInput label="一般氣瓶單價" type="number" value={formData.airTankPrice ?? 800} onChange={v => handleShoreTankChange('airTankPrice', v)} />
-                   <FormInput label="高氧氣瓶單價" type="number" value={formData.nitroxTankPrice ?? 1200} onChange={v => handleShoreTankChange('nitroxTankPrice', v)} />
-                   <FormInput label="一般氣瓶 (支)" type="number" value={formData.airTanks ?? 2} onChange={v => handleShoreTankChange('airTanks', v)} />
-                   <FormInput label="高氧氣瓶 (支)" type="number" value={formData.nitroxTanks ?? 0} onChange={v => handleShoreTankChange('nitroxTanks', v)} />
-                </div>
-          )}
-
-          {publishType === 'fundive' && formData.diveCategory === '船潛' && (
+               <FormInput label="高氧氣瓶單價" type="number" value={formData.nitroxTankPrice ?? 1200} onChange={v => handleShoreTankChange('nitroxTankPrice', v)} />
+               <FormInput label="一般氣瓶 (支)" type="number" value={formData.airTanks ?? 2} onChange={v => handleShoreTankChange('airTanks', v)} />
+               <FormInput label="高氧氣瓶 (支)" type="number" value={formData.nitroxTanks ?? 0} onChange={v => handleShoreTankChange('nitroxTanks', v)} />
+            </div>
+          ) : publishType === 'dsd' || formData.diveCategory === '體驗潛水' ? (
+            <div className="mt-3 p-4 bg-cyan-50 rounded-xl border border-cyan-200 shadow-sm">
+               <p className="text-sm font-bold text-cyan-800 flex items-center gap-2"><Info className="w-5 h-5"/> 體驗潛水項目：顧客報名時將免費包含全套裝備。</p>
+            </div>
+          ) : publishType === 'fundive' ? (
             <div className="grid grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
               <FormInput label="預計一般氣瓶 (支)" type="number" value={formData.airTanks ?? 2} onChange={v => setFormData({ ...formData, airTanks: v === '' ? '' : Math.max(0, parseInt(v)) })} />
               <FormInput label="預計高氧氣瓶 (支)" type="number" value={formData.nitroxTanks ?? 0} onChange={v => setFormData({ ...formData, nitroxTanks: v === '' ? '' : Math.max(0, parseInt(v)) })} />
             </div>
-          )}
-
-          {publishType === 'dsd' && (
-            <div className="mt-3 p-4 bg-cyan-50 rounded-xl border border-cyan-200 shadow-sm">
-               <p className="text-sm font-bold text-cyan-800 flex items-center gap-2"><Info className="w-5 h-5"/> 體驗潛水項目：顧客報名時將免費包含全套裝備。</p>
-            </div>
-          )}
-
-          <div className="space-y-2 mt-4">
-             <label className="text-sm font-bold text-slate-700">選修加購項目 (潛客報名時可選)</label>
-             <div className="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[60px]">
-               {(formData.electives || []).map((el) => (
-                 <div key={el.id} className="flex items-center justify-between bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm transition-all hover:border-purple-300">
-                   <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><Plus className="w-4 h-4 text-purple-500"/> {el.name}</span>
-                   <div className="flex items-center gap-4">
-                     <span className="font-black text-purple-600 text-sm bg-purple-50 px-2 py-0.5 rounded border border-purple-100">+NT$ {el.price}</span>
-                     <button type="button" onClick={()=>setFormData({...formData, electives: formData.electives.filter(x=>x.id!==el.id)})} className="text-slate-400 hover:text-red-500 bg-slate-50 p-1.5 rounded-md transition-colors"><Trash2 className="w-4 h-4"/></button>
-                   </div>
-                 </div>
-               ))}
-               {(formData.electives || []).length === 0 && <span className="text-slate-400 text-sm font-medium py-1 w-full text-center block">尚未新增任何選修加購項目...</span>}
-             </div>
-             <div className="flex gap-2">
-               <input type="text" value={newElectiveName} onChange={e=>setNewElectiveName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing && newElectiveName.trim()){e.preventDefault(); setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} placeholder="加購項目名稱" className="flex-[2] p-2.5 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
-               <input type="number" value={newElectivePrice} onChange={e=>setNewElectivePrice(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing && newElectiveName.trim()){e.preventDefault(); setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} placeholder="費用 $" className="flex-1 p-2.5 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
-               <button type="button" onClick={()=>{if(newElectiveName.trim()){setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} className="px-5 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors shadow-sm">新增</button>
-             </div>
-          </div>
+          ) : null}
           
           <div className="mt-3 space-y-2">
             <label className="text-sm font-bold text-slate-700">注意事項備註</label>
-            <textarea value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full p-3 border border-slate-300 rounded-xl font-medium outline-none focus:border-blue-500 min-h-[80px]" placeholder="請填寫活動注意事項、集合地點、裝備需求等資訊..."></textarea>
-          </div>
+                <textarea value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full p-3 border border-slate-300 rounded-xl font-medium outline-none focus:border-blue-500 min-h-[80px]" placeholder="請填寫活動注意事項、集合地點、裝備需求等資訊..."></textarea>
+              </div>
+            </>
+          )}
         </form>
         <div className="flex gap-3 pt-4 border-t mt-4">
           <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
@@ -1890,6 +1863,7 @@ function ActivityAdminPanel({ db, appId, activities, courseTemplates, sysConfig,
                     </span>
                     <span className="text-blue-600 font-black text-base">NT$ {Number(act.price || 0).toLocaleString()}</span>
                   </div>
+                  <h4 className="font-black text-slate-900 text-lg mb-3">{String(act.name || '')}</h4>
 
                     {/* 明顯的課程名稱徽章 (僅顯示課程名稱) */}
                     {act.isCourse && tmpl && (
@@ -2332,19 +2306,9 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
   const [localHolidays, setLocalHolidays] = useState([]);
   const [isSubmittingHolidays, setIsSubmittingHolidays] = useState(false);
 
-  // 新增設施與服務的狀態
-  const [localFacilities, setLocalFacilities] = useState([]);
-  const [localEcoNotes, setLocalEcoNotes] = useState('');
-  const [isSubmittingFacilities, setIsSubmittingFacilities] = useState(false);
-
   useEffect(() => {
     setLocalHolidays(sysConfig.holidayRanges || []);
   }, [sysConfig.holidayRanges]);
-
-  useEffect(() => {
-    setLocalFacilities(sysConfig.accFacilities || ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機']);
-    setLocalEcoNotes(sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具');
-  }, [sysConfig.accFacilities, sysConfig.accEcoNotes]);
 
   const handleSaveHolidays = async () => {
     setIsSubmittingHolidays(true);
@@ -2405,23 +2369,11 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
     }
   };
 
-  const handleSaveFacilities = async () => {
-    if (isSubmittingFacilities) return;
-    setIsSubmittingFacilities(true);
-    await saveSysConfig({
-       ...sysConfig, 
-       accFacilities: localFacilities.filter(f => f.trim() !== ''), 
-       accEcoNotes: localEcoNotes 
-    });
-    setIsSubmittingFacilities(false);
-  };
-
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-2">
       <div className="bg-slate-50 border-b border-slate-200 p-3 flex gap-2 overflow-x-auto rounded-t-2xl">
          <SubTabBtn active={subTab === 'rooms'} onClick={() => setSubTab('rooms')} label="房型及價格設定" />
          <SubTabBtn active={subTab === 'calendar'} onClick={() => setSubTab('calendar')} label="營運狀態與月曆" />
-         <SubTabBtn active={subTab === 'facilities'} onClick={() => setSubTab('facilities')} label="設施與服務內容" />
       </div>
       <div className="p-6 flex-1 overflow-y-auto">
         {subTab === 'rooms' ? (
@@ -2489,7 +2441,7 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                </div>
              ))}
           </div>
-        ) : subTab === 'calendar' ? (
+        ) : (
           <div className="space-y-6">
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                <ControlPanelCard title="活動搭配住宿優惠設定">
@@ -2605,37 +2557,7 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                 </div>
              </div>
           </div>
-        ) : subTab === 'facilities' ? (
-          <div className="space-y-6 animate-in slide-in-from-bottom-4">
-             <div className="flex justify-between items-center">
-               <h3 className="text-xl font-bold">住宿設施與服務內容</h3>
-               <button disabled={isSubmittingFacilities} onClick={handleSaveFacilities} className="bg-green-600 text-white px-4 py-2 rounded-xl font-bold shadow-md hover:bg-green-700 transition-colors disabled:opacity-50">
-                 {isSubmittingFacilities ? '儲存中...' : '儲存變更'}
-               </button>
-             </div>
-             
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ControlPanelCard title="一般設施清單">
-                   <p className="text-xs text-slate-500 font-bold mb-4">列出免費提供給房客的設施與服務，每項將以打勾圖示呈現於前台。</p>
-                   <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                      {localFacilities.map((fac, idx) => (
-                         <div key={idx} className="flex gap-2">
-                            <input type="text" value={fac} onChange={e => {
-                               const newF = [...localFacilities]; newF[idx] = e.target.value; setLocalFacilities(newF);
-                            }} className="flex-1 p-3 border border-slate-300 rounded-xl text-sm font-bold outline-none focus:border-blue-500" placeholder="輸入設施內容..." />
-                            <button onClick={() => setLocalFacilities(localFacilities.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-red-500 p-2"><Trash2 className="w-5 h-5"/></button>
-                         </div>
-                      ))}
-                      <button onClick={() => setLocalFacilities([...localFacilities, ''])} className="w-full py-3.5 border-2 border-dashed border-slate-200 rounded-xl text-blue-600 font-bold hover:bg-blue-50 text-sm transition-colors">+ 新增設施項目</button>
-                   </div>
-                </ControlPanelCard>
-                <ControlPanelCard title="特別提醒與環保聲明">
-                   <p className="text-xs text-slate-500 font-bold mb-4">這段文字會以醒目的紅色底色框線標示於注意事項的最下方。</p>
-                   <textarea value={localEcoNotes} onChange={e => setLocalEcoNotes(e.target.value)} className="w-full p-4 border border-slate-300 rounded-xl min-h-[160px] font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20" placeholder="例如：響應環保，請自備毛巾及牙刷牙膏等個人用具"></textarea>
-                </ControlPanelCard>
-             </div>
-          </div>
-        ) : null}
+        )}
       </div>
       {isRoomModalOpen && <RoomManageModal db={db} appId={appId} room={editingRoom} onClose={() => setIsRoomModalOpen(false)} />}
       {isDateModalOpen && <CalendarDateModal dateStr={selectedDateStr} sysConfig={sysConfig} onSave={saveDateStatus} onClose={() => setIsDateModalOpen(false)} />}
@@ -3425,7 +3347,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
           }
        });
     }
-    if (activity.electives?.length > 0) {
+    if (isCourse && activity.electives?.length > 0) {
        activity.electives.forEach(el => {
           if (selectedElectives.includes(el.id)) total += el.price;
        });
@@ -3461,7 +3383,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     
     try {
       // 提取被選中的選修與加購項目詳細資料
-      const finalElectives = activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
+      const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
       const finalCompulsories = isCourse && activity.compulsories ? activity.compulsories.filter(c => typeof c === 'object' && c.price > 0 && selectedCompulsories.includes(c.id)) : [];
 
       // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
@@ -4656,42 +4578,6 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                      return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
                   })}
                 </div>
-
-                {/* --- 新增：住宿注意事項區塊 --- */}
-                <div className="mt-10 pt-8 border-t border-slate-200/60 animate-in fade-in">
-                   <h3 className="font-black text-lg text-slate-800 mb-5 flex items-center gap-2">
-                      <Info className="w-5 h-5 text-rose-500" /> 住宿注意事項
-                   </h3>
-                   <div className="bg-white/80 p-6 md:p-8 rounded-3xl border border-rose-100/50 shadow-sm">
-                      <ul className="space-y-5 text-sm md:text-base font-bold text-slate-600">
-                         {/* 入退房時間 */}
-                         <li className="flex items-start gap-3">
-                            <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                            <div className="leading-relaxed">
-                               <span className="text-slate-800 font-black mr-2">入退房時間：</span>
-                               入住 (Check-in) <span className="text-blue-700">{sysConfig.checkInAcc || '15:00'} 後</span>，
-                               退房 (Check-out) <span className="text-rose-700">{sysConfig.checkOutAcc || '11:00'} 前</span>。
-                            </div>
-                         </li>
-                         
-                         {/* 設施服務內容 */}
-                         {(sysConfig.accFacilities || ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機']).map((fac, idx) => (
-                            <li key={idx} className="flex items-start gap-3">
-                               <CheckCircle className="w-5 h-5 text-teal-500 shrink-0 mt-0.5"/> 
-                               <span className="leading-relaxed">{fac}</span>
-                            </li>
-                         ))}
-                         
-                         {/* 特別提醒與環保聲明 */}
-                         {(sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具') && (
-                            <li className="flex items-start gap-3 bg-rose-50 p-4 rounded-2xl text-rose-800 border border-rose-100/80 mt-2 shadow-sm">
-                               <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" /> 
-                               <span className="leading-relaxed">{sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具'}</span>
-                            </li>
-                         )}
-                      </ul>
-                   </div>
-                </div>
              </div>
           </div>
 
@@ -5185,6 +5071,11 @@ function UserDashboard({ bookings }) {
                           <span className="text-xs text-slate-400 font-bold">{formatTs(b.timestamp)}</span>
                         </div>
                         <h4 className="text-2xl font-black text-slate-900">{String(b.itemName || '未命名項目')}</h4>
+                        {b.hasMedicalIssue && (
+                          <div className="mt-2 inline-flex items-center gap-1.5 bg-rose-100 text-rose-700 px-2.5 py-1 rounded-md text-[11px] font-black border border-rose-200">
+                            <AlertTriangle className="w-3.5 h-3.5" /> 醫療聲明異常 (請於報到時出示醫生診斷證明)
+                          </div>
+                        )}
                         
                         <div className="mt-2 text-sm font-bold text-slate-500 flex flex-wrap items-center gap-3">
                            {b.type === 'activity' && b.date && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-blue-400"/> 活動日期: {b.date}</span>}
@@ -5671,7 +5562,7 @@ function App() {
   const [accommodations, setAccommodations] = useState([]);
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [sysConfig, setSysConfig] = useState({
-    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200, accFacilities: ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機'], accEcoNotes: '響應環保，請自備毛巾及牙刷牙膏等個人用具'
+    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
   });
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -5730,8 +5621,6 @@ function App() {
                data.transport = "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往";
            }
            if (!data.defaultServices || data.defaultServices.length === 0) data.defaultServices = DEFAULT_SERVICES;
-           if (!data.accFacilities || data.accFacilities.length === 0) data.accFacilities = ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機'];
-           if (data.accEcoNotes === undefined) data.accEcoNotes = '響應環保，請自備毛巾及牙刷牙膏等個人用具';
            setSysConfig(prev => ({ ...prev, ...data }));
        }
     });
