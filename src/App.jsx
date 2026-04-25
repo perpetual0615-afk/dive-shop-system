@@ -3335,20 +3335,21 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     return rawTotal;
   };
 
-  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用
+  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用，並讓非課程也能計算選修
   const calculateTotal = () => {
-    let total = activity.price + calculateEqPrice();
-    if (isCourse && requireCert && activity.certFee) total += activity.certFee;
+    let total = Number(activity.price) || 0;
+    total += calculateEqPrice();
+    if (isCourse && requireCert && activity.certFee) total += Number(activity.certFee) || 0;
     if (isCourse && activity.compulsories?.length > 0) {
        activity.compulsories.forEach(comp => {
           if (typeof comp === 'object' && comp.price > 0 && selectedCompulsories.includes(comp.id)) {
-              total += comp.price;
+              total += Number(comp.price) || 0;
           }
        });
     }
-    if (isCourse && activity.electives?.length > 0) {
+    if (activity.electives?.length > 0) {
        activity.electives.forEach(el => {
-          if (selectedElectives.includes(el.id)) total += el.price;
+          if (selectedElectives.includes(el.id)) total += Number(el.price) || 0;
        });
     }
     return total;
@@ -3382,7 +3383,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     
     try {
       // 提取被選中的選修與加購項目詳細資料
-      const finalElectives = isCourse && activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
+      const finalElectives = activity.electives ? activity.electives.filter(e => selectedElectives.includes(e.id)) : [];
       const finalCompulsories = isCourse && activity.compulsories ? activity.compulsories.filter(c => typeof c === 'object' && c.price > 0 && selectedCompulsories.includes(c.id)) : [];
 
       // 整理出勾選為「是」的異常項目清單 (儲存為文字，避免未來改題目導致 ID 對不上)
@@ -3897,13 +3898,15 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                  {/* 瘦身後的 FUN DIVE 一般裝備收費總計 (懸浮在最下方) */}
                  {!isCourse && !useLocalShopEq && (
                    <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-t-xl flex justify-between items-center mt-6 border border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.08)] sticky bottom-0 z-30 border-t-4 border-t-blue-500">
-                     <span className="font-black text-slate-700 text-sm sm:text-base">預估裝備總額</span>
+                     <span className="font-black text-slate-700 text-sm sm:text-base">裝備與加購總額</span>
                      <div className="flex items-center gap-2 sm:gap-3">
                        <div className="flex flex-col items-end gap-1">
                          {rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 最優惠組合</span>}
                          {isReturningCustomer && rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-orange-700 font-bold bg-orange-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 回客折扣</span>}
                        </div>
-                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice().toLocaleString()}</span>
+                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">
+                         NT$ {(calculateEqPrice() + (activity.electives?.filter(e => selectedElectives.includes(e.id)).reduce((sum, e) => sum + (Number(e.price) || 0), 0) || 0)).toLocaleString()}
+                       </span>
                      </div>
                    </div>
                  )}
