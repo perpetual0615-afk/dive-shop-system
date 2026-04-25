@@ -5121,7 +5121,7 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
   );
 }
 
-function UserDashboard({ bookings }) {
+function UserDashboard({ bookings, sysConfig }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -5131,7 +5131,7 @@ function UserDashboard({ bookings }) {
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
     const name = searchName.trim();
-    const phoneQuery = searchPhone.replace(/[^\d]/g, ''); // 移除非數字字符，進行高容錯精準備對
+    const phoneQuery = searchPhone.replace(/[^\d]/g, ''); 
     return bookings.filter(b => {
         const matchName = b.name === name || b.details?.name === name;
         const bPhone = String(b.phone || b.details?.phone || '').replace(/[^\d]/g, '');
@@ -5214,6 +5214,26 @@ function UserDashboard({ bookings }) {
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name} {b.nickname ? `(${b.nickname})` : ''}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
+
+                    {/* 👉 新增：住宿處理中提示與官方 LINE 按鈕 */}
+                    {b.type === 'accommodation' && b.status === 'pending' && (
+                       <div className="mt-6 bg-rose-50 border border-rose-200 p-5 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                             <AlertTriangle className="w-6 h-6 shrink-0 text-rose-500 mt-0.5" />
+                             <p className="text-sm font-bold text-rose-800 leading-relaxed">
+                                預約完成後請留意來電訊息，或主動傳訊息至鯊墾丁官方LINE確認訂金支付後，訂單狀態顯示<span className="bg-rose-200 px-1 rounded mx-0.5">確認</span>，才算完成預訂喔。
+                             </p>
+                          </div>
+                          <a 
+                            href={sysConfig?.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="w-full md:w-auto shrink-0 px-6 py-3 bg-[#00C300] text-white rounded-xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                          >
+                            <MessageCircle className="w-5 h-5" /> 立即與我們對話
+                          </a>
+                       </div>
+                    )}
 
                     <button 
                        onClick={() => toggleExpand(b.id)} 
@@ -6137,7 +6157,7 @@ function App() {
                    window.scrollTo(0,0);
                 } catch(e) { alert("送出失敗"); }
             }} onBack={() => setCurrentView('home')} />}
-            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
+            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} sysConfig={sysConfig} />}
           </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
