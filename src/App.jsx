@@ -2332,9 +2332,19 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
   const [localHolidays, setLocalHolidays] = useState([]);
   const [isSubmittingHolidays, setIsSubmittingHolidays] = useState(false);
 
+  // 新增設施與服務的狀態
+  const [localFacilities, setLocalFacilities] = useState([]);
+  const [localEcoNotes, setLocalEcoNotes] = useState('');
+  const [isSubmittingFacilities, setIsSubmittingFacilities] = useState(false);
+
   useEffect(() => {
     setLocalHolidays(sysConfig.holidayRanges || []);
   }, [sysConfig.holidayRanges]);
+
+  useEffect(() => {
+    setLocalFacilities(sysConfig.accFacilities || ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機']);
+    setLocalEcoNotes(sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具');
+  }, [sysConfig.accFacilities, sysConfig.accEcoNotes]);
 
   const handleSaveHolidays = async () => {
     setIsSubmittingHolidays(true);
@@ -2395,11 +2405,23 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
     }
   };
 
+  const handleSaveFacilities = async () => {
+    if (isSubmittingFacilities) return;
+    setIsSubmittingFacilities(true);
+    await saveSysConfig({
+       ...sysConfig, 
+       accFacilities: localFacilities.filter(f => f.trim() !== ''), 
+       accEcoNotes: localEcoNotes 
+    });
+    setIsSubmittingFacilities(false);
+  };
+
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-2">
       <div className="bg-slate-50 border-b border-slate-200 p-3 flex gap-2 overflow-x-auto rounded-t-2xl">
          <SubTabBtn active={subTab === 'rooms'} onClick={() => setSubTab('rooms')} label="房型及價格設定" />
          <SubTabBtn active={subTab === 'calendar'} onClick={() => setSubTab('calendar')} label="營運狀態與月曆" />
+         <SubTabBtn active={subTab === 'facilities'} onClick={() => setSubTab('facilities')} label="設施與服務內容" />
       </div>
       <div className="p-6 flex-1 overflow-y-auto">
         {subTab === 'rooms' ? (
@@ -2467,7 +2489,7 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                </div>
              ))}
           </div>
-        ) : (
+        ) : subTab === 'calendar' ? (
           <div className="space-y-6">
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                <ControlPanelCard title="活動搭配住宿優惠設定">
@@ -2583,7 +2605,37 @@ function AccommodationAdminPanel({ db, appId, accommodations, sysConfig, saveSys
                 </div>
              </div>
           </div>
-        )}
+        ) : subTab === 'facilities' ? (
+          <div className="space-y-6 animate-in slide-in-from-bottom-4">
+             <div className="flex justify-between items-center">
+               <h3 className="text-xl font-bold">住宿設施與服務內容</h3>
+               <button disabled={isSubmittingFacilities} onClick={handleSaveFacilities} className="bg-green-600 text-white px-4 py-2 rounded-xl font-bold shadow-md hover:bg-green-700 transition-colors disabled:opacity-50">
+                 {isSubmittingFacilities ? '儲存中...' : '儲存變更'}
+               </button>
+             </div>
+             
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ControlPanelCard title="一般設施清單">
+                   <p className="text-xs text-slate-500 font-bold mb-4">列出免費提供給房客的設施與服務，每項將以打勾圖示呈現於前台。</p>
+                   <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      {localFacilities.map((fac, idx) => (
+                         <div key={idx} className="flex gap-2">
+                            <input type="text" value={fac} onChange={e => {
+                               const newF = [...localFacilities]; newF[idx] = e.target.value; setLocalFacilities(newF);
+                            }} className="flex-1 p-3 border border-slate-300 rounded-xl text-sm font-bold outline-none focus:border-blue-500" placeholder="輸入設施內容..." />
+                            <button onClick={() => setLocalFacilities(localFacilities.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-red-500 p-2"><Trash2 className="w-5 h-5"/></button>
+                         </div>
+                      ))}
+                      <button onClick={() => setLocalFacilities([...localFacilities, ''])} className="w-full py-3.5 border-2 border-dashed border-slate-200 rounded-xl text-blue-600 font-bold hover:bg-blue-50 text-sm transition-colors">+ 新增設施項目</button>
+                   </div>
+                </ControlPanelCard>
+                <ControlPanelCard title="特別提醒與環保聲明">
+                   <p className="text-xs text-slate-500 font-bold mb-4">這段文字會以醒目的紅色底色框線標示於注意事項的最下方。</p>
+                   <textarea value={localEcoNotes} onChange={e => setLocalEcoNotes(e.target.value)} className="w-full p-4 border border-slate-300 rounded-xl min-h-[160px] font-bold text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20" placeholder="例如：響應環保，請自備毛巾及牙刷牙膏等個人用具"></textarea>
+                </ControlPanelCard>
+             </div>
+          </div>
+        ) : null}
       </div>
       {isRoomModalOpen && <RoomManageModal db={db} appId={appId} room={editingRoom} onClose={() => setIsRoomModalOpen(false)} />}
       {isDateModalOpen && <CalendarDateModal dateStr={selectedDateStr} sysConfig={sysConfig} onSave={saveDateStatus} onClose={() => setIsDateModalOpen(false)} />}
@@ -4604,6 +4656,47 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                      return <AccRoomCard key={room.id} room={room} onAdd={handleAddToCart} hasFullDays={hasFullDays} nights={nights} inCartCount={inCartCount} checkIn={checkIn} sysConfig={sysConfig} />;
                   })}
                 </div>
+
+                {/* --- 新增：住宿注意事項區塊 --- */}
+                <div className="mt-10 pt-8 border-t border-slate-200/60 animate-in fade-in">
+                   <h3 className="font-black text-lg text-slate-800 mb-5 flex items-center gap-2">
+                      <Info className="w-5 h-5 text-rose-500" /> 住宿注意事項
+                   </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="bg-white/80 p-5 rounded-2xl border border-rose-100/50 shadow-sm">
+                         <h4 className="text-sm font-black text-slate-700 mb-3 flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-blue-500" /> 入退房時間
+                         </h4>
+                         <div className="space-y-3">
+                            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                               <span className="text-slate-500 font-bold">入住 (Check-in)</span>
+                               <span className="font-black text-blue-700">{sysConfig.checkInAcc || '15:00'} 後</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                               <span className="text-slate-500 font-bold">退房 (Check-out)</span>
+                               <span className="font-black text-rose-700">{sysConfig.checkOutAcc || '11:00'} 前</span>
+                            </div>
+                         </div>
+                      </div>
+                      <div className="bg-white/80 p-5 rounded-2xl border border-rose-100/50 shadow-sm">
+                         <h4 className="text-sm font-black text-slate-700 mb-3 flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-teal-500" /> 設施與服務內容
+                         </h4>
+                         <ul className="space-y-2 text-xs sm:text-sm font-bold text-slate-600">
+                            {(sysConfig.accFacilities || ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機']).map((fac, idx) => (
+                               <li key={idx} className="flex items-start gap-2">
+                                  <Check className="w-4 h-4 text-teal-500 shrink-0 mt-0.5"/> <span>{fac}</span>
+                               </li>
+                            ))}
+                            {(sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具') && (
+                               <li className="flex items-start gap-2 bg-rose-50 p-2.5 rounded-xl text-rose-700 border border-rose-100/80 mt-1">
+                                  <span className="text-rose-500 shrink-0 mt-0.5">※</span> <span>{sysConfig.accEcoNotes !== undefined ? sysConfig.accEcoNotes : '響應環保，請自備毛巾及牙刷牙膏等個人用具'}</span>
+                               </li>
+                            )}
+                         </ul>
+                      </div>
+                   </div>
+                </div>
              </div>
           </div>
 
@@ -5583,7 +5676,7 @@ function App() {
   const [accommodations, setAccommodations] = useState([]);
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [sysConfig, setSysConfig] = useState({
-    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
+    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200, accFacilities: ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機'], accEcoNotes: '響應環保，請自備毛巾及牙刷牙膏等個人用具'
   });
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -5642,6 +5735,8 @@ function App() {
                data.transport = "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往";
            }
            if (!data.defaultServices || data.defaultServices.length === 0) data.defaultServices = DEFAULT_SERVICES;
+           if (!data.accFacilities || data.accFacilities.length === 0) data.accFacilities = ['免費 Wi-Fi / 飲水機 / 交誼廳空間', '提供洗髮精、沐浴乳、吹風機'];
+           if (data.accEcoNotes === undefined) data.accEcoNotes = '響應環保，請自備毛巾及牙刷牙膏等個人用具';
            setSysConfig(prev => ({ ...prev, ...data }));
        }
     });
