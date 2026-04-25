@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -4197,7 +4198,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   );
 }
 
-function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, context }) {
+function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, context, onSuccess }) {
   const [checkIn, setCheckIn] = useState(context?.date || '');
   const [checkOut, setCheckOut] = useState(() => {
     if (context?.date && context?.days) {
@@ -4214,6 +4215,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
   const [courseStudents, setCourseStudents] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recommendModalData, setRecommendModalData] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const nights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
@@ -4558,8 +4560,12 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
         details: finalDetails,
         appliedContext: context || null
       });
+      
+      // 送出成功後，顯示提示浮窗，而不直接跳轉
+      setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -4849,7 +4855,42 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                     </div>
                   </div>
                 </div>
-              )})}
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 住宿預訂成功提示浮窗 */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl relative overflow-hidden text-center border border-white flex flex-col">
+            <div className="mx-auto w-20 h-20 bg-green-100 text-green-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner transform rotate-3">
+              <CheckCircle className="w-10 h-10 -rotate-3" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 mb-3">住宿預訂請求已送出！</h2>
+            <div className="bg-rose-50 border border-rose-100 p-5 rounded-2xl mb-8 shadow-sm">
+               <p className="text-rose-800 text-sm font-bold leading-relaxed">
+                 預約完成後請留意來電訊息，或主動傳訊息至鯊墾丁官方LINE確認訂金支付後，訂單狀態顯示<span className="bg-rose-200 px-1 rounded mx-0.5">確認</span>，才算完成預訂喔。
+               </p>
+            </div>
+            <div className="space-y-3 mt-auto">
+              <a 
+                href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                target="_blank" 
+                rel="noreferrer" 
+                onClick={() => onSuccess && onSuccess()} 
+                className="w-full py-4 bg-[#00C300] text-white rounded-2xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-6 h-6" /> 立即與我們對話 (LINE)
+              </a>
+              <button 
+                onClick={() => onSuccess && onSuccess()} 
+                className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+              >
+                前往查看預約紀錄
+              </button>
             </div>
           </div>
         </div>
@@ -6084,11 +6125,11 @@ function App() {
             {currentView === 'accommodations' && <AccommodationBookingPage accommodations={accommodations} sysConfig={sysConfig} context={pendingAccAction} onBook={async (data) => {
                 try {
                    await submitRegistration(data);
-                   setPendingAccAction(null);
-                   setCurrentView('dashboard');
-                   window.scrollTo(0,0);
-                } catch(e) { alert("送出失敗"); }
-            }} onBack={() => { setPendingAccAction(null); setCurrentView('home'); }} />}
+                } catch(e) { 
+                   alert("送出失敗"); 
+                   throw e; 
+                }
+            }} onSuccess={() => { setPendingAccAction(null); setCurrentView('dashboard'); window.scrollTo(0,0); }} onBack={() => { setPendingAccAction(null); setCurrentView('home'); }} />}
             {currentView === 'equipments' && <EquipmentRentalPage equipments={equipmentsList} sysConfig={sysConfig} onBook={async (data) => {
                 try {
                    await submitRegistration(data);
