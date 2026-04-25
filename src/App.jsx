@@ -5,15 +5,14 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 
 // --- Firebase 基礎配置 (加上安全防護) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
-  authDomain: "sharkenting777550.firebaseapp.com",
-  projectId: "sharkenting777550",
-  storageBucket: "sharkenting777550.firebasestorage.app",
-  messagingSenderId: "1092791454866",
-  appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
-  measurementId: "G-TYT7E313E2"
-};
+let firebaseConfig = {};
+try {
+  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+    firebaseConfig = JSON.parse(__firebase_config);
+  }
+} catch (e) {
+  console.error("Firebase config parse error", e);
+}
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -2997,6 +2996,8 @@ function SystemAdminPanel({ config, onSave }) {
                <label className="text-sm font-bold text-slate-700">副標題描述</label>
                <textarea value={f.subtitle || ''} onChange={e => setF({ ...f, subtitle: e.target.value })} className="w-full p-3 border border-slate-300 bg-white rounded-xl h-24 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
             </div>
+            {/* 新增: 房型介紹網址設定 */}
+            <FormInput label="房型介紹連結網址" value={f.roomIntroUrl} onChange={v => setF({ ...f, roomIntroUrl: v })} placeholder="https://..." />
           </div>
         </ControlPanelCard>
 
@@ -5641,7 +5642,7 @@ function App() {
   const [accommodations, setAccommodations] = useState([]);
   const [equipmentsList, setEquipmentsList] = useState([]);
   const [sysConfig, setSysConfig] = useState({
-    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200
+    title: "鯊墾丁 SHARKENTING", subtitle: "整合課程、住宿與裝備租借，提供您最專業、便利的潛水體驗。", heroBadgeText: "Top-Down Ocean View & Whale Sharks", phoneDiving: "0980-175-777", serviceHoursDiving: "08:00-20:00", phoneAcc: "0987-367-550", line: "@tbj1448p", address: "946屏東縣恆春鎮恆西路33巷123弄5號", transport: "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往", peakSeasonStart: '05', peakSeasonEnd: '10', equipmentPackages: { studentDiscount: 80, returnCustomerDiscount: 80 }, coaches: [{id: 1, name: '阿龍教練'}], checkInAcc: '15:00', checkOutAcc: '11:00', adminCode: '0000', accDiscountType: 'fixed', accDiscountValue: 200, defaultServices: DEFAULT_SERVICES, airTankPrice: 800, nitroxTankPrice: 1200, roomIntroUrl: 'https://gemini.google.com/share/8df952a93b80'
   });
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -5700,6 +5701,7 @@ function App() {
                data.transport = "🚄 高鐵左營站搭乘台灣好行至恆春轉運站\n🚗 自行開車前往";
            }
            if (!data.defaultServices || data.defaultServices.length === 0) data.defaultServices = DEFAULT_SERVICES;
+           if (!data.roomIntroUrl) data.roomIntroUrl = 'https://gemini.google.com/share/8df952a93b80';
            setSysConfig(prev => ({ ...prev, ...data }));
        }
     });
@@ -5916,9 +5918,15 @@ function App() {
                       </div>
                       <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] text-white">{String(sysConfig.title || '')}</h1>
                       <p className="text-lg md:text-xl text-cyan-50 mb-10 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] font-bold">{String(sysConfig.subtitle || '')}</p>
-                      <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-8 py-3.5 md:px-10 md:py-4 rounded-xl font-black shadow-[0_10px_30px_rgba(0,182,212,0.4)] hover:bg-cyan-50 hover:scale-105 transition-all flex items-center gap-2 group">
-                        展開潛水旅程 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
+                      
+                      <div className="flex flex-wrap items-center gap-4">
+                        <button onClick={() => setCurrentView('activities')} className="bg-white text-blue-900 px-8 py-3.5 md:px-10 md:py-4 rounded-xl font-black shadow-[0_10px_30px_rgba(0,182,212,0.4)] hover:bg-cyan-50 hover:scale-105 transition-all flex items-center gap-2 group">
+                          展開潛水旅程 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                        <a href={sysConfig.roomIntroUrl || 'https://gemini.google.com/share/8df952a93b80'} target="_blank" rel="noreferrer" className="bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-3.5 md:px-10 md:py-4 rounded-xl font-black shadow-lg hover:bg-white/20 hover:scale-105 transition-all flex items-center gap-2 group">
+                          <Home className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" /> 房型介紹
+                        </a>
+                      </div>
                     </div>
 
                     {/* 保證顯示：懸浮於 HERO 區塊的精緻收費小面板 (加寬優化版) */}
