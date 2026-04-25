@@ -1588,6 +1588,8 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
   const isEdit = !!editingActivity;
   const [publishType, setPublishType] = useState(isEdit ? (editingActivity.isCourse ? 'course' : (editingActivity.diveCategory === '體驗潛水' ? 'dsd' : 'fundive')) : 'fundive');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newElectiveName, setNewElectiveName] = useState('');
+  const [newElectivePrice, setNewElectivePrice] = useState('');
 
   let initData = { name: '', price: 0, date: '', diveCategory: '岸潛', capacity: 4, courseTemplateId: '', isCourse: false, airTanks: 2, nitroxTanks: 0, tanksShoreAir: 0, tanksShoreNitrox: 0, tanksBoatAir: 0, tanksBoatNitrox: 0, notes: '', coach: '', electives: [], services: [], certFee: 0, certSystem: '', schedule: [], airTankPrice: sysConfig.airTankPrice || 800, nitroxTankPrice: sysConfig.nitroxTankPrice || 1200 };
   if (editingActivity) {
@@ -1705,7 +1707,6 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
           </div>
           
           {publishType === 'fundive' && (
-            <>
               <div className="mt-4">
                 <label className="block text-sm font-bold text-slate-700 mb-2 mt-2">潛水類型</label>
                 <div className="flex gap-2">
@@ -1724,7 +1725,9 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
                    ))}
                 </div>
               </div>
-              {formData.diveCategory === '潛旅' ? (
+          )}
+
+          {publishType === 'fundive' && formData.diveCategory === '潛旅' && (
                 <div className="mt-4 p-5 bg-blue-50/50 rounded-xl border border-blue-100 space-y-5">
                    <div>
                       <p className="text-sm font-black text-blue-800 mb-3 border-b border-blue-200/50 pb-1">岸潛規劃</p>
@@ -1745,34 +1748,59 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
                       <span className="text-xl font-black text-blue-700">{(formData.tanksShoreAir || 0) + (formData.tanksShoreNitrox || 0) + (formData.tanksBoatAir || 0) + (formData.tanksBoatNitrox || 0)} 支</span>
                    </div>
                 </div>
-              ) : formData.diveCategory === '岸潛' ? (
+          )}
+          
+          {publishType === 'fundive' && formData.diveCategory === '岸潛' && (
                 <div className="grid grid-cols-2 gap-4 mt-3 p-5 bg-blue-50/60 rounded-2xl border border-blue-200/60 shadow-sm">
                    <div className="col-span-2 pb-2 border-b border-blue-200/50 mb-1">
                       <h4 className="text-sm font-black text-blue-900 flex items-center gap-2"><Waves className="w-4 h-4 text-blue-600"/>岸潛氣瓶配置與計價</h4>
                       <p className="text-xs font-bold text-blue-600 mt-1">系統將依據此處單價與數量，自動為您結算本梯次活動總售價</p>
                    </div>
                    <FormInput label="一般氣瓶單價" type="number" value={formData.airTankPrice ?? 800} onChange={v => handleShoreTankChange('airTankPrice', v)} />
-               <FormInput label="高氧氣瓶單價" type="number" value={formData.nitroxTankPrice ?? 1200} onChange={v => handleShoreTankChange('nitroxTankPrice', v)} />
-               <FormInput label="一般氣瓶 (支)" type="number" value={formData.airTanks ?? 2} onChange={v => handleShoreTankChange('airTanks', v)} />
-               <FormInput label="高氧氣瓶 (支)" type="number" value={formData.nitroxTanks ?? 0} onChange={v => handleShoreTankChange('nitroxTanks', v)} />
-            </div>
-          ) : publishType === 'dsd' || formData.diveCategory === '體驗潛水' ? (
-            <div className="mt-3 p-4 bg-cyan-50 rounded-xl border border-cyan-200 shadow-sm">
-               <p className="text-sm font-bold text-cyan-800 flex items-center gap-2"><Info className="w-5 h-5"/> 體驗潛水項目：顧客報名時將免費包含全套裝備。</p>
-            </div>
-          ) : publishType === 'fundive' ? (
+                   <FormInput label="高氧氣瓶單價" type="number" value={formData.nitroxTankPrice ?? 1200} onChange={v => handleShoreTankChange('nitroxTankPrice', v)} />
+                   <FormInput label="一般氣瓶 (支)" type="number" value={formData.airTanks ?? 2} onChange={v => handleShoreTankChange('airTanks', v)} />
+                   <FormInput label="高氧氣瓶 (支)" type="number" value={formData.nitroxTanks ?? 0} onChange={v => handleShoreTankChange('nitroxTanks', v)} />
+                </div>
+          )}
+
+          {publishType === 'fundive' && formData.diveCategory === '船潛' && (
             <div className="grid grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
               <FormInput label="預計一般氣瓶 (支)" type="number" value={formData.airTanks ?? 2} onChange={v => setFormData({ ...formData, airTanks: v === '' ? '' : Math.max(0, parseInt(v)) })} />
               <FormInput label="預計高氧氣瓶 (支)" type="number" value={formData.nitroxTanks ?? 0} onChange={v => setFormData({ ...formData, nitroxTanks: v === '' ? '' : Math.max(0, parseInt(v)) })} />
             </div>
-          ) : null}
+          )}
+
+          {publishType === 'dsd' && (
+            <div className="mt-3 p-4 bg-cyan-50 rounded-xl border border-cyan-200 shadow-sm">
+               <p className="text-sm font-bold text-cyan-800 flex items-center gap-2"><Info className="w-5 h-5"/> 體驗潛水項目：顧客報名時將免費包含全套裝備。</p>
+            </div>
+          )}
+
+          <div className="space-y-2 mt-4">
+             <label className="text-sm font-bold text-slate-700">選修加購項目 (潛客報名時可選)</label>
+             <div className="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[60px]">
+               {(formData.electives || []).map((el) => (
+                 <div key={el.id} className="flex items-center justify-between bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm transition-all hover:border-purple-300">
+                   <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><Plus className="w-4 h-4 text-purple-500"/> {el.name}</span>
+                   <div className="flex items-center gap-4">
+                     <span className="font-black text-purple-600 text-sm bg-purple-50 px-2 py-0.5 rounded border border-purple-100">+NT$ {el.price}</span>
+                     <button type="button" onClick={()=>setFormData({...formData, electives: formData.electives.filter(x=>x.id!==el.id)})} className="text-slate-400 hover:text-red-500 bg-slate-50 p-1.5 rounded-md transition-colors"><Trash2 className="w-4 h-4"/></button>
+                   </div>
+                 </div>
+               ))}
+               {(formData.electives || []).length === 0 && <span className="text-slate-400 text-sm font-medium py-1 w-full text-center block">尚未新增任何選修加購項目...</span>}
+             </div>
+             <div className="flex gap-2">
+               <input type="text" value={newElectiveName} onChange={e=>setNewElectiveName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing && newElectiveName.trim()){e.preventDefault(); setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} placeholder="加購項目名稱" className="flex-[2] p-2.5 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+               <input type="number" value={newElectivePrice} onChange={e=>setNewElectivePrice(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing && newElectiveName.trim()){e.preventDefault(); setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} placeholder="費用 $" className="flex-1 p-2.5 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-blue-500" />
+               <button type="button" onClick={()=>{if(newElectiveName.trim()){setFormData({...formData, electives: [...(formData.electives || []), {id: Date.now(), name: newElectiveName.trim(), price: parseInt(newElectivePrice)||0}]}); setNewElectiveName(''); setNewElectivePrice('');}}} className="px-5 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors shadow-sm">新增</button>
+             </div>
+          </div>
           
           <div className="mt-3 space-y-2">
             <label className="text-sm font-bold text-slate-700">注意事項備註</label>
-                <textarea value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full p-3 border border-slate-300 rounded-xl font-medium outline-none focus:border-blue-500 min-h-[80px]" placeholder="請填寫活動注意事項、集合地點、裝備需求等資訊..."></textarea>
-              </div>
-            </>
-          )}
+            <textarea value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full p-3 border border-slate-300 rounded-xl font-medium outline-none focus:border-blue-500 min-h-[80px]" placeholder="請填寫活動注意事項、集合地點、裝備需求等資訊..."></textarea>
+          </div>
         </form>
         <div className="flex gap-3 pt-4 border-t mt-4">
           <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
