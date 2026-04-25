@@ -1089,7 +1089,7 @@ function BookingCard({ booking: b, type, db, appId }) {
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-4">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
          <div className="flex items-center gap-4">
-           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg ${b.status === 'pending' ? 'bg-amber-50 text-amber-600' : b.status === 'confirmed' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${b.status === 'pending' ? 'bg-amber-50 text-amber-600' : b.status === 'confirmed' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
              {b.status === 'pending' ? <Clock className="w-5 h-5" /> : b.status === 'confirmed' ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
            </div>
            <div>
@@ -1099,30 +1099,49 @@ function BookingCard({ booking: b, type, db, appId }) {
                {b.hasMedicalIssue && <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1 shadow-sm"><AlertTriangle className="w-3 h-3" />醫療聲明異常</span>}
                {type === 'accommodation' && b.details?.breakdown && <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded text-[10px] font-black">系統試算</span>}
              </div>
-             <div className="flex gap-3 text-sm text-slate-500 font-medium">
+             <div className="flex flex-wrap gap-3 text-sm text-slate-500 font-medium mb-1.5">
                <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" /> {bName}</span>
                <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {bPhone}</span>
              </div>
+             
+             {/* 👉 新增：在未展開狀態下，直接顯示住宿區間與活動日期 */}
+             {type === 'accommodation' && b.details?.checkIn && (
+                <div className="text-xs font-bold text-teal-700 bg-teal-50 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-teal-100 mt-1 shadow-sm">
+                   <CalendarDays className="w-3.5 h-3.5" />
+                   {b.details.checkIn} ~ {new Date(new Date(b.details.checkIn).getTime() + (b.details.nights || 1) * 86400000).toLocaleDateString('sv-SE')} ({b.details.nights}晚)
+                </div>
+             )}
+             {type === 'activity' && b.date && (
+                <div className="text-xs font-bold text-blue-700 bg-blue-50 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-blue-100 mt-1 shadow-sm">
+                   <CalendarDays className="w-3.5 h-3.5" /> 活動日期：{b.date}
+                </div>
+             )}
+             {type === 'equipment' && b.details?.date && (
+                <div className="text-xs font-bold text-cyan-700 bg-cyan-50 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-cyan-100 mt-1 shadow-sm">
+                   <CalendarDays className="w-3.5 h-3.5" /> 取件日期：{b.details.date} ({b.details.days}天)
+                </div>
+             )}
            </div>
          </div>
-         <div className="flex items-center gap-4">
-            <div className="text-right">
+         <div className="flex flex-col md:items-end gap-3 mt-2 md:mt-0">
+            <div className="text-left md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end w-full md:w-auto gap-2">
               <div className="font-black text-lg text-blue-600">NT$ {String(b.price || 0)}</div>
-              <div className="text-xs text-slate-400">{submitDate}</div>
+              <div className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">建單: {submitDate}</div>
             </div>
-            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-               <div className="flex bg-slate-100 rounded-lg p-1">
-                  <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
-                  <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
-                  <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
+            <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto" onClick={e => e.stopPropagation()}>
+               <div className="flex bg-slate-100 rounded-lg p-1 w-full md:w-auto justify-between md:justify-start">
+                  <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
+                  <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
+                  <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
                </div>
                
-               {/* 在所有預約表（潛水、住宿、裝備）中皆顯示刪除按鈕 */}
-               <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="永久刪除此紀錄">
+               <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0" title="永久刪除此紀錄">
                   <Trash2 className="w-4 h-4" />
                </button>
+               <div className="hidden md:block pl-2 border-l border-slate-200 ml-1">
+                 <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+               </div>
             </div>
-            <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
          </div>
       </div>
       {expanded && (
