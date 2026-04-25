@@ -3335,21 +3335,20 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
     return rawTotal;
   };
 
-  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用，並讓非課程也能計算選修
+  // 👉 修改總計金額計算：根據是否勾選來計算簽證與必修費用
   const calculateTotal = () => {
-    let total = Number(activity.price) || 0;
-    total += calculateEqPrice();
-    if (isCourse && requireCert && activity.certFee) total += Number(activity.certFee) || 0;
+    let total = activity.price + calculateEqPrice();
+    if (isCourse && requireCert && activity.certFee) total += activity.certFee;
     if (isCourse && activity.compulsories?.length > 0) {
        activity.compulsories.forEach(comp => {
           if (typeof comp === 'object' && comp.price > 0 && selectedCompulsories.includes(comp.id)) {
-              total += Number(comp.price) || 0;
+              total += comp.price;
           }
        });
     }
     if (activity.electives?.length > 0) {
        activity.electives.forEach(el => {
-          if (selectedElectives.includes(el.id)) total += Number(el.price) || 0;
+          if (selectedElectives.includes(el.id)) total += el.price;
        });
     }
     return total;
@@ -3898,15 +3897,13 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                  {/* 瘦身後的 FUN DIVE 一般裝備收費總計 (懸浮在最下方) */}
                  {!isCourse && !useLocalShopEq && (
                    <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-t-xl flex justify-between items-center mt-6 border border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.08)] sticky bottom-0 z-30 border-t-4 border-t-blue-500">
-                     <span className="font-black text-slate-700 text-sm sm:text-base">裝備與加購總額</span>
+                     <span className="font-black text-slate-700 text-sm sm:text-base">預估裝備總額</span>
                      <div className="flex items-center gap-2 sm:gap-3">
                        <div className="flex flex-col items-end gap-1">
                          {rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 最優惠組合</span>}
                          {isReturningCustomer && rentals.length > 0 && <span className="text-[9px] sm:text-[10px] text-orange-700 font-bold bg-orange-100 px-1.5 py-0.5 rounded shadow-sm leading-none">✓ 回客折扣</span>}
                        </div>
-                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">
-                         NT$ {(calculateEqPrice() + (activity.electives?.filter(e => selectedElectives.includes(e.id)).reduce((sum, e) => sum + (Number(e.price) || 0), 0) || 0)).toLocaleString()}
-                       </span>
+                       <span className="text-xl sm:text-2xl font-black text-blue-600 leading-none">NT$ {calculateEqPrice().toLocaleString()}</span>
                      </div>
                    </div>
                  )}
