@@ -5321,7 +5321,7 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
   );
 }
 
-function UserDashboard({ bookings }) {
+function UserDashboard({ bookings, sysConfig }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -5405,15 +5405,39 @@ function UserDashboard({ bookings }) {
                            {b.type === 'equipment' && b.details?.date && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-cyan-400"/> 取件日期: {b.details.date} ({b.details.days}天)</span>}
                         </div>
                       </div>
-                      <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 flex items-center justify-center text-center whitespace-nowrap ${b.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : b.status === 'cancelled' ? 'bg-slate-100 border-slate-400 text-slate-600' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
-                        {b.status === 'confirmed' ? '已確認 / Confirmed' : b.status === 'cancelled' ? '已取消 / Cancelled' : '處理中 / Pending'}
-                      </div>
+                      {(() => {
+                         const effectiveStatus = (b.type === 'equipment' && b.equipmentReturned) ? 'returned' : b.status;
+                         return (
+                            <div className={`px-6 py-2 rounded-2xl text-base font-black border-2 flex items-center justify-center text-center whitespace-nowrap ${effectiveStatus === 'confirmed' ? 'bg-green-50 border-green-500 text-green-700' : effectiveStatus === 'cancelled' ? 'bg-slate-100 border-slate-400 text-slate-600' : effectiveStatus === 'returned' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-amber-50 border-amber-500 text-amber-800'}`}>
+                              {effectiveStatus === 'confirmed' ? '已確認 / Confirmed' : effectiveStatus === 'cancelled' ? '已取消 / Cancelled' : effectiveStatus === 'returned' ? '已歸還 / Returned' : '處理中 / Pending'}
+                            </div>
+                         );
+                      })()}
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-base">
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name} {b.nickname ? `(${b.nickname})` : ''}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
+
+                    {b.type === 'accommodation' && b.status === 'pending' && (
+                      <div className="mt-6 bg-rose-50 border border-rose-200 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm animate-in slide-in-from-bottom-2">
+                        <div className="flex items-start gap-3 text-rose-800">
+                           <Info className="w-5 h-5 shrink-0 mt-0.5 text-rose-600" />
+                           <div className="text-sm">
+                              <span className="block font-black mb-1">您的住宿預訂正在處理中</span>
+                              <span className="font-bold opacity-90">為確保為您保留房型，請透過 LINE 聯繫客服確認訂金事宜！</span>
+                           </div>
+                        </div>
+                        <a 
+                          href={sysConfig?.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                          target="_blank" rel="noreferrer"
+                          className="w-full sm:w-auto shrink-0 bg-[#00C300] hover:bg-[#00A000] text-white px-5 py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:-translate-y-0.5"
+                        >
+                          <MessageCircle className="w-5 h-5" /> 聯絡官方 LINE
+                        </a>
+                      </div>
+                    )}
 
                     <button 
                        onClick={() => toggleExpand(b.id)} 
@@ -5447,9 +5471,12 @@ function UserDashboard({ bookings }) {
                                      </div>
                                   </div>
                                   <div className="pt-1 space-y-1.5">
-                                     <p className="text-slate-500 font-bold">裝備租借：</p>
+                                     <p className="text-slate-500 font-bold flex items-center gap-2">
+                                        裝備租借：
+                                        {b.equipmentReturned && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black border border-blue-200 shadow-sm">已歸還</span>}
+                                     </p>
                                      <div className="flex flex-wrap gap-1">
-                                        {b.rentals?.length > 0 ? b.rentals.map((r, i)=><span key={i} className="text-[11px] bg-cyan-100 text-cyan-800 font-black px-2 py-0.5 rounded">{typeof r === 'string' ? r : `${r.name}(${r.size||'F'})`}</span>) : <span className="text-sm font-bold text-slate-800">無 / 自備</span>}
+                                        {b.rentals?.length > 0 ? b.rentals.map((r, i)=><span key={i} className={`text-[11px] font-black px-2 py-0.5 rounded border ${b.equipmentReturned ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-cyan-100 text-cyan-800 border-cyan-200'}`}>{typeof r === 'string' ? r : `${r.name}(${r.size||'F'})`}</span>) : <span className="text-sm font-bold text-slate-800">無 / 自備</span>}
                                      </div>
                                   </div>
                                </div>
@@ -5539,6 +5566,15 @@ function UserDashboard({ bookings }) {
 
                          {b.type === 'equipment' && (
                             <div className="space-y-4">
+                               {(b.status === 'returned' || b.equipmentReturned) && (
+                                  <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl text-blue-800 flex items-start gap-3 shadow-sm">
+                                     <CheckCircle className="w-6 h-6 shrink-0 mt-0.5 text-blue-500" />
+                                     <div>
+                                        <h4 className="font-black text-sm mb-0.5">裝備已歸還</h4>
+                                        <p className="text-xs font-bold opacity-90">謝謝您的租借，期待下次再為您服務！</p>
+                                     </div>
+                                  </div>
+                               )}
                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                      <p className="font-black text-cyan-800 border-b border-cyan-100 pb-2 mb-3 flex items-center gap-2"><User className="w-4 h-4"/> 租借人體型資訊</p>
@@ -5552,9 +5588,9 @@ function UserDashboard({ bookings }) {
                                      <p className="font-black text-cyan-800 border-b border-cyan-100 pb-2 mb-3 flex items-center gap-2"><LifeBuoy className="w-4 h-4"/> 預留裝備清單</p>
                                      <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-2">
                                         {(b.rentals || []).map((r, idx) => (
-                                           <div key={idx} className="bg-white p-2.5 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
-                                              <span className="font-black text-sm text-slate-800 truncate pr-2">{r.name}</span>
-                                              <span className="bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded text-xs font-black shrink-0">{r.size || 'F'}</span>
+                                           <div key={idx} className={`p-2.5 rounded-lg border flex justify-between items-center shadow-sm ${b.equipmentReturned ? 'bg-slate-100 border-slate-200 opacity-60' : 'bg-white border-slate-200'}`}>
+                                              <span className={`font-black text-sm truncate pr-2 ${b.equipmentReturned ? 'line-through text-slate-500' : 'text-slate-800'}`}>{r.name}</span>
+                                              <span className={`px-2 py-0.5 rounded text-xs font-black shrink-0 ${b.equipmentReturned ? 'bg-slate-200 text-slate-500' : 'bg-cyan-50 text-cyan-700'}`}>{r.size || 'F'}</span>
                                            </div>
                                         ))}
                                         {(b.rentals || []).length === 0 && <p className="text-sm font-bold text-slate-400">無裝備資訊</p>}
@@ -6341,7 +6377,7 @@ function App() {
                    window.scrollTo(0,0);
                 } catch(e) { alert("送出失敗"); }
             }} onBack={() => setCurrentView('home')} />}
-            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
+            {currentView === 'dashboard' && <UserDashboard bookings={bookings} sysConfig={sysConfig} userUid={user?.uid} />}
           </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
