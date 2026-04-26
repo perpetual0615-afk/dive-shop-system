@@ -14,7 +14,6 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:b4f17685c6c58b521caa4b",
   measurementId: "G-TYT7E313E2"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1067,18 +1066,83 @@ function WeightControl({ label, value, onAdd, onSub }) {
 // 前台/後台：全域安全渲染組件
 // --------------------------------------------------------
 
+// 👉 提取歸還裝備的共用庫存回補邏輯
+const restoreEquipmentStock = async (rentals, db, appId) => {
+    if (!rentals || rentals.length === 0) return;
+    for (const r of rentals) {
+        if (!r.eqId || String(r.eqId).startsWith('local-')) continue;
+        const eqRef = doc(db, 'artifacts', appId, 'public', 'data', 'equipments', r.eqId);
+        const eqSnap = await getDoc(eqRef);
+        if (eqSnap.exists()) {
+            const eqData = eqSnap.data();
+            if (eqData.hasSpecs && eqData.specDetails) {
+                const updatedSpecs = eqData.specDetails.map(spec => {
+                    if (spec.name === r.size) {
+                        return { ...spec, ready: (spec.ready || 0) + 1 };
+                    }
+                    return spec;
+                });
+                await updateDoc(eqRef, { specDetails: updatedSpecs });
+            } else {
+                await updateDoc(eqRef, { readyQuantity: (eqData.readyQuantity || 0) + 1 });
+            }
+        }
+    }
+};
+
 function BookingCard({ booking: b, type, db, appId }) {
   const [expanded, setExpanded] = useState(false);
   const bName = String(b.name || b.details?.name || '未知');
   const bPhone = String(b.phone || b.details?.phone || '未知');
   const submitDate = formatTs(b.timestamp);
 
-  const updateStatus = async (status) => {
-    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), { status }); }
-    catch (e) { alert("狀態更新失敗"); }
+  // 👉 更新狀態 (含取消訂單自動退還庫存)
+  const handleUpdateStatus = async (e, newStatus) => {
+    e?.stopPropagation();
+    if (b.status === newStatus) return;
+
+    if (newStatus === 'cancelled') {
+       if (window.confirm("確定要取消此預約嗎？若有租借裝備將會自動加回庫存。")) {
+          try {
+             if (b.rentals?.length > 0 && !b.equipmentReturned && !b.useLocalShopEq) {
+                 await restoreEquipmentStock(b.rentals, db, appId);
+             }
+             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), { status: 'cancelled', equipmentReturned: true });
+          } catch(err) { alert("更新狀態失敗"); }
+       }
+       return;
+    }
+
+    try { 
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), { status: newStatus }); 
+    } catch (err) { alert("狀態更新失敗"); }
   };
 
-  const handleDelete = async () => {
+  // 👉 獨立的歸還裝備功能 (支援所有含有裝備的預約表)
+  const handleReturnEquipment = async (e) => {
+    e.stopPropagation();
+    if (b.equipmentReturned) return;
+    
+    if (window.confirm("確定要將此訂單租借的裝備標記為「已歸還」並加回庫存數量嗎？")) {
+       try {
+          if (b.rentals && b.rentals.length > 0 && !b.useLocalShopEq) {
+              await restoreEquipmentStock(b.rentals, db, appId);
+          }
+          
+          const updates = { equipmentReturned: true };
+          if (type === 'equipment') updates.status = 'returned'; // 只有純裝備租借才連動主狀態變更為已歸還
+          
+          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), updates);
+          alert("裝備已歸還，庫存已更新！");
+       } catch (err) {
+          console.error(err);
+          alert("歸還失敗");
+       }
+    }
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
     if (window.confirm("確定要永久刪除此筆預約紀錄嗎？此動作無法撤回。")) {
        try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)); }
        catch (e) { alert("刪除失敗，請檢查權限"); }
@@ -1089,8 +1153,8 @@ function BookingCard({ booking: b, type, db, appId }) {
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-4">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
          <div className="flex items-center gap-4">
-           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${b.status === 'pending' ? 'bg-amber-50 text-amber-600' : b.status === 'confirmed' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
-             {b.status === 'pending' ? <Clock className="w-5 h-5" /> : b.status === 'confirmed' ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
+           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${b.status === 'pending' ? 'bg-amber-50 text-amber-600' : b.status === 'confirmed' ? 'bg-green-50 text-green-600' : b.status === 'returned' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+             {b.status === 'pending' ? <Clock className="w-5 h-5" /> : b.status === 'confirmed' || b.status === 'returned' ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
            </div>
            <div>
              <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -1104,7 +1168,6 @@ function BookingCard({ booking: b, type, db, appId }) {
                <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {bPhone}</span>
              </div>
              
-             {/* 👉 新增：在未展開狀態下，直接顯示住宿區間與活動日期 */}
              {type === 'accommodation' && b.details?.checkIn && (
                 <div className="text-xs font-bold text-teal-700 bg-teal-50 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-teal-100 mt-1 shadow-sm">
                    <CalendarDays className="w-3.5 h-3.5" />
@@ -1129,10 +1192,22 @@ function BookingCard({ booking: b, type, db, appId }) {
               <div className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">建單: {submitDate}</div>
             </div>
             <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto" onClick={e => e.stopPropagation()}>
-               <div className="flex bg-slate-100 rounded-lg p-1 w-full md:w-auto justify-between md:justify-start">
-                  <button onClick={() => updateStatus('pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
-                  <button onClick={() => updateStatus('confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
-                  <button onClick={() => updateStatus('cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
+               <div className="flex flex-wrap bg-slate-100 rounded-lg p-1 w-full md:w-auto justify-between md:justify-start gap-1">
+                  <button onClick={(e) => handleUpdateStatus(e, 'pending')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>待審</button>
+                  <button onClick={(e) => handleUpdateStatus(e, 'confirmed')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'confirmed' ? 'bg-green-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>確認</button>
+                  
+                  {/* 👉 裝備租借表，或是含有租借裝備的潛水活動，皆顯示歸還按鈕 */}
+                  {(type === 'equipment' || (type === 'activity' && b.rentals?.length > 0)) && (
+                     <button 
+                        onClick={handleReturnEquipment} 
+                        disabled={b.equipmentReturned || b.status === 'returned'} 
+                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${(b.equipmentReturned || b.status === 'returned') ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
+                     >
+                       {(b.equipmentReturned || b.status === 'returned') ? '已還裝備' : '歸還裝備'}
+                     </button>
+                  )}
+                  
+                  <button onClick={(e) => handleUpdateStatus(e, 'cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
                </div>
                
                <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0" title="永久刪除此紀錄">
@@ -1150,7 +1225,7 @@ function BookingCard({ booking: b, type, db, appId }) {
               <>
                 <div className="space-y-2">
                    <p className="font-bold text-slate-700 border-b pb-1">學員詳細資料</p>
-                   <p><span className="text-slate-400 w-24 inline-block">證件號碼</span> {String(b.idNumber || '未提供')}</p>
+                   <p><span className="text-slate-400 w-24 inline-block">證件號碼</span> {maskIdNumber(b.idNumber)}</p>
                    <p><span className="text-slate-400 w-24 inline-block">出生日期</span> {String(b.birthday || '未提供')}</p>
                    <p><span className="text-slate-400 w-24 inline-block">身高體重</span> {String(b.height)} cm / {String(b.weight)} kg</p>
                    <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3)} kg</p>
@@ -1159,22 +1234,31 @@ function BookingCard({ booking: b, type, db, appId }) {
                    <p className="font-bold text-slate-700 border-b pb-1">預約配置與選修</p>
                    <p><span className="text-slate-400 w-24 inline-block">住宿</span> {b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '內附背包床' : b.accOption === 'upgrade' ? `升級房型` : b.accOption === 'release' ? '釋出床位' : '自理'}</p>
                    {b.selectedElectives?.length > 0 && (
-                      <p className="flex items-start mt-1"><span className="text-slate-400 w-24 inline-block shrink-0">選修加購</span> <span className="text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded">{b.selectedElectives.map(e=>e.name).join('、')}</span></p>
+                      <p className="flex items-start mt-1"><span className="text-slate-400 w-24 inline-block shrink-0">選修加購</span> <span className="text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded">{b.selectedElectives.map(e=>String(e.name || '')).join('、')}</span></p>
                    )}
                    {b.certFee > 0 && (
                       <p className="mt-1"><span className="text-slate-400 w-24 inline-block">簽證費用</span> <span className="font-bold">+{b.certFee} ({b.certSystem})</span></p>
                    )}
-                   <p className="mt-1"><span className="text-slate-400 w-24 inline-block">裝備租借</span> {b.rentals?.length > 0 ? b.rentals.map(r => typeof r === 'string' ? String(r) : `${String(r?.name || '未知')}(${String(r?.size || 'F')})`).join(', ') : '無/自備'}</p>
+                   <p className="mt-1 flex items-start gap-1">
+                      <span className="text-slate-400 w-24 inline-block shrink-0">裝備租借</span> 
+                      <div className="flex flex-wrap gap-1">
+                         {b.rentals?.length > 0 ? b.rentals.map((r, i) => (
+                            <span key={i} className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${b.equipmentReturned ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-cyan-50 text-cyan-700 border-cyan-200'}`}>
+                               {typeof r === 'string' ? r : `${r.name}(${r.size||'F'})`}
+                            </span>
+                         )) : <span className="text-slate-800">無/自備</span>}
+                      </div>
+                   </p>
                    {b.useLocalShopEq && <p className="text-indigo-600 font-bold">※ 使用潛旅當地潛店裝備</p>}
                 </div>
                 <div className="col-span-1 md:col-span-2 mt-2">
                    <p className="font-bold text-slate-700 border-b pb-1 mb-2">個人潛水經驗</p>
                    {b.divingExperience ? (
                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <p><span className="text-slate-400 w-24 inline-block">證照級別</span> {b.divingExperience.certSystem} / {b.divingExperience.certLevel}</p>
+                        <p><span className="text-slate-400 w-24 inline-block">證照級別</span> {String(b.divingExperience.certSystem || '')} / {String(b.divingExperience.certLevel || '')}</p>
                         <p><span className="text-slate-400 w-24 inline-block">總潛水支數</span> {b.divingExperience.loggedDives ? `${b.divingExperience.loggedDives} 支` : '未填寫'}</p>
                         <p className="md:col-span-2"><span className="text-slate-400 w-24 inline-block">特殊專長</span> {b.divingExperience.specialties?.length > 0 ? b.divingExperience.specialties.join('、') : '無'}</p>
-                        {b.divingExperience.personalNotes && <p className="md:col-span-2 mt-2 text-sm text-slate-600 bg-white p-3 rounded-lg border border-slate-100 shadow-sm"><span className="font-bold text-slate-400 block mb-1">備註提醒：</span>{b.divingExperience.personalNotes}</p>}
+                        {b.divingExperience.personalNotes && <p className="md:col-span-2 mt-2 text-sm text-slate-600 bg-white p-3 rounded-lg border border-slate-100 shadow-sm"><span className="font-bold text-slate-400 block mb-1">備註提醒：</span>{String(b.divingExperience.personalNotes || '')}</p>}
                      </div>
                    ) : (
                      <p className="text-slate-400 text-sm font-bold">無紀錄資料</p>
@@ -1187,7 +1271,7 @@ function BookingCard({ booking: b, type, db, appId }) {
                          <p className="font-bold text-rose-800 mb-2 flex items-center gap-2"><AlertTriangle className="w-5 h-5"/> 需注意之健康狀況：</p>
                          <ul className="text-rose-700 text-sm space-y-1 pl-6 list-disc font-medium">
                            {(b.medicalIssues || []).map((issue, idx) => (
-                              <li key={idx} className={issue.startsWith('↳') ? 'list-none -ml-4 text-rose-600 text-xs mt-1 mb-2' : ''}>{issue}</li>
+                              <li key={idx} className={String(issue || '').startsWith('↳') ? 'list-none -ml-4 text-rose-600 text-xs mt-1 mb-2' : ''}>{String(issue || '')}</li>
                            ))}
                          </ul>
                       </div>
@@ -1204,7 +1288,7 @@ function BookingCard({ booking: b, type, db, appId }) {
             {type === 'accommodation' && (
                <div className="col-span-2 space-y-2">
                   <p className="font-bold text-slate-700 border-b border-slate-100 pb-1">入住預約明細</p>
-                  <p><span className="text-slate-400 w-24 inline-block">入住日期</span> <span className="font-black text-blue-600">{String(b.details?.checkIn || '')}</span></p>
+                  <p><span className="text-slate-400 w-24 inline-block">日期區間</span> <span className="font-black text-teal-600">{b.details?.checkIn || ''} ~ {b.details?.checkIn ? new Date(new Date(b.details.checkIn).getTime() + (b.details.nights || 1) * 86400000).toLocaleDateString('sv-SE') : ''}</span></p>
                   <p><span className="text-slate-400 w-24 inline-block">預訂明細</span> <span className="font-black">{String(b.details?.nights || 1)} 晚 / {String(b.details?.roomCount || 1)} 間 / 共 {String(b.details?.guests || 1)} 人</span></p>
                   {b.details?.courseDeductTotal > 0 && (
                      <p className="mt-2 pt-2 border-t border-slate-50 flex items-start">
@@ -1219,14 +1303,14 @@ function BookingCard({ booking: b, type, db, appId }) {
             {type === 'equipment' && (
               <div className="col-span-2 space-y-4">
                  <div className="flex gap-6 text-sm bg-slate-50 p-3 rounded-xl border border-slate-100">
-                   <div><span className="text-xs font-bold text-slate-400 block mb-0.5">取件日期</span><span className="font-bold text-slate-800">{b.details?.date || '-'}</span></div>
-                   <div><span className="text-xs font-bold text-slate-400 block mb-0.5">租借天數</span><span className="font-bold text-slate-800">{b.details?.days || 1} 天</span></div>
+                   <div><span className="text-xs font-bold text-slate-400 block mb-0.5">取件日期</span><span className="font-bold text-slate-800">{String(b.details?.date || '-')}</span></div>
+                   <div><span className="text-xs font-bold text-slate-400 block mb-0.5">租借天數</span><span className="font-bold text-slate-800">{String(b.details?.days || 1)} 天</span></div>
                  </div>
                  <div>
                    <p className="font-bold text-slate-700 border-b border-slate-100 pb-1 mb-2">租借項目清單</p>
                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                      {b.rentals?.map((r, idx) => (
-                       <div key={idx} className="bg-slate-50 p-2 rounded border flex justify-between text-xs font-bold">
+                       <div key={idx} className={`p-2 rounded border flex justify-between text-xs font-bold transition-colors ${b.status === 'returned' || b.equipmentReturned ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-slate-50 border-slate-200'}`}>
                           <span>{typeof r === 'string' ? String(r) : String(r?.name || '未知')}</span><span className="text-blue-600 font-black">{typeof r === 'string' ? '' : String(r?.size || 'F')}</span>
                        </div>
                      ))}
@@ -1266,29 +1350,31 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
     }
 
     if (type === 'activity') {
-      headers = ['訂單狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
+      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
       rows = exportBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
         const accStr = b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '維持背包房床位' : b.accOption === 'upgrade' ? '升級獨立房型' : b.accOption === 'release' ? '釋出床位' : '住宿自理';
         const electivesStr = b.selectedElectives?.length > 0 ? b.selectedElectives.map(e=>e.name).join('、 ') : '無';
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
+        const returnStatus = b.equipmentReturned ? '已歸還' : (b.rentals?.length > 0 ? '未歸還' : '無租借');
         const exp = b.divingExperience || {};
         const specStr = exp.specialties?.length > 0 ? exp.specialties.join('、') : '無';
-        return [statusStr, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || ''];
+        return [statusStr, returnStatus, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || ''];
       });
     } else if (type === 'accommodation') {
-      headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
+      headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '退房日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
       rows = typeBookings.map(b => {
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
         const deductStr = b.details?.courseDeductTotal > 0 ? `${b.details.courseStudents}人, 折$${b.details.courseDeductTotal}` : '無';
-        return [statusStr, formatTs(b.timestamp), b.itemName || '', b.details?.name || '', b.details?.phone || '', b.details?.checkIn || '', b.details?.nights || 1, b.details?.roomCount || 1, b.details?.guests || 1, deductStr];
+        const checkOutDate = b.details?.checkIn ? new Date(new Date(b.details.checkIn).getTime() + (b.details.nights || 1) * 86400000).toLocaleDateString('sv-SE') : '';
+        return [statusStr, formatTs(b.timestamp), b.itemName || '', b.details?.name || '', b.details?.phone || '', b.details?.checkIn || '', checkOutDate, b.details?.nights || 1, b.details?.roomCount || 1, b.details?.guests || 1, deductStr];
       });
     } else if (type === 'equipment') {
       headers = ['訂單狀態', '提交時間', '租借人姓名', '聯絡電話', '取件日期', '租借天數', '總計金額(NT$)', '租借項目清單'];
       rows = typeBookings.map(b => {
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '';
-        const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
+        const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'returned' ? '已歸還' : b.status === 'cancelled' ? '已取消' : '待審核';
         return [statusStr, formatTs(b.timestamp), b.name || '', b.phone || '', b.details?.date || '', b.details?.days || 1, b.price || 0, eqStr];
       });
     }
@@ -3046,8 +3132,42 @@ function SystemAdminPanel({ config, onSave }) {
           </div>
         </ControlPanelCard>
 
-        {/* 新增: 潛水活動收費表管理 */}
-        <div className="lg:col-span-2">
+        {/* 新增：住宿設施與注意事項管理 */}
+        <ControlPanelCard title="住宿服務內容及注意事項">
+          <div className="space-y-5 flex flex-col h-full">
+             <div className="space-y-2">
+                 <label className="text-sm font-bold text-slate-700">住宿注意事項 (換行即為分段)</label>
+                 <textarea value={f.accNotes ?? ''} onChange={e => setF({...f, accNotes: e.target.value})} className="w-full p-3 border border-slate-300 rounded-xl font-medium outline-none focus:border-rose-400 min-h-[100px] shadow-sm bg-slate-50 focus:bg-white transition-colors" placeholder="請輸入住宿注意事項..."/>
+             </div>
+             
+             <div className="flex flex-col flex-1">
+                 <div className="flex justify-between items-center mb-2">
+                   <p className="text-xs font-bold text-slate-500">住宿提供設施清單</p>
+                 </div>
+                 <div className="max-h-[200px] overflow-y-auto space-y-2.5 pr-2 custom-scrollbar">
+                    {(f.accServices || DEFAULT_ACC_SERVICES).map((srv, idx) => (
+                      <div key={idx} className="flex items-center gap-2 group">
+                         <input type="text" value={srv} onChange={e => {
+                            const newSrvs = [...(f.accServices || DEFAULT_ACC_SERVICES)];
+                            newSrvs[idx] = e.target.value;
+                            setF({...f, accServices: newSrvs});
+                         }} className="flex-1 p-2.5 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-rose-400 focus:bg-white bg-slate-50 transition-colors" />
+                         <button type="button" onClick={() => {
+                            const newSrvs = (f.accServices || DEFAULT_ACC_SERVICES).filter((_, i) => i !== idx);
+                            setF({...f, accServices: newSrvs});
+                         }} className="text-slate-300 hover:text-red-500 p-2 shrink-0 transition-colors bg-white rounded-lg border shadow-sm"><Trash2 className="w-4 h-4"/></button>
+                      </div>
+                    ))}
+                 </div>
+                 <div className="pt-2 border-t border-slate-100 mt-2">
+                     <button type="button" onClick={() => setF({...f, accServices: [...(f.accServices || DEFAULT_ACC_SERVICES), '']})} className="bg-rose-50 text-rose-600 px-4 py-2.5 w-full rounded-xl text-sm font-bold hover:bg-rose-100 transition-colors shadow-sm border border-rose-100">+ 新增設施項目</button>
+                 </div>
+             </div>
+          </div>
+        </ControlPanelCard>
+
+        {/* 潛水活動收費表管理 (調整排版以並排顯示) */}
+        <div className="lg:col-span-1">
           <ControlPanelCard title="潛水活動收費表管理">
             <div className="space-y-4">
                <div className="flex justify-between items-center mb-2">
@@ -4685,6 +4805,67 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
                   })}
                 </div>
              </div>
+
+             {/* 👉 住宿須知與服務設施區塊 (放置於左側房型列表下方，不干擾右側購物車排版) */}
+             <div className="bg-rose-50/50 p-6 md:p-8 rounded-[2rem] border border-rose-100 shadow-sm animate-in slide-in-from-bottom-4 mt-8">
+                <div className="flex items-center gap-3 mb-6 border-b border-rose-200/50 pb-4">
+                   <div className="bg-rose-100 p-2 rounded-xl text-rose-600"><Info className="w-6 h-6"/></div>
+                   <h3 className="font-black text-xl text-rose-900 leading-tight">服務內容及注意事項</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2 bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
+                           <div className="bg-rose-50 p-2 rounded-lg text-rose-500 w-fit"><Clock className="w-5 h-5"/></div>
+                           <div>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">入住時間 Check-in</p>
+                              <p className="font-black text-slate-800 text-lg">{sysConfig?.checkInAcc || '15:00'} 後</p>
+                           </div>
+                        </div>
+                        <div className="flex flex-col gap-2 bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
+                           <div className="bg-rose-50 p-2 rounded-lg text-rose-500 w-fit"><Clock className="w-5 h-5"/></div>
+                           <div>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">退房時間 Check-out</p>
+                              <p className="font-black text-slate-800 text-lg">{sysConfig?.checkOutAcc || '11:00'} 前</p>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm">
+                         <p className="text-xs font-black text-rose-800 mb-3 tracking-widest flex items-center gap-1.5"><AlertTriangle className="w-4 h-4"/> 住宿注意事項：</p>
+                         <div className="text-sm font-bold text-slate-600 leading-relaxed whitespace-pre-wrap">
+                           {sysConfig?.accNotes || '入住時請出示身分證件辦理登記。\n室內全面禁菸，禁帶寵物。\n個人貴重物品請自行妥善保管。\n響應環保，請自備個人牙刷與毛巾。'}
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm h-full">
+                      <p className="text-xs font-black text-rose-800 mb-3 tracking-widest flex items-center gap-1.5"><CheckCircle className="w-4 h-4"/> 提供的服務內容：</p>
+                      <ul className="space-y-3">
+                         {/* 💡 修復 ReferenceError：使用安全回退機制，確保預設值始終存在 */}
+                         {(sysConfig?.accServices || [
+                            '免費 Wi-Fi上網',
+                            '提供沐浴乳、洗髮精',
+                            '設有冷熱公共飲水機',
+                            '房間內附有吹風機',
+                            '提供戶外裝備清洗與晾乾區',
+                            '環保愛地球，請自備牙刷、牙膏及毛巾'
+                         ]).map((srv, idx) => {
+                            const isWarning = srv.includes('自備') || srv.includes('注意') || srv.includes('不可') || srv.includes('禁止');
+                            return (
+                               <li key={idx} className="flex items-start gap-3 text-sm font-bold text-slate-700 leading-relaxed bg-slate-50/50 p-2 rounded-lg border border-slate-100/50">
+                                  <span className={`mt-0.5 shrink-0 ${isWarning ? 'text-amber-500' : 'text-teal-500'}`}>
+                                    {isWarning ? <AlertTriangle className="w-4 h-4"/> : <CheckCircle className="w-4 h-4"/>}
+                                  </span>
+                                  <span>{srv}</span>
+                               </li>
+                            );
+                         })}
+                      </ul>
+                   </div>
+                </div>
+             </div>
           </div>
 
           <div className="xl:col-span-4 xl:sticky xl:top-24 space-y-6 scroll-mt-24">
@@ -5140,7 +5321,7 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
   );
 }
 
-function UserDashboard({ bookings, sysConfig }) {
+function UserDashboard({ bookings }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -5150,7 +5331,7 @@ function UserDashboard({ bookings, sysConfig }) {
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
     const name = searchName.trim();
-    const phoneQuery = searchPhone.replace(/[^\d]/g, ''); 
+    const phoneQuery = searchPhone.replace(/[^\d]/g, ''); // 移除非數字字符，進行高容錯精準備對
     return bookings.filter(b => {
         const matchName = b.name === name || b.details?.name === name;
         const bPhone = String(b.phone || b.details?.phone || '').replace(/[^\d]/g, '');
@@ -5220,7 +5401,7 @@ function UserDashboard({ bookings, sysConfig }) {
                         
                         <div className="mt-2 text-sm font-bold text-slate-500 flex flex-wrap items-center gap-3">
                            {b.type === 'activity' && b.date && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-blue-400"/> 活動日期: {b.date}</span>}
-                           {b.type === 'accommodation' && b.details?.checkIn && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-teal-400"/> 入住日期: {b.details.checkIn} ({b.details.nights}晚)</span>}
+                           {b.type === 'accommodation' && b.details?.checkIn && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-teal-400"/> 日期區間: {b.details.checkIn} ~ {new Date(new Date(b.details.checkIn).getTime() + (b.details.nights || 1) * 86400000).toLocaleDateString('sv-SE')} ({b.details.nights}晚)</span>}
                            {b.type === 'equipment' && b.details?.date && <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-cyan-400"/> 取件日期: {b.details.date} ({b.details.days}天)</span>}
                         </div>
                       </div>
@@ -5233,26 +5414,6 @@ function UserDashboard({ bookings, sysConfig }) {
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">登記姓名 / Name</span><span className="font-black text-slate-800 text-xl">{b.name || b.details?.name} {b.nickname ? `(${b.nickname})` : ''}</span></div>
                       <div className="flex flex-col gap-1"><span className="text-xs font-black text-slate-400 uppercase">預約金額 / Total</span><span className="font-black text-blue-600 text-2xl">NT$ {b.price}</span></div>
                     </div>
-
-                    {/* 👉 新增：住宿處理中提示與官方 LINE 按鈕 */}
-                    {b.type === 'accommodation' && b.status === 'pending' && (
-                       <div className="mt-6 bg-rose-50 border border-rose-200 p-5 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-                          <div className="flex items-start gap-3">
-                             <AlertTriangle className="w-6 h-6 shrink-0 text-rose-500 mt-0.5" />
-                             <p className="text-sm font-bold text-rose-800 leading-relaxed">
-                                預約完成後請留意來電訊息，或主動傳訊息至鯊墾丁官方LINE確認訂金支付後，訂單狀態顯示<span className="bg-rose-200 px-1 rounded mx-0.5">確認</span>，才算完成預訂喔。
-                             </p>
-                          </div>
-                          <a 
-                            href={sysConfig?.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
-                            target="_blank" 
-                            rel="noreferrer" 
-                            className="w-full md:w-auto shrink-0 px-6 py-3 bg-[#00C300] text-white rounded-xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-                          >
-                            <MessageCircle className="w-5 h-5" /> 立即與我們對話
-                          </a>
-                       </div>
-                    )}
 
                     <button 
                        onClick={() => toggleExpand(b.id)} 
@@ -5341,6 +5502,10 @@ function UserDashboard({ bookings, sysConfig }) {
                             <div className="space-y-4">
                                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                   <p className="font-black text-teal-800 border-b border-teal-100 pb-2 mb-4 flex items-center gap-2"><Home className="w-4 h-4"/> 住宿預約明細</p>
+                                  <div className="grid grid-cols-2 gap-4 mb-4 border-b border-slate-200/50 pb-4">
+                                     <div><p className="text-xs text-slate-500 font-bold mb-1">入住日期</p><p className="font-black text-slate-800 text-lg">{b.details?.checkIn}</p></div>
+                                     <div><p className="text-xs text-slate-500 font-bold mb-1">退房日期</p><p className="font-black text-slate-800 text-lg">{b.details?.checkIn ? new Date(new Date(b.details.checkIn).getTime() + (b.details.nights || 1) * 86400000).toLocaleDateString('sv-SE') : '-'}</p></div>
+                                  </div>
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                                      <div><p className="text-xs text-slate-500 font-bold mb-1">入住總晚數</p><p className="font-black text-slate-800 text-lg">{b.details?.nights || 1} 晚</p></div>
                                      <div><p className="text-xs text-slate-500 font-bold mb-1">預訂房間數</p><p className="font-black text-slate-800 text-lg">{b.details?.roomCount || 1} 間</p></div>
@@ -6176,7 +6341,7 @@ function App() {
                    window.scrollTo(0,0);
                 } catch(e) { alert("送出失敗"); }
             }} onBack={() => setCurrentView('home')} />}
-            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} sysConfig={sysConfig} />}
+            {currentView === 'dashboard' && <UserDashboard bookings={bookings} userUid={user?.uid} />}
           </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
