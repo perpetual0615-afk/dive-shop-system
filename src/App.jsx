@@ -38,8 +38,34 @@ const DEFAULT_SERVICES = [
   '👤 教練１對４人以下指導'
 ];
 
+// --- 預設住宿設施服務 ---
+const DEFAULT_ACC_SERVICES = [
+  '免費 Wi-Fi上網',
+  '提供沐浴乳、洗髮精',
+  '設有冷熱公共飲水機',
+  '房間內附有吹風機',
+  '提供戶外裝備清洗與晾乾區',
+  '環保愛地球，請自備牙刷、牙膏及毛巾'
+];
+
+// --- 當地潛店裝備清單 ---
+const LOCAL_SHOP_GEARS = [
+  { name: 'BCD', category: '重裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
+  { name: '調節器 (含備用及儀表)', category: '重裝備', options: ['標準 (YOKE)', 'DIN'] },
+  { name: '防寒衣 (Wetsuit)', category: '輕裝備', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+  { name: '面鏡 (Mask)', category: '輕裝備', options: ['無度數', '近視 -150', '近視 -200', '近視 -250', '近視 -300', '近視 -350', '近視 -400', '近視 -450', '近視 -500', '近視 -550', '近視 -600', '近視 -650', '近視 -700', '近視 -800'] },
+  { name: '套鞋 (Boots)', category: '輕裝備', options: ['22', '23', '24', '25', '26', '27', '28', '29', '30'] },
+  { name: '蛙鞋 (Fins)', category: '輕裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
+  { name: '潛水電腦錶 (Computer)', category: '其他配件', options: ['單一規格'] },
+  { name: '手電筒 (Torch)', category: '其他配件', options: ['單一規格'] },
+  { name: '頭套 (Hood)', category: '其他配件', options: ['S', 'M', 'L'] },
+  { name: '手套 (Gloves)', category: '其他配件', options: ['S', 'M', 'L'] },
+  { name: 'SMB 與 線輪', category: '其他配件', options: ['單一規格'] },
+  { name: '流掛 (Reef Hook)', category: '其他配件', options: ['單一規格'] },
+];
+
 // --------------------------------------------------------
-// 卡片專屬圖示與全新背景浮水印 (豐富細節與專屬動態)
+// 專屬圖示 SVG Components
 // --------------------------------------------------------
 const StaghornCoralWatermark = ({ className }) => (
   <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -54,41 +80,26 @@ const StaghornCoralWatermark = ({ className }) => (
         <stop offset="100%" stopColor="#FBCFE8" />
       </linearGradient>
     </defs>
-    
-    {/* 背景層：海扇珊瑚 (Sea Fan Webbing) */}
     <g style={{ transformOrigin: '60px 120px' }} stroke="#FDA4AF" strokeLinecap="round" opacity="0.4">
       <animateTransform attributeName="transform" type="rotate" values="-4; 4; -4" dur="7s" repeatCount="indefinite" ease="ease-in-out" />
       <path d="M60 120 Q 35 90 10 50 M60 120 Q 45 70 25 15 M60 120 Q 75 70 95 15 M60 120 Q 85 90 110 50" strokeWidth="3" />
-      {/* 橫向連接網紋 */}
       <path d="M22 80 Q 60 65 98 80 M13 55 Q 60 30 107 55 M27 30 Q 60 10 93 30" strokeWidth="2" strokeDasharray="3 5" />
     </g>
-
-    {/* 中層：鹿角主幹 (Main Branches) */}
     <g style={{ transformOrigin: '60px 110px' }} strokeLinecap="round" strokeLinejoin="round">
       <animateTransform attributeName="transform" type="rotate" values="2; -2; 2" dur="5s" repeatCount="indefinite" ease="ease-in-out" />
-      
-      {/* 光暈外層 (增加層次厚度) */}
       <path d="M60 120 C 50 80 20 60 15 25 M60 120 C 70 80 100 60 105 25 M60 120 C 55 70 35 40 45 10 M60 120 C 65 70 85 40 75 10 M60 120 V 30 M35 70 Q 20 50 5 45 M85 70 Q 100 50 115 45" stroke="#FFF" strokeWidth="12" opacity="0.25" filter="blur(2px)" />
-      
-      {/* 實體主幹 */}
       <path d="M60 120 C 50 80 20 60 15 25" stroke="url(#coralGrad)" strokeWidth="8" opacity="0.95" />
       <path d="M60 120 C 70 80 100 60 105 25" stroke="url(#coralGrad)" strokeWidth="8" opacity="0.95" />
       <path d="M60 120 C 55 70 35 40 45 10" stroke="url(#coralAccent)" strokeWidth="7" opacity="0.9" />
       <path d="M60 120 C 65 70 85 40 75 10" stroke="url(#coralAccent)" strokeWidth="7" opacity="0.9" />
       <path d="M60 120 V 30" stroke="url(#coralGrad)" strokeWidth="9" opacity="0.95" />
-      
-      {/* 側分支 */}
       <path d="M35 70 Q 20 50 5 45" stroke="url(#coralGrad)" strokeWidth="5.5" />
       <path d="M85 70 Q 100 50 115 45" stroke="url(#coralGrad)" strokeWidth="5.5" />
       <path d="M50 50 Q 30 30 25 15" stroke="url(#coralAccent)" strokeWidth="4.5" />
       <path d="M70 50 Q 90 30 95 15" stroke="url(#coralAccent)" strokeWidth="4.5" />
-
-      {/* 內部珊瑚紋理 (虛線) */}
       <g stroke="#FFF" strokeWidth="2.5" strokeDasharray="2 6" opacity="0.5">
         <path d="M60 115 C 50 80 20 60 15 25 M60 115 C 70 80 100 60 105 25 M60 115 V 30" />
       </g>
-
-      {/* 端點水螅體 (Polyps) */}
       <g fill="#FFF" opacity="0.9">
          <circle cx="15" cy="25" r="4.5" />
          <circle cx="105" cy="25" r="4.5" />
@@ -100,8 +111,6 @@ const StaghornCoralWatermark = ({ className }) => (
          <circle cx="25" cy="15" r="3" />
          <circle cx="95" cy="15" r="3" />
       </g>
-
-      {/* 螢光點綴 (Bioluminescent Dots) */}
       <g fill="#FFF">
          <circle cx="35" cy="50" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle>
          <circle cx="85" cy="50" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite"/></circle>
@@ -112,8 +121,6 @@ const StaghornCoralWatermark = ({ className }) => (
          <circle cx="70" cy="35" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="2.2s" repeatCount="indefinite"/></circle>
       </g>
     </g>
-
-    {/* 動態氣泡 */}
     <circle cx="45" cy="50" r="4" fill="#FDA4AF" opacity="0.8">
       <animate attributeName="cy" values="50; -10" dur="4s" repeatCount="indefinite" />
       <animate attributeName="cx" values="45; 35; 55; 45" dur="2s" repeatCount="indefinite" />
@@ -146,43 +153,24 @@ const DivingGearWatermark = ({ className }) => (
       </linearGradient>
     </defs>
     <g>
-      {/* 裝備微幅上下漂浮動態 */}
       <animateTransform attributeName="transform" type="translate" values="0,3; 0,-3; 0,3" dur="5s" repeatCount="indefinite" ease="ease-in-out" />
-      
-      {/* 後方氣瓶 */}
       <rect x="50" y="10" width="28" height="90" rx="14" fill="url(#tankGrad)" opacity="0.95" />
       <path d="M58 4 H 70 V 10 H 58 Z" fill="#94A3B8" opacity="0.9" />
       <rect x="61" y="0" width="6" height="4" rx="1" fill="#475569" />
       <rect x="50" y="80" width="28" height="15" fill="#000000" opacity="0.5" />
-      
-      {/* 全新繪製的夾克式 BCD 背心 */}
       <g opacity="0.95">
-        {/* 左肩帶 */}
         <path d="M35 30 C 35 15, 50 15, 55 30 C 60 50, 40 60, 35 80" fill="none" stroke="url(#bcdGrad)" strokeWidth="12" strokeLinecap="round" />
-        {/* 右肩帶 */}
         <path d="M93 30 C 93 15, 78 15, 73 30 C 68 50, 88 60, 93 80" fill="none" stroke="url(#bcdGrad)" strokeWidth="12" strokeLinecap="round" />
-        
-        {/* 腹部包覆與口袋區 */}
         <path d="M25 70 C 25 60, 103 60, 103 70 V 95 C 103 105, 25 105, 25 95 Z" fill="url(#bcdGrad)" />
-        
-        {/* BCD 邊緣藍色裝飾線條 */}
         <path d="M32 75 V 90 M 96 75 V 90" stroke="url(#bcdHighlight)" strokeWidth="3" strokeLinecap="round" />
         <path d="M45 70 V 95 M 83 70 V 95" stroke="#000" strokeWidth="2" opacity="0.3" />
-        
-        {/* 胸前扣帶 */}
         <line x1="45" y1="45" x2="83" y2="45" stroke="#0F172A" strokeWidth="4" strokeLinecap="round" />
-        
-        {/* 充氣波紋管 (左肩延伸) */}
         <path d="M45 20 Q 30 35, 35 60" fill="none" stroke="#475569" strokeWidth="5" strokeDasharray="3 2" />
         <circle cx="35" cy="62" r="4" fill="#0EA5E9" />
-        
-        {/* 備用二級頭 (掛載於右側) */}
         <circle cx="85" cy="40" r="7" fill="#FBBF24" stroke="#D97706" strokeWidth="2" />
         <path d="M85 33 Q 95 20, 70 10" fill="none" stroke="#64748B" strokeWidth="3" />
       </g>
     </g>
-
-    {/* 主二級頭呼吸產生的氣泡 */}
     <circle cx="85" cy="30" r="4" fill="#BAE6FD" opacity="0.7">
       <animate attributeName="cy" values="30; -10" dur="2s" repeatCount="indefinite" />
       <animate attributeName="cx" values="85; 80; 90; 85" dur="1.2s" repeatCount="indefinite" />
@@ -191,7 +179,6 @@ const DivingGearWatermark = ({ className }) => (
   </svg>
 );
 
-// 3. 全新重繪：探測深淵 (海洋科技感聲納與無人潛水艇)
 const AbyssExplorerWatermark = ({ className }) => (
   <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <defs>
@@ -208,8 +195,6 @@ const AbyssExplorerWatermark = ({ className }) => (
         <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
       </linearGradient>
     </defs>
-
-    {/* Tech Target / Sonar Rings */}
     <g style={{ transformOrigin: '60px 60px' }}>
       <circle cx="60" cy="60" r="50" stroke="#4F46E5" strokeWidth="1" strokeDasharray="2 4" opacity="0.5">
         <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="20s" repeatCount="indefinite" linear="true" />
@@ -219,13 +204,9 @@ const AbyssExplorerWatermark = ({ className }) => (
         <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="15s" repeatCount="indefinite" linear="true" />
       </circle>
     </g>
-
-    {/* Axis Lines */}
     <line x1="60" y1="5" x2="60" y2="115" stroke="#4F46E5" strokeWidth="1" opacity="0.4" />
     <line x1="5" y1="60" x2="115" y2="60" stroke="#4F46E5" strokeWidth="1" opacity="0.4" />
     <circle cx="60" cy="60" r="2" fill="#818CF8" />
-
-    {/* Sonar Scan Beam */}
     <g style={{ transformOrigin: '60px 60px' }}>
       <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite" />
       <path d="M 60 60 L 60 10 A 50 50 0 0 1 103.3 35 Z" fill="url(#scanBeam)" opacity="0.3" />
@@ -233,29 +214,20 @@ const AbyssExplorerWatermark = ({ className }) => (
         <animate attributeName="opacity" values="0.8; 0.3; 0.8" dur="2s" repeatCount="indefinite" />
       </line>
     </g>
-
-    {/* ROV Submersible (Floating in the abyss) */}
     <g opacity="0.9">
       <animateTransform attributeName="transform" type="translate" values="0,-3; 0,3; 0,-3" dur="4s" repeatCount="indefinite" ease="ease-in-out" />
-      {/* Main Body */}
       <rect x="42" y="52" width="24" height="14" rx="4" fill="#1E1B4B" stroke="#A5B4FC" strokeWidth="1.5" />
-      {/* Dome / Viewport */}
       <path d="M 44 52 Q 54 42 64 52" fill="none" stroke="#818CF8" strokeWidth="1.5" />
       <circle cx="54" cy="48" r="1.5" fill="#6366F1" />
-      {/* Thrusters / Propellers */}
       <rect x="38" y="56" width="4" height="6" rx="1" fill="#4F46E5" />
       <rect x="66" y="56" width="4" height="6" rx="1" fill="#4F46E5" />
       <path d="M 36 57 Q 34 59 36 61" stroke="#818CF8" strokeWidth="1" fill="none" />
       <path d="M 68 57 Q 70 59 68 61" stroke="#818CF8" strokeWidth="1" fill="none" />
-      
-      {/* Headlights illuminating the deep */}
       <path d="M 54 66 L 30 100 L 78 100 Z" fill="url(#sonarGlow)" opacity="0.5" />
       <circle cx="54" cy="66" r="2.5" fill="#C7D2FE">
          <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite" />
       </circle>
     </g>
-
-    {/* Digital Signals / Detected Objects */}
     <g fill="#38BDF8">
       <circle cx="25" cy="30" r="2">
         <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" />
@@ -271,56 +243,37 @@ const AbyssExplorerWatermark = ({ className }) => (
         <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" />
       </circle>
     </g>
-
-    {/* Tech Interface Brackets */}
     <path d="M 10 20 L 10 10 L 20 10 M 100 10 L 110 10 L 110 20 M 110 100 L 110 110 L 100 110 M 20 110 L 10 110 L 10 100" stroke="#6366F1" strokeWidth="2" fill="none" opacity="0.7" />
   </svg>
 );
 
-// 4. 俯視鯨鯊 (Top-Down Whale Shark) - HERO 區塊陽光海面動態背景專用 (全彩細節版)
 const WhaleSharkTopDownIcon = ({ className }) => (
   <svg viewBox="0 0 150 250" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <defs>
-      {/* 鯨鯊體色漸層 */}
       <linearGradient id="wsBody" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor="#0F172A" />
         <stop offset="40%" stopColor="#1E3A8A" />
         <stop offset="100%" stopColor="#172554" />
       </linearGradient>
-      {/* 胸鰭漸層 */}
       <linearGradient id="wsFin" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#1E3A8A" />
         <stop offset="100%" stopColor="#0F172A" />
       </linearGradient>
     </defs>
-    
-    {/* 寬大的胸鰭 (左/右) */}
     <path d="M 35 60 C 10 70, -5 100, 5 110 C 20 95, 35 90, 45 85 Z" fill="url(#wsFin)" />
     <path d="M 115 60 C 140 70, 155 100, 145 110 C 130 95, 115 90, 105 85 Z" fill="url(#wsFin)" />
-    
-    {/* 腹鰭 (Pelvic fins) */}
     <path d="M 55 160 C 40 170, 35 185, 45 190 C 50 180, 55 175, 60 175 Z" fill="url(#wsFin)" />
     <path d="M 95 160 C 110 170, 115 185, 105 190 C 100 180, 95 175, 90 175 Z" fill="url(#wsFin)" />
-
-    {/* 尾鰭 */}
     <path d="M 75 220 C 50 230, 40 250, 45 245 C 60 235, 90 235, 105 245 C 110 250, 100 230, 75 220 Z" fill="url(#wsFin)" />
-
-    {/* 鯨鯊主軀幹 */}
     <path d="M 40 20 C 30 30, 20 60, 45 140 C 60 200, 70 230, 75 240 C 80 230, 90 200, 105 140 C 130 60, 120 30, 110 20 C 95 5, 55 5, 40 20 Z" fill="url(#wsBody)" />
-
-    {/* 側邊立體高光 (反光) */}
     <path d="M 40 20 C 30 30, 20 60, 45 140" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" opacity="0.3" fill="none" />
     <path d="M 110 20 C 120 30, 130 60, 105 140" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" opacity="0.3" fill="none" />
-
-    {/* 鰓裂 (Gills) */}
     <g stroke="#93C5FD" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" fill="none">
       <path d="M 28 40 Q 32 45 27 50" /><path d="M 26 43 Q 30 48 25 53" />
       <path d="M 24 46 Q 28 51 23 56" /><path d="M 22 49 Q 26 54 21 59" />
       <path d="M 122 40 Q 118 45 123 50" /><path d="M 124 43 Q 120 48 125 53" />
       <path d="M 126 46 Q 122 51 127 56" /><path d="M 128 49 Q 124 54 129 59" />
     </g>
-
-    {/* 標誌性棋盤格橫紋 (Stripes) */}
     <g stroke="#7DD3FC" strokeWidth="1" opacity="0.25" fill="none">
       <path d="M 40 45 Q 75 55 110 45" /><path d="M 35 65 Q 75 75 115 65" />
       <path d="M 35 85 Q 75 95 115 85" /><path d="M 40 105 Q 75 115 110 105" />
@@ -328,15 +281,11 @@ const WhaleSharkTopDownIcon = ({ className }) => (
       <path d="M 55 165 Q 75 175 95 165" /><path d="M 60 185 Q 75 195 90 185" />
       <path d="M 65 205 Q 75 210 85 205" />
     </g>
-    
-    {/* 標誌性棋盤格直紋 */}
     <g stroke="#7DD3FC" strokeWidth="1" opacity="0.2" fill="none">
       <path d="M 50 30 Q 60 120 65 220" />
       <path d="M 75 25 Q 75 120 75 230" />
       <path d="M 100 30 Q 90 120 85 220" />
     </g>
-
-    {/* 標誌性白斑 (Spots) - 混合大小 */}
     <g fill="#FFFFFF" opacity="0.7">
        <circle cx="75" cy="35" r="2.5" /><circle cx="60" cy="40" r="1.5" /><circle cx="90" cy="40" r="1.5" />
        <circle cx="50" cy="50" r="2" /><circle cx="100" cy="50" r="2" /><circle cx="75" cy="55" r="3" />
@@ -347,8 +296,6 @@ const WhaleSharkTopDownIcon = ({ className }) => (
        <circle cx="75" cy="155" r="2" /><circle cx="68" cy="170" r="1.5" /><circle cx="82" cy="170" r="1.5" />
        <circle cx="75" cy="185" r="1.5" /><circle cx="75" cy="210" r="1" />
     </g>
-    
-    {/* 水藍色小斑 (層次感) */}
     <g fill="#7DD3FC" opacity="0.5">
        <circle cx="68" cy="30" r="1" /><circle cx="82" cy="30" r="1" /><circle cx="45" cy="40" r="1" />
        <circle cx="105" cy="40" r="1" /><circle cx="85" cy="50" r="1.5" /><circle cx="65" cy="50" r="1.5" />
@@ -357,8 +304,6 @@ const WhaleSharkTopDownIcon = ({ className }) => (
        <circle cx="68" cy="105" r="1.5" /><circle cx="82" cy="105" r="1.5" /><circle cx="60" cy="125" r="1" />
        <circle cx="90" cy="125" r="1" /><circle cx="75" cy="140" r="1" />
     </g>
-
-    {/* 背鰭 (Dorsal fin) */}
     <path d="M 75 115 C 65 130, 85 130, 75 155 C 75 155, 78 135, 75 115 Z" fill="#0EA5E9" opacity="0.3" />
   </svg>
 );
