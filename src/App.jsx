@@ -1173,7 +1173,8 @@ function BookingCard({ booking: b, type, db, appId }) {
                    <p><span className="text-slate-400 w-24 inline-block">證件號碼</span> {maskIdNumber(b.idNumber)}</p>
                    <p><span className="text-slate-400 w-24 inline-block">出生日期</span> {String(b.birthday || '未提供')}</p>
                    <p><span className="text-slate-400 w-24 inline-block">身高體重</span> {String(b.height)} cm / {String(b.weight)} kg</p>
-                   <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3)} kg</p>
+                   <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5)} kg</p>
+                   <p><span className="text-slate-400 w-24 inline-block">緊急聯絡人</span> {String(b.emergencyName || '未提供')} ({String(b.emergencyRelation || '未知')}) / {String(b.emergencyPhone || '未提供')}</p>
                 </div>
                 <div className="space-y-2">
                    <p className="font-bold text-slate-700 border-b pb-1">預約配置與選修</p>
@@ -1295,9 +1296,9 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
     }
 
     if (type === 'activity') {
-      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
+      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人姓名', '緊急聯絡人關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
       rows = exportBookings.map(b => {
-        const weight = ((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3);
+        const weight = ((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
         const accStr = b.accOption === 'trip' ? '依潛旅安排' : b.accOption === 'included' ? '維持背包房床位' : b.accOption === 'upgrade' ? '升級獨立房型' : b.accOption === 'release' ? '釋出床位' : '住宿自理';
         const electivesStr = b.selectedElectives?.length > 0 ? b.selectedElectives.map(e=>e.name).join('、 ') : '無';
@@ -1305,7 +1306,7 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
         const returnStatus = b.equipmentReturned ? '已歸還' : (b.rentals?.length > 0 ? '未歸還' : '無租借');
         const exp = b.divingExperience || {};
         const specStr = exp.specialties?.length > 0 ? exp.specialties.join('、') : '無';
-        return [statusStr, returnStatus, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || ''];
+        return [statusStr, returnStatus, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.emergencyName || '', b.emergencyRelation || '', b.emergencyPhone || '', b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || ''];
       });
     } else if (type === 'accommodation') {
       headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '退房日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
@@ -3433,9 +3434,9 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   const isStepMedical = (isCourse && step === 6) || (isDSD && step === 3) || (!isCourse && !isDSD && step === 4);
 
   // Step 1 / 2: 基礎與保險
-  const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '' });
-  const [weights, setWeights] = useState({ w1: 0, w2: 0, w25: 0, w3: 0 });
-  const totalWeight = (weights.w1*1) + (weights.w2*2) + (weights.w25*2.5) + (weights.w3*3);
+  const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '', emergencyName: '', emergencyRelation: '', emergencyPhone: '' });
+  const [weights, setWeights] = useState({ w1: 0, w15: 0, w2: 0, w25: 0 });
+  const totalWeight = (weights.w1*1) + (weights.w15*1.5) + (weights.w2*2) + (weights.w25*2.5);
 
   // 新增: 潛水經驗
   const [exp, setExp] = useState({ certSystem: '無/不適用', certLevel: '無/不適用', loggedDives: '', specialties: [], personalNotes: '' });
@@ -3824,6 +3825,17 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                   </div>
                 </div>
 
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <h4 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+                     <User className="w-5 h-5 text-rose-500"/> 緊急聯絡人資料
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                     <FormInput label="聯絡人姓名 *" required value={f.emergencyName} onChange={v => setF({...f, emergencyName: v})} placeholder="例如: 王大明" />
+                     <FormInput label="關係 *" required value={f.emergencyRelation} onChange={v => setF({...f, emergencyRelation: v})} placeholder="例如: 父母、配偶" />
+                     <FormInput label="聯絡電話 *" required type="tel" value={f.emergencyPhone} onChange={v => setF({...f, emergencyPhone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                  </div>
+                </div>
+
                 {/* 📌 非課程活動的自由加購項目移至此處 (STEP 1) */}
                 {!isCourse && activity.electives?.length > 0 && (
                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm animate-in slide-in-from-bottom-4 mt-2">
@@ -3891,9 +3903,9 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                    <label className="text-sm font-black text-slate-800 block mb-4 border-b pb-2">配重需求選擇 (供教練準備參考)</label>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <WeightControl label="1 公斤" value={weights.w1} onAdd={() => setWeights({...weights, w1: weights.w1+1})} onSub={() => setWeights({...weights, w1: Math.max(0, weights.w1-1)})} />
+                      <WeightControl label="1.5 公斤" value={weights.w15} onAdd={() => setWeights({...weights, w15: weights.w15+1})} onSub={() => setWeights({...weights, w15: Math.max(0, weights.w15-1)})} />
                       <WeightControl label="2 公斤" value={weights.w2} onAdd={() => setWeights({...weights, w2: weights.w2+1})} onSub={() => setWeights({...weights, w2: Math.max(0, weights.w2-1)})} />
                       <WeightControl label="2.5 公斤" value={weights.w25} onAdd={() => setWeights({...weights, w25: weights.w25+1})} onSub={() => setWeights({...weights, w25: Math.max(0, weights.w25-1)})} />
-                      <WeightControl label="3 公斤" value={weights.w3} onAdd={() => setWeights({...weights, w3: weights.w3+1})} onSub={() => setWeights({...weights, w3: Math.max(0, weights.w3-1)})} />
                    </div>
                    <div className="mt-4 flex justify-end items-center">
                       <div>
@@ -4254,7 +4266,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
           
           <button 
              type="button" 
-             disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight))}
+             disabled={isSubmitting || (isStepBasic && (!f.name || !f.phone || !f.idNumber || !f.birthday || !f.height || !f.weight || !f.emergencyName || !f.emergencyRelation || !f.emergencyPhone))}
              onClick={handleSubmit} 
              className="flex-[2] py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all flex items-center justify-between px-6"
           >
@@ -5402,7 +5414,9 @@ function UserDashboard({ bookings, sysConfig }) {
                                      <p className="text-slate-500 font-bold">出生日期</p><p className="font-black text-slate-800">{b.birthday || '未提供'}</p>
                                      <p className="text-slate-500 font-bold">身高 / 體重</p><p className="font-black text-slate-800">{b.height} cm / {b.weight} kg</p>
                                      <p className="text-slate-500 font-bold">鞋碼</p><p className="font-black text-slate-800">{b.shoeSize || '未提供'} cm</p>
-                                     <p className="text-slate-500 font-bold">配重需求</p><p className="font-black text-slate-800">{((b.weights?.w1||0)*1 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5 + (b.weights?.w3||0)*3)} kg</p>
+                                     <p className="text-slate-500 font-bold">配重需求</p><p className="font-black text-slate-800">{((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5)} kg</p>
+                                     <p className="text-slate-500 font-bold">緊急聯絡人</p><p className="font-black text-slate-800">{b.emergencyName || '未提供'} ({b.emergencyRelation || '未知'})</p>
+                                     <p className="text-slate-500 font-bold">緊急電話</p><p className="font-black text-slate-800">{b.emergencyPhone || '未提供'}</p>
                                   </div>
                                </div>
                                <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
