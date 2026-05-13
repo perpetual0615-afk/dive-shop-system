@@ -15,13 +15,13 @@ const getEnv = (key) => {
 
 // Vercel 部署防崩潰機制：提供預設的安全格式，避免 initializeApp 發生致命白屏錯誤
 const firebaseConfig = {
-  apiKey: "AIzaSyA2d1XRKhBCngwIRf83Ul61HbawExNqyHk",
-  authDomain: "dive-pricing.firebaseapp.com",
-  projectId: "dive-pricing",
-  storageBucket: "dive-pricing.firebasestorage.app",
-  messagingSenderId: "1098090510720",
-  appId: "1:1098090510720:web:369564b340710aaedba965",
-  measurementId: "G-2ZF02NZ595"
+  apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
+  authDomain: "sharkenting777550.firebaseapp.com",
+  projectId: "sharkenting777550",
+  storageBucket: "sharkenting777550.firebasestorage.app",
+  messagingSenderId: "1092791454866",
+  appId: "1:1092791454866:web:c5b6f7a210de11b01caa4b",
+  measurementId: "G-52031XRB66"
 };
 
 try {
