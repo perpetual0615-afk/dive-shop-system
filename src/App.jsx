@@ -1,18 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, CircleDollarSign } from 'lucide-react';
+import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, CircleDollarSign } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 
-// --- Firebase 基礎配置 (加上安全防護與 Vercel 支援) ---
-const getEnv = (key) => {
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
-  } catch (e) {}
-  return '';
-};
-
-// Vercel 部署防崩潰機制：提供預設的安全格式，避免 initializeApp 發生致命白屏錯誤
+// --- Firebase 基礎配置 (加上安全防護) ---
 const firebaseConfig = {
   apiKey: "AIzaSyA9NlT0rJXbUqhHWJD647CEuMYWgkmkfU0",
   authDomain: "sharkenting777550.firebaseapp.com",
@@ -22,23 +14,10 @@ const firebaseConfig = {
   appId: "1:1092791454866:web:c5b6f7a210de11b01caa4b",
   measurementId: "G-52031XRB66"
 };
-
-try {
-  // 優先嘗試讀取目前平台的預覽變數
-  if (typeof window !== 'undefined' && window.__firebase_config) {
-    const parsedConfig = JSON.parse(window.__firebase_config);
-    if (Object.keys(parsedConfig).length > 0) {
-      firebaseConfig = parsedConfig;
-    }
-  }
-} catch (e) {
-  console.warn("Firebase config fallback to dummy/env variables.");
-}
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof window !== 'undefined' && window.__app_id ? window.__app_id : 'dive-shop-demo';
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'dive-shop-demo';
 
 // --- 預設醫療健康聲明問卷 ---
 const DEFAULT_MEDICAL_FORM = [
@@ -67,6 +46,22 @@ const DEFAULT_ACC_SERVICES = [
   '房間內附有吹風機',
   '提供戶外裝備清洗與晾乾區',
   '環保愛地球，請自備牙刷、牙膏及毛巾'
+];
+
+// --- 當地潛店裝備清單 ---
+const LOCAL_SHOP_GEARS = [
+  { name: 'BCD', category: '重裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
+  { name: '調節器 (含備用及儀表)', category: '重裝備', options: ['標準 (YOKE)', 'DIN'] },
+  { name: '防寒衣 (Wetsuit)', category: '輕裝備', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+  { name: '面鏡 (Mask)', category: '輕裝備', options: ['無度數', '近視 -150', '近視 -200', '近視 -250', '近視 -300', '近視 -350', '近視 -400', '近視 -450', '近視 -500', '近視 -550', '近視 -600', '近視 -650', '近視 -700', '近視 -800'] },
+  { name: '套鞋 (Boots)', category: '輕裝備', options: ['22', '23', '24', '25', '26', '27', '28', '29', '30'] },
+  { name: '蛙鞋 (Fins)', category: '輕裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
+  { name: '潛水電腦錶 (Computer)', category: '其他配件', options: ['單一規格'] },
+  { name: '手電筒 (Torch)', category: '其他配件', options: ['單一規格'] },
+  { name: '頭套 (Hood)', category: '其他配件', options: ['S', 'M', 'L'] },
+  { name: '手套 (Gloves)', category: '其他配件', options: ['S', 'M', 'L'] },
+  { name: 'SMB 與 線輪', category: '其他配件', options: ['單一規格'] },
+  { name: '流掛 (Reef Hook)', category: '其他配件', options: ['單一規格'] },
 ];
 
 // --------------------------------------------------------
@@ -333,6 +328,33 @@ const CoralIcon = ({ className }) => (
     <path d="M7 19c-2-1-3-2-3-4" />
     <path d="M17 22v-5" />
     <path d="M17 19c2-.5 3-2 3-4" />
+  </svg>
+);
+
+const AnchorIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="5" r="3" />
+    <line x1="12" y1="8" x2="12" y2="22" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <path d="M9 10H5l-1 1c0 5 3.5 9 8 9s8-4 8-9l-1-1h-4" />
+  </svg>
+);
+
+const LighthouseIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8 9h8" />
+    <path d="M7 13h10" />
+    <path d="M6 17h12" />
+    <path d="M10 22V5l-2-2h8l-2 2v17" />
+    <path d="M12 2v1" />
+    <path d="M12 5h.01" />
+  </svg>
+);
+
+const CardDivingMaskIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 11c0-3.87 3.13-7 7-7h4c3.87 0 7 3.13 7 7v3c0 2.21-1.79 4-4 4h-1.5l-1.5 2h-4l-1.5-2H7c-2.21 0-4-1.79-4-4v-3z" />
+    <path d="M12 11v6" />
   </svg>
 );
 
@@ -1152,7 +1174,7 @@ function BookingCard({ booking: b, type, db, appId }) {
                    <p><span className="text-slate-400 w-24 inline-block">出生日期</span> {String(b.birthday || '未提供')}</p>
                    <p><span className="text-slate-400 w-24 inline-block">身高體重</span> {String(b.height)} cm / {String(b.weight)} kg</p>
                    <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5)} kg</p>
-                   <p><span className="text-slate-400 w-24 inline-block">緊急聯絡人</span> {String(b.emergencyName || '未填寫')} ({String(b.emergencyRelation || '')}) {String(b.emergencyPhone || '')}</p>
+                   <p><span className="text-slate-400 w-24 inline-block">緊急聯絡人</span> {String(b.emergencyName || '未提供')} ({String(b.emergencyRelation || '未知')}) / {String(b.emergencyPhone || '未提供')}</p>
                 </div>
                 <div className="space-y-2">
                    <p className="font-bold text-slate-700 border-b pb-1">預約配置與選修</p>
@@ -1274,7 +1296,7 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
     }
 
     if (type === 'activity') {
-      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人', '關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
+      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人姓名', '緊急聯絡人關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
       rows = exportBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
@@ -3803,13 +3825,15 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                   </div>
                 </div>
 
-                <div className="bg-slate-100 p-5 rounded-2xl border border-slate-200 shadow-sm mt-6">
-                   <h4 className="font-black text-slate-800 mb-4 border-b border-slate-200 pb-2">緊急聯絡人資料</h4>
-                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                      <FormInput label="姓名 *" required value={f.emergencyName} onChange={v => setF({...f, emergencyName: v})} placeholder="請填寫姓名" />
-                      <FormInput label="關係 *" required value={f.emergencyRelation} onChange={v => setF({...f, emergencyRelation: v})} placeholder="例如：父母、配偶" />
-                      <FormInput label="電話 *" required type="tel" value={f.emergencyPhone} onChange={v => setF({...f, emergencyPhone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
-                   </div>
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <h4 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+                     <User className="w-5 h-5 text-rose-500"/> 緊急聯絡人資料
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                     <FormInput label="聯絡人姓名 *" required value={f.emergencyName} onChange={v => setF({...f, emergencyName: v})} placeholder="例如: 王大明" />
+                     <FormInput label="關係 *" required value={f.emergencyRelation} onChange={v => setF({...f, emergencyRelation: v})} placeholder="例如: 父母、配偶" />
+                     <FormInput label="聯絡電話 *" required type="tel" value={f.emergencyPhone} onChange={v => setF({...f, emergencyPhone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                  </div>
                 </div>
 
                 {/* 📌 非課程活動的自由加購項目移至此處 (STEP 1) */}
@@ -5254,85 +5278,6 @@ function AccPromptModal({ onClose, onGoActivities, onGoAccommodations }) {
   );
 }
 
-// 👉 新增：活動報名完成專屬提示與 LINE 自動傳訊 Modal
-function ActivitySuccessModal({ data, sysConfig, onClose, onProceedAcc, onGoDashboard }) {
-  const { gotoAcc, activityName } = data;
-  
-  // 自動帶入的 LINE 訊息預填文字
-  const message = `您好，我剛才已在官網送出「${activityName}」的報名表，想與您確認訂單及後續事宜！`;
-  
-  const lineId = sysConfig?.line || '';
-  let lineLink = '#';
-  if (lineId) {
-    // 若為官方帳號 (含@)，可使用 oaMessage 短網址自動預填文字；否則使用一般加好友連結
-    if (lineId.startsWith('@')) {
-      lineLink = `https://line.me/R/oaMessage/${lineId}/?${encodeURIComponent(message)}`;
-    } else {
-      lineLink = `https://line.me/ti/p/~${lineId}`;
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-slate-900/70 z-[150] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl relative overflow-hidden text-center border border-white flex flex-col">
-        <div className="mx-auto w-20 h-20 bg-green-100 text-green-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner transform rotate-3">
-          <CheckCircle className="w-10 h-10 -rotate-3" />
-        </div>
-        <h2 className="text-2xl font-black text-slate-800 mb-3">報名請求已送出！</h2>
-
-        {gotoAcc ? (
-          <>
-            <div className="bg-amber-50 border border-amber-100 p-5 rounded-2xl mb-8 shadow-sm">
-               <p className="text-amber-800 text-sm font-bold leading-relaxed">
-                 系統已記錄您的活動報名。<br/>您有選擇需要 <span className="bg-amber-200 px-1 rounded mx-0.5">預訂住宿</span>，請接續完成訂房，以保留您的專屬優惠與名額。
-               </p>
-            </div>
-            <div className="space-y-3 mt-auto">
-              <button
-                onClick={onProceedAcc}
-                className="w-full py-4 bg-amber-500 text-white rounded-2xl font-black shadow-lg shadow-amber-500/30 hover:bg-amber-600 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-              >
-                <Home className="w-6 h-6" /> 前往預訂住宿 (套用優惠) <ArrowRight className="w-5 h-5"/>
-              </button>
-              <button
-                onClick={onGoDashboard}
-                className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
-              >
-                稍後再說，先查看預約紀錄
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="bg-blue-50 border border-blue-100 p-5 rounded-2xl mb-8 shadow-sm">
-               <p className="text-blue-800 text-sm font-bold leading-relaxed">
-                 為確保您的名額，請點擊下方按鈕 <span className="bg-blue-200 px-1 rounded mx-0.5">傳送確認訊息</span> 至官方 LINE，待客服確認訂單狀態後，才算完成報名喔！
-               </p>
-            </div>
-            <div className="space-y-3 mt-auto">
-              <a
-                href={lineLink}
-                target="_blank"
-                rel="noreferrer"
-                onClick={onGoDashboard} 
-                className="w-full py-4 bg-[#00C300] text-white rounded-2xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-6 h-6" /> 傳送確認訊息至 LINE
-              </a>
-              <button
-                onClick={onGoDashboard}
-                className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
-              >
-                查看我的預約紀錄
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function UserDashboard({ bookings, sysConfig }) {
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -5470,11 +5415,8 @@ function UserDashboard({ bookings, sysConfig }) {
                                      <p className="text-slate-500 font-bold">身高 / 體重</p><p className="font-black text-slate-800">{b.height} cm / {b.weight} kg</p>
                                      <p className="text-slate-500 font-bold">鞋碼</p><p className="font-black text-slate-800">{b.shoeSize || '未提供'} cm</p>
                                      <p className="text-slate-500 font-bold">配重需求</p><p className="font-black text-slate-800">{((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5)} kg</p>
-                                     
-                                     <div className="col-span-2 mt-2 pt-2 border-t border-slate-200">
-                                       <p className="text-slate-500 font-bold mb-1">緊急聯絡人</p>
-                                       <p className="font-black text-slate-800">{b.emergencyName || '未提供'} ({b.emergencyRelation || '-'}) - {b.emergencyPhone || '-'}</p>
-                                     </div>
+                                     <p className="text-slate-500 font-bold">緊急聯絡人</p><p className="font-black text-slate-800">{b.emergencyName || '未提供'} ({b.emergencyRelation || '未知'})</p>
+                                     <p className="text-slate-500 font-bold">緊急電話</p><p className="font-black text-slate-800">{b.emergencyPhone || '未提供'}</p>
                                   </div>
                                </div>
                                <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
@@ -5930,7 +5872,7 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
 function App() {
   const [user, setUser] = useState(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false); 
+  const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false); // 新增狀態：記錄是否已經驗證過管理員身分
   const [currentView, setCurrentView] = useState('home'); 
   const [adminSection, setAdminSection] = useState('book-activities'); 
   const [adminSubTab, setAdminSubTab] = useState('list'); 
@@ -5946,8 +5888,6 @@ function App() {
 
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [activitySuccessData, setActivitySuccessData] = useState(null); // 👉 新增：儲存活動報名成功的資料，用以顯示提示視窗
-
   const [isAccModalOpen, setIsAccModalOpen] = useState(false);
   const [selectedAcc, setSelectedAcc] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -5962,27 +5902,22 @@ function App() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        if (typeof window !== 'undefined' && window.__initial_auth_token) {
-          await signInWithCustomToken(auth, window.__initial_auth_token);
-        } else if (!auth.currentUser && firebaseConfig.apiKey !== "dummy-key") {
-          // 只有在具備真實金鑰時才嘗試匿名登入，避免 Vercel 測試環境狂報錯
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else if (!auth.currentUser) {
           await signInAnonymously(auth);
         }
-      } catch (err) { 
-         console.warn("Auth initialization skipped or failed (expected if Firebase keys are dummy in Vercel):", err.message); 
-      }
+      } catch (err) { console.error("Auth error:", err); }
     };
     initAuth();
     
     const unsubscribe = onAuthStateChanged(auth, async (u) => { 
         setUser(u); setIsLoading(false); 
-        if (u && !u.isAnonymous && firebaseConfig.apiKey !== "dummy-key") {
-          try {
-            const adminDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', u.uid));
-            setIsVerifiedAdmin(adminDoc.exists());
-          } catch(e) {
-            setIsVerifiedAdmin(false);
-          }
+        // 權限判定：檢查 /artifacts/{appId}/public/data/admins/ 是否有對應 UID
+        if (u && !u.isAnonymous) {
+          const adminDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', u.uid));
+          setIsVerifiedAdmin(adminDoc.exists());
+          // 註解掉直接切換 isAdminMode 的行為，確保畫面一律先顯示前台
         } else { 
           setIsVerifiedAdmin(false);
           setIsAdminMode(false); 
@@ -6464,30 +6399,12 @@ function App() {
             sysConfig={sysConfig} 
             onSuccess={(result) => {
                setIsRegModalOpen(false);
-               // 👉 調整：不再直接跳轉，而是開啟活動專屬的 Success Modal
-               setActivitySuccessData({
-                  ...result,
-                  activityName: selectedActivity.name || selectedActivity.courseName
-               });
-            }}
-         />
-      )}
-
-      {/* 👉 新增：活動報名完成後的專屬提示與 LINE 自動傳訊 Modal */}
-      {activitySuccessData && (
-         <ActivitySuccessModal
-            data={activitySuccessData}
-            sysConfig={sysConfig}
-            onClose={() => setActivitySuccessData(null)}
-            onProceedAcc={() => {
-               setPendingAccAction(activitySuccessData.accContext);
-               setActivitySuccessData(null);
-               setCurrentView('accommodations');
-               window.scrollTo(0,0);
-            }}
-            onGoDashboard={() => {
-               setActivitySuccessData(null);
-               setCurrentView('dashboard');
+               if (result?.gotoAcc) {
+                 setPendingAccAction(result.accContext); // 儲存折扣與預填資料上下文
+                 setCurrentView('accommodations');
+               } else {
+                 setCurrentView('dashboard');
+               }
                window.scrollTo(0,0);
             }}
          />
