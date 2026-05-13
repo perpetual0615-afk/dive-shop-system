@@ -447,6 +447,19 @@ function exportToCSV(filename, rows) {
   }
 }
 
+// 產生 LINE 連結輔助函數 (確保最穩定跳轉至加入好友/對話視窗)
+function generateLineLink(lineId) {
+  if (!lineId) return '#';
+  const cleanId = String(lineId).trim();
+  const isOfficial = cleanId.startsWith('@');
+  
+  // 捨棄不穩定的 oaMessage 預填參數，改用最標準的官方跳轉連結確保 100% 成功開啟
+  if (isOfficial) {
+    return `https://line.me/R/ti/p/${cleanId}`;
+  }
+  return `https://line.me/ti/p/~${cleanId}`;
+}
+
 // 確保房型資料相容新版階梯定價的轉換函式
 function migrateRoomTiers(room) {
   if (room.pricingTiers && room.pricingTiers.length > 0) return room.pricingTiers;
@@ -4320,12 +4333,12 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
             
             <div className="space-y-3 mt-auto">
               <a 
-                href={sysConfig.line ? `https://line.me/R/oaMessage/${String(sysConfig.line).replace('@', '')}/?${encodeURIComponent('教練您好，我已完成「' + (activity.name || activity.courseName) + '」的報名！')}` : '#'} 
+                href={generateLineLink(sysConfig.line)} 
                 target="_blank" 
                 rel="noreferrer" 
                 className="w-full py-4 bg-[#00C300] text-white rounded-2xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
               >
-                <MessageCircle className="w-6 h-6" /> 傳送報名訊息至官方 LINE
+                <MessageCircle className="w-6 h-6" /> 前往官方 LINE 確認付款與保留
               </a>
               
               {successResult?.gotoAcc ? (
@@ -5093,7 +5106,7 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             </div>
             <div className="space-y-3 mt-auto">
               <a 
-                href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                href={generateLineLink(sysConfig.line)} 
                 target="_blank" 
                 rel="noreferrer" 
                 onClick={() => onSuccess && onSuccess()} 
@@ -5446,7 +5459,7 @@ function UserDashboard({ bookings, sysConfig }) {
                            </div>
                         </div>
                         <a 
-                          href={sysConfig?.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                          href={generateLineLink(sysConfig.line)} 
                           target="_blank" rel="noreferrer"
                           className="w-full sm:w-auto shrink-0 bg-[#00C300] hover:bg-[#00A000] text-white px-5 py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:-translate-y-0.5"
                         >
@@ -5946,7 +5959,7 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack, onSuccess 
             
             <div className="space-y-3 mt-auto">
               <a 
-                href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                href={generateLineLink(sysConfig.line)} 
                 target="_blank" 
                 rel="noreferrer" 
                 onClick={() => onSuccess && onSuccess()}
