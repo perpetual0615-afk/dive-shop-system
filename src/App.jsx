@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, Menu, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, CircleDollarSign } from 'lucide-react';
+import { Waves, Home, LifeBuoy, CalendarDays, User, Settings, ClipboardList, CheckCircle, Clock, X, ChevronRight, ChevronLeft, ChevronDown, Plus, Trash2, Edit3, Save, AlertTriangle, PenTool, Phone, MessageCircle, MapPin, Scale, Info, Check, ArrowRight, ShoppingCart, Search, BookOpen, Fish, Lock, KeyRound, Download, CircleDollarSign } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
@@ -8,7 +8,6 @@ import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTim
 const getEnv = (key) => {
   try {
     if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
-    if (typeof import_meta !== 'undefined' && import_meta.env && import_meta.env[key]) return import_meta.env[key];
   } catch (e) {}
   return '';
 };
@@ -26,8 +25,8 @@ const firebaseConfig = {
 
 try {
   // 優先嘗試讀取目前平台的預覽變數
-  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-    const parsedConfig = JSON.parse(__firebase_config);
+  if (typeof window !== 'undefined' && window.__firebase_config) {
+    const parsedConfig = JSON.parse(window.__firebase_config);
     if (Object.keys(parsedConfig).length > 0) {
       firebaseConfig = parsedConfig;
     }
@@ -39,7 +38,7 @@ try {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'dive-shop-demo';
+const appId = typeof window !== 'undefined' && window.__app_id ? window.__app_id : 'dive-shop-demo';
 
 // --- 預設醫療健康聲明問卷 ---
 const DEFAULT_MEDICAL_FORM = [
@@ -68,22 +67,6 @@ const DEFAULT_ACC_SERVICES = [
   '房間內附有吹風機',
   '提供戶外裝備清洗與晾乾區',
   '環保愛地球，請自備牙刷、牙膏及毛巾'
-];
-
-// --- 當地潛店裝備清單 ---
-const LOCAL_SHOP_GEARS = [
-  { name: 'BCD', category: '重裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
-  { name: '調節器 (含備用及儀表)', category: '重裝備', options: ['標準 (YOKE)', 'DIN'] },
-  { name: '防寒衣 (Wetsuit)', category: '輕裝備', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-  { name: '面鏡 (Mask)', category: '輕裝備', options: ['無度數', '近視 -150', '近視 -200', '近視 -250', '近視 -300', '近視 -350', '近視 -400', '近視 -450', '近視 -500', '近視 -550', '近視 -600', '近視 -650', '近視 -700', '近視 -800'] },
-  { name: '套鞋 (Boots)', category: '輕裝備', options: ['22', '23', '24', '25', '26', '27', '28', '29', '30'] },
-  { name: '蛙鞋 (Fins)', category: '輕裝備', options: ['XS', 'S', 'M', 'L', 'XL'] },
-  { name: '潛水電腦錶 (Computer)', category: '其他配件', options: ['單一規格'] },
-  { name: '手電筒 (Torch)', category: '其他配件', options: ['單一規格'] },
-  { name: '頭套 (Hood)', category: '其他配件', options: ['S', 'M', 'L'] },
-  { name: '手套 (Gloves)', category: '其他配件', options: ['S', 'M', 'L'] },
-  { name: 'SMB 與 線輪', category: '其他配件', options: ['單一規格'] },
-  { name: '流掛 (Reef Hook)', category: '其他配件', options: ['單一規格'] },
 ];
 
 // --------------------------------------------------------
@@ -350,33 +333,6 @@ const CoralIcon = ({ className }) => (
     <path d="M7 19c-2-1-3-2-3-4" />
     <path d="M17 22v-5" />
     <path d="M17 19c2-.5 3-2 3-4" />
-  </svg>
-);
-
-const AnchorIcon = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="5" r="3" />
-    <line x1="12" y1="8" x2="12" y2="22" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <path d="M9 10H5l-1 1c0 5 3.5 9 8 9s8-4 8-9l-1-1h-4" />
-  </svg>
-);
-
-const LighthouseIcon = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M8 9h8" />
-    <path d="M7 13h10" />
-    <path d="M6 17h12" />
-    <path d="M10 22V5l-2-2h8l-2 2v17" />
-    <path d="M12 2v1" />
-    <path d="M12 5h.01" />
-  </svg>
-);
-
-const CardDivingMaskIcon = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 11c0-3.87 3.13-7 7-7h4c3.87 0 7 3.13 7 7v3c0 2.21-1.79 4-4 4h-1.5l-1.5 2h-4l-1.5-2H7c-2.21 0-4-1.79-4-4v-3z" />
-    <path d="M12 11v6" />
   </svg>
 );
 
@@ -6006,8 +5962,8 @@ function App() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
+        if (typeof window !== 'undefined' && window.__initial_auth_token) {
+          await signInWithCustomToken(auth, window.__initial_auth_token);
         } else if (!auth.currentUser && firebaseConfig.apiKey !== "dummy-key") {
           // 只有在具備真實金鑰時才嘗試匿名登入，避免 Vercel 測試環境狂報錯
           await signInAnonymously(auth);
