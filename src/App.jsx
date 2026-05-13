@@ -762,71 +762,70 @@ function AdminLoginModal({ onVerify, onClose }) {
 function QuickCard({ icon, title, desc, onClick, colorTheme = "cyan", variant, bgIcon }) {
   const themeMap = {
     teal: {
-      wrapper: "border-teal-100 hover:border-teal-300 hover:shadow-[0_15px_30px_rgba(20,184,166,0.15)]",
-      iconBg: "bg-gradient-to-br from-teal-50 to-teal-100 text-teal-600 group-hover:from-teal-400 group-hover:to-teal-500 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(20,184,166,0.4)]",
-      titleHover: "group-hover:text-teal-700",
-      watermark: "text-teal-400",
-      glow: "bg-teal-400/10"
+      wrapper: "border-teal-900/50 hover:border-teal-500 hover:shadow-[0_15px_30px_rgba(20,184,166,0.15)]",
+      iconBg: "bg-gradient-to-br from-teal-900/50 to-teal-800/50 text-teal-400 group-hover:from-teal-500 group-hover:to-teal-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(20,184,166,0.4)]",
+      titleHover: "group-hover:text-teal-300",
+      watermark: "text-teal-500",
+      glow: "bg-teal-500/10"
     },
     rose: {
-      wrapper: "border-rose-100 hover:border-rose-300 hover:shadow-[0_15px_30px_rgba(244,63,94,0.15)]",
-      iconBg: "bg-gradient-to-br from-rose-50 to-rose-100 text-rose-600 group-hover:from-rose-400 group-hover:to-rose-500 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]",
-      titleHover: "group-hover:text-rose-700",
-      watermark: "text-rose-400",
-      glow: "bg-rose-400/10"
+      wrapper: "border-rose-900/50 hover:border-rose-500 hover:shadow-[0_15px_30px_rgba(244,63,94,0.15)]",
+      iconBg: "bg-gradient-to-br from-rose-900/50 to-rose-800/50 text-rose-400 group-hover:from-rose-500 group-hover:to-rose-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]",
+      titleHover: "group-hover:text-rose-300",
+      watermark: "text-rose-500",
+      glow: "bg-rose-500/10"
     },
     cyan: {
-      wrapper: "border-cyan-100 hover:border-cyan-300 hover:shadow-[0_15px_30px_rgba(6,182,212,0.15)]",
-      iconBg: "bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-600 group-hover:from-cyan-400 group-hover:to-cyan-500 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]",
-      titleHover: "group-hover:text-cyan-700",
-      watermark: "text-cyan-400",
-      glow: "bg-cyan-400/10"
+      wrapper: "border-cyan-900/50 hover:border-cyan-500 hover:shadow-[0_15px_30px_rgba(6,182,212,0.15)]",
+      iconBg: "bg-gradient-to-br from-cyan-900/50 to-cyan-800/50 text-cyan-400 group-hover:from-cyan-500 group-hover:to-cyan-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]",
+      titleHover: "group-hover:text-cyan-300",
+      watermark: "text-cyan-500",
+      glow: "bg-cyan-500/10"
     },
     indigo: {
-      wrapper: "border-indigo-100 hover:border-indigo-300 hover:shadow-[0_15px_30px_rgba(99,102,241,0.15)]",
-      iconBg: "bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-400 group-hover:to-indigo-500 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]",
-      titleHover: "group-hover:text-indigo-700",
-      watermark: "text-indigo-400",
-      glow: "bg-indigo-400/10"
+      wrapper: "border-indigo-900/50 hover:border-indigo-500 hover:shadow-[0_15px_30px_rgba(99,102,241,0.15)]",
+      iconBg: "bg-gradient-to-br from-indigo-900/50 to-indigo-800/50 text-indigo-400 group-hover:from-indigo-500 group-hover:to-indigo-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]",
+      titleHover: "group-hover:text-indigo-300",
+      watermark: "text-indigo-500",
+      glow: "bg-indigo-500/10"
     }
   };
   
   const theme = themeMap[colorTheme] || themeMap.cyan;
   
   return (
-    <div onClick={onClick} className={`bg-white/90 backdrop-blur-xl p-8 rounded-[2rem] border transition-all duration-500 cursor-pointer group hover:-translate-y-2 relative overflow-hidden ${theme.wrapper} h-full flex flex-col`}>
+    <div onClick={onClick} className={`bg-slate-900/80 backdrop-blur-xl p-8 rounded-[2rem] border transition-all duration-500 cursor-pointer group hover:-translate-y-2 relative overflow-hidden ${theme.wrapper} h-full flex flex-col`}>
       {/* 沉浸式光暈 */}
       <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-150 ${theme.glow}`}></div>
       
-      {/* 重新設計的右下角背景浮水印 (完全顯示、細節豐富、原生動態) */}
+      {/* 重新設計的右下角背景浮水印 */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[2rem] z-0">
         {variant === 'accommodations' && (
-          <StaghornCoralWatermark className={`absolute bottom-0 right-2 w-44 h-44 opacity-[0.2] transition-all duration-700 group-hover:scale-105 group-hover:opacity-[0.35] ${theme.watermark}`} />
+          <StaghornCoralWatermark className={`absolute bottom-0 right-2 w-44 h-44 opacity-[0.1] transition-all duration-700 group-hover:scale-105 group-hover:opacity-[0.25] ${theme.watermark}`} />
         )}
         {variant === 'equipments' && (
-          <DivingGearWatermark className={`absolute bottom-2 right-4 w-36 h-36 opacity-[0.2] transition-all duration-700 group-hover:-translate-y-2 group-hover:opacity-[0.35] ${theme.watermark}`} />
+          <DivingGearWatermark className={`absolute bottom-2 right-4 w-36 h-36 opacity-[0.1] transition-all duration-700 group-hover:-translate-y-2 group-hover:opacity-[0.25] ${theme.watermark}`} />
         )}
         {variant === 'dashboard' && (
-          /* 探測深淵海洋科技感專屬佈局 */
-          <AbyssExplorerWatermark className={`absolute bottom-0 right-0 w-48 h-48 opacity-[0.25] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.45] ${theme.watermark} translate-x-4 translate-y-4`} />
+          <AbyssExplorerWatermark className={`absolute bottom-0 right-0 w-48 h-48 opacity-[0.15] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.35] ${theme.watermark} translate-x-4 translate-y-4`} />
         )}
         {variant === 'activities' && (
-          <Waves className={`absolute bottom-0 right-0 w-44 h-44 opacity-[0.15] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.25] ${theme.watermark}`} />
+          <Waves className={`absolute bottom-0 right-0 w-44 h-44 opacity-[0.1] transition-all duration-700 group-hover:scale-110 group-hover:opacity-[0.2] ${theme.watermark}`} />
         )}
         {!['accommodations', 'equipments', 'dashboard', 'activities'].includes(variant) && (
-          <div className={`absolute bottom-0 right-0 opacity-[0.15] group-hover:scale-110 group-hover:opacity-[0.25] transition-all duration-700 pointer-events-none [&>svg]:w-44 [&>svg]:h-44 ${theme.watermark}`}>
+          <div className={`absolute bottom-0 right-0 opacity-[0.1] group-hover:scale-110 group-hover:opacity-[0.2] transition-all duration-700 pointer-events-none [&>svg]:w-44 [&>svg]:h-44 ${theme.watermark}`}>
              {bgIcon || icon}
           </div>
         )}
       </div>
       
-      <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] relative z-10 ${theme.iconBg}`}>
+      <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] relative z-10 ${theme.iconBg}`}>
         {icon}
       </div>
       
       <div className="relative z-10 mt-auto">
-         <h3 className={`text-xl font-black text-slate-800 mb-2 transition-colors ${theme.titleHover}`}>{String(title)}</h3>
-         <p className="text-slate-500 text-sm font-bold leading-relaxed">{String(desc)}</p>
+         <h3 className={`text-xl font-black text-white mb-2 transition-colors ${theme.titleHover}`}>{String(title)}</h3>
+         <p className="text-slate-400 text-sm font-bold leading-relaxed">{String(desc)}</p>
       </div>
     </div>
   );
@@ -945,44 +944,44 @@ function ContactItem({ label, value, subValue, icon, href, highlight = false }) 
   const isLine = highlight === 'line';
   const isBlue = highlight === true || highlight === 'blue';
 
-  // 清新明亮海洋風格 (Clear Ocean Theme) 的卡片配置
+  // 清新明亮海洋風格轉為深海風格 (Deep Ocean Theme)
   const bgClasses = isLine
-    ? 'bg-gradient-to-br from-[#F4FFF4] to-[#E6FFE6] border border-[#00C300]/30 hover:border-[#00C300]/60 hover:shadow-[0_10px_30px_rgba(0,195,0,0.15)]'
+    ? 'bg-gradient-to-br from-[#00C300]/10 to-[#00C300]/5 border border-[#00C300]/30 hover:border-[#00C300]/60 hover:shadow-[0_10px_30px_rgba(0,195,0,0.15)]'
     : isBlue
-    ? 'bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 hover:border-cyan-400 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)]'
-    : 'bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-slate-200/50';
+    ? 'bg-gradient-to-br from-cyan-900/30 to-blue-900/20 border border-cyan-800 hover:border-cyan-500 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)]'
+    : 'bg-slate-800/80 border border-slate-700 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/20';
 
   return (
     <div className={`flex items-start gap-4 p-5 sm:p-6 rounded-[2rem] transition-all duration-500 group relative overflow-hidden hover:-translate-y-1.5 ${bgClasses}`}>
       {/* 微光暈 */}
-      {(isLine || isBlue) && <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-150 ${isLine ? 'bg-[#00C300]/10' : 'bg-cyan-400/10'}`}></div>}
+      {(isLine || isBlue) && <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-150 ${isLine ? 'bg-[#00C300]/10' : 'bg-cyan-500/10'}`}></div>}
       
       {/* 背景裝飾浮水印 */}
       <div className={`absolute -bottom-4 -right-4 opacity-[0.04] group-hover:scale-125 transition-transform duration-700 pointer-events-none [&>svg]:w-32 [&>svg]:h-32 rotate-12 ${isLine ? 'text-[#00C300]' : isBlue ? 'text-blue-500' : 'text-slate-400'}`}>
         {icon}
       </div>
       
-      <div className={`shrink-0 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-sm relative z-10 ${isLine ? 'bg-white text-[#00C300] border border-[#00C300]/20 group-hover:bg-[#00C300] group-hover:text-white' : isBlue ? 'bg-white text-cyan-600 border border-cyan-200 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-50 text-slate-500 border border-slate-100 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500'}`}>
+      <div className={`shrink-0 flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-sm relative z-10 ${isLine ? 'bg-slate-900 text-[#00C300] border border-[#00C300]/30 group-hover:bg-[#00C300] group-hover:text-white' : isBlue ? 'bg-slate-900 text-cyan-400 border border-cyan-700 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-900 text-slate-400 border border-slate-700 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500'}`}>
         {icon}
       </div>
       
       <div className="flex-1 min-w-0 pt-0.5 z-10 relative">
-        <h4 className={`text-[11px] sm:text-xs font-black mb-1.5 tracking-wider uppercase transition-colors ${isLine ? 'text-[#009E00]' : isBlue ? 'text-cyan-700' : 'text-slate-400 group-hover:text-blue-400'}`}>{String(label || '')}</h4>
+        <h4 className={`text-[11px] sm:text-xs font-black mb-1.5 tracking-wider uppercase transition-colors ${isLine ? 'text-[#00C300]' : isBlue ? 'text-cyan-400' : 'text-slate-400 group-hover:text-blue-300'}`}>{String(label || '')}</h4>
         
         {href ? (
-          <a href={href} target="_blank" rel="noreferrer" className={`text-lg sm:text-xl font-black block break-words transition-colors flex items-center flex-wrap gap-2.5 text-slate-900 group-hover:${isLine ? 'text-[#009E00]' : 'text-cyan-700'}`}>
+          <a href={href} target="_blank" rel="noreferrer" className={`text-lg sm:text-xl font-black block break-words transition-colors flex items-center flex-wrap gap-2.5 text-white group-hover:${isLine ? 'text-[#00C300]' : 'text-cyan-300'}`}>
             <span>{String(value || '')}</span>
-            {isLine && <span className="text-[10px] bg-white text-[#00A000] border border-[#00A000]/30 px-2.5 py-1 rounded-full font-black shadow-sm shrink-0 leading-none flex items-center gap-1 group-hover:bg-[#00A000] group-hover:text-white transition-colors"><Plus className="w-3 h-3" /> 加入好友</span>}
+            {isLine && <span className="text-[10px] bg-slate-900 text-[#00C300] border border-[#00C300]/30 px-2.5 py-1 rounded-full font-black shadow-sm shrink-0 leading-none flex items-center gap-1 group-hover:bg-[#00C300] group-hover:text-white transition-colors"><Plus className="w-3 h-3" /> 加入好友</span>}
           </a>
         ) : (
-          <p className="text-lg sm:text-xl font-black break-words text-slate-900">{String(value || '')}</p>
+          <p className="text-lg sm:text-xl font-black break-words text-white">{String(value || '')}</p>
         )}
         
         {subValue && (
           <div className="mt-3 flex flex-wrap gap-2 items-start">
             {String(subValue).split('\n').map((line, i) => (
               line.trim() ? (
-                <div key={i} className={`text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg inline-flex text-left leading-relaxed shadow-sm bg-white/60 text-slate-600 border border-slate-200/60 group-hover:bg-white group-hover:border-slate-200 transition-colors`}>
+                <div key={i} className={`text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg inline-flex text-left leading-relaxed shadow-sm bg-slate-800/80 text-slate-300 border border-slate-700 group-hover:bg-slate-900 group-hover:border-slate-600 transition-colors`}>
                   {line.trim()}
                 </div>
               ) : null
@@ -1174,7 +1173,7 @@ function BookingCard({ booking: b, type, db, appId }) {
                    <p><span className="text-slate-400 w-24 inline-block">出生日期</span> {String(b.birthday || '未提供')}</p>
                    <p><span className="text-slate-400 w-24 inline-block">身高體重</span> {String(b.height)} cm / {String(b.weight)} kg</p>
                    <p><span className="text-slate-400 w-24 inline-block">配重需求</span> {((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5)} kg</p>
-                   <p><span className="text-slate-400 w-24 inline-block">緊急聯絡人</span> {String(b.emergencyName || '未提供')} ({String(b.emergencyRelation || '未知')}) / {String(b.emergencyPhone || '未提供')}</p>
+                   <p><span className="text-slate-400 w-24 inline-block">緊急聯絡人</span> {String(b.emergencyName || '未提供')} ({String(b.emergencyRelation || '-')}) / {String(b.emergencyPhone || '-')}</p>
                 </div>
                 <div className="space-y-2">
                    <p className="font-bold text-slate-700 border-b pb-1">預約配置與選修</p>
@@ -1296,7 +1295,7 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
     }
 
     if (type === 'activity') {
-      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人姓名', '緊急聯絡人關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
+      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人', '緊急聯絡關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
       rows = exportBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
@@ -1371,9 +1370,19 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
                           </div>
                           <h4 className="text-lg font-black text-slate-800">{groupName}</h4>
                       </div>
-                      <span className="mt-3 sm:mt-0 text-xs font-black bg-white px-3 py-1.5 rounded-lg text-blue-700 shadow-sm border border-blue-100">
-                          共 {groupedBookings[groupName].length} 筆報名
-                      </span>
+                      <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-black bg-white px-3 py-1.5 rounded-lg text-blue-700 shadow-sm border border-blue-100">
+                              共 {groupedBookings[groupName].length} 筆報名
+                          </span>
+                          <button onClick={() => {
+                              if(window.confirm(`確定要永久刪除「${groupName}」的所有報名紀錄嗎？(共 ${groupedBookings[groupName].length} 筆)\n此動作無法撤回。`)) {
+                                 Promise.all(groupedBookings[groupName].map(b => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id))))
+                                   .catch(() => alert("刪除失敗，請確認權限或網路狀態"));
+                              }
+                          }} className="text-xs font-black bg-white px-3 py-1.5 rounded-lg text-red-500 shadow-sm border border-red-100 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-1.5">
+                             <Trash2 className="w-3.5 h-3.5" /> 刪除全梯次報名
+                          </button>
+                      </div>
                    </div>
                    <div className="space-y-4">
                        {groupedBookings[groupName].map(b => <BookingCard key={b.id} booking={b} type={type} db={db} appId={appId} />)}
@@ -3393,6 +3402,8 @@ const DivingMaskIcon = ({ className }) => (
 function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, onSuccess }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false); // 新增：控制報名成功浮窗的狀態
+  const [successResult, setSuccessResult] = useState(null); // 新增：暫存住宿接續資訊的狀態
   const isTrip = activity.diveCategory === '潛旅';
   const isCourse = activity.isCourse;
   const isDSD = activity.diveCategory === '體驗潛水'; // 判定是否為體驗潛水
@@ -3606,7 +3617,9 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         accContext = { type: 'activity_discount', date: activity.date, discountType: sysConfig.accDiscountType, discountVal: sysConfig.accDiscountValue };
       }
 
-      onSuccess({ gotoAcc, accContext });
+      // 改為顯示報名成功浮窗，並將接續住宿的判斷存入狀態
+      setSuccessResult({ gotoAcc, accContext });
+      setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
       setIsSubmitting(false);
@@ -3823,16 +3836,13 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
                     <FormInput label="體重 (kg) *" required type="number" value={f.weight} onChange={v => setF({...f, weight: v})} />
                     <FormInput label="鞋碼 (cm) *" required type="number" value={f.shoeSize} onChange={v => setF({...f, shoeSize: v})} placeholder="22-30" />
                   </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-slate-100">
-                  <h4 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
-                     <User className="w-5 h-5 text-rose-500"/> 緊急聯絡人資料
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                     <FormInput label="聯絡人姓名 *" required value={f.emergencyName} onChange={v => setF({...f, emergencyName: v})} placeholder="例如: 王大明" />
-                     <FormInput label="關係 *" required value={f.emergencyRelation} onChange={v => setF({...f, emergencyRelation: v})} placeholder="例如: 父母、配偶" />
-                     <FormInput label="聯絡電話 *" required type="tel" value={f.emergencyPhone} onChange={v => setF({...f, emergencyPhone: formatPhoneNumber(v)})} placeholder="09xx-xxx-xxx" />
+                  <div className="md:col-span-2 pt-4 mt-2 border-t border-slate-200">
+                     <p className="text-sm font-black text-slate-800 mb-4">緊急聯絡人資料</p>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <FormInput label="聯絡人姓名 *" required value={f.emergencyName} onChange={v => setF({...f, emergencyName: v})} placeholder="姓名" />
+                        <FormInput label="關係 *" required value={f.emergencyRelation} onChange={v => setF({...f, emergencyRelation: v})} placeholder="例：父子、配偶" />
+                        <FormInput label="聯絡電話 *" required type="tel" value={f.emergencyPhone} onChange={v => setF({...f, emergencyPhone: formatPhoneNumber(v)})} placeholder="聯絡電話" />
+                     </div>
                   </div>
                 </div>
 
@@ -4290,6 +4300,53 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
           </button>
         </div>
       </div>
+
+      {/* 活動報名成功提示浮窗 */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-slate-900/80 z-[110] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl relative overflow-hidden text-center border border-white flex flex-col">
+            <div className="mx-auto w-20 h-20 bg-green-100 text-green-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner transform rotate-3">
+              <CheckCircle className="w-10 h-10 -rotate-3" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 mb-3">報名資料已送出！</h2>
+            
+            <div className="bg-amber-50 border border-amber-100 p-5 rounded-2xl mb-8 shadow-sm">
+               <p className="text-amber-800 text-sm font-bold leading-relaxed">
+                 <span className="text-amber-600 bg-amber-100 px-2 py-0.5 rounded mr-1">重要</span>
+                 請至官方 LINE 聯繫確認付款資訊，才有完成預訂喔！<br className="mt-1" />
+                 如需修改資料或確認後續事宜，請點擊下方按鈕與教練對話。
+               </p>
+            </div>
+            
+            <div className="space-y-3 mt-auto">
+              <a 
+                href={sysConfig.line ? `https://line.me/R/oaMessage/${String(sysConfig.line).replace('@', '')}/?${encodeURIComponent('教練您好，我已完成「' + (activity.name || activity.courseName) + '」的報名！')}` : '#'} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-full py-4 bg-[#00C300] text-white rounded-2xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-6 h-6" /> 傳送報名訊息至官方 LINE
+              </a>
+              
+              {successResult?.gotoAcc ? (
+                <button 
+                  onClick={() => onSuccess && onSuccess(successResult)} 
+                  className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black shadow-lg shadow-rose-600/30 hover:bg-rose-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-2"
+                >
+                  <Home className="w-5 h-5" /> 繼續前往住宿預訂 <ArrowRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <button 
+                  onClick={() => onSuccess && onSuccess(successResult)} 
+                  className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mt-2"
+                >
+                  前往查看預約紀錄
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -5029,7 +5086,9 @@ function AccommodationBookingPage({ accommodations, sysConfig, onBook, onBack, c
             <h2 className="text-2xl font-black text-slate-800 mb-3">住宿預訂請求已送出！</h2>
             <div className="bg-rose-50 border border-rose-100 p-5 rounded-2xl mb-8 shadow-sm">
                <p className="text-rose-800 text-sm font-bold leading-relaxed">
-                 預約完成後請留意來電訊息，或主動傳訊息至鯊墾丁官方LINE確認訂金支付後，訂單狀態顯示<span className="bg-rose-200 px-1 rounded mx-0.5">確認</span>，才算完成預訂喔。
+                 <span className="text-rose-600 bg-rose-100 px-2 py-0.5 rounded mr-1">重要</span>
+                 請至官方 LINE 聯繫確認付款資訊，才有完成預訂喔！<br className="mt-1" />
+                 預約完成後請留意來電訊息，訂單狀態顯示<span className="bg-rose-200 px-1 rounded mx-0.5">確認</span>才算成功。
                </p>
             </div>
             <div className="space-y-3 mt-auto">
@@ -5415,8 +5474,8 @@ function UserDashboard({ bookings, sysConfig }) {
                                      <p className="text-slate-500 font-bold">身高 / 體重</p><p className="font-black text-slate-800">{b.height} cm / {b.weight} kg</p>
                                      <p className="text-slate-500 font-bold">鞋碼</p><p className="font-black text-slate-800">{b.shoeSize || '未提供'} cm</p>
                                      <p className="text-slate-500 font-bold">配重需求</p><p className="font-black text-slate-800">{((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5)} kg</p>
-                                     <p className="text-slate-500 font-bold">緊急聯絡人</p><p className="font-black text-slate-800">{b.emergencyName || '未提供'} ({b.emergencyRelation || '未知'})</p>
-                                     <p className="text-slate-500 font-bold">緊急電話</p><p className="font-black text-slate-800">{b.emergencyPhone || '未提供'}</p>
+                                     <p className="text-slate-500 font-bold col-span-2 mt-2 pt-2 border-t border-slate-200">緊急聯絡人</p>
+                                     <p className="font-black text-slate-800 col-span-2">{b.emergencyName || '未提供'} ({b.emergencyRelation || '-'}) / {b.emergencyPhone || '-'}</p>
                                   </div>
                                </div>
                                <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100">
@@ -5584,12 +5643,13 @@ const DivingTankIcon = ({ className }) => (
   </svg>
 );
 
-function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
+function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack, onSuccess }) {
   const [f, setF] = useState({ name: '', phone: '', date: '', days: 1, height: '', weight: '', shoeSize: '' });
   const [isReturningCustomer, setIsReturningCustomer] = useState(false);
   const [prepList, setPrepList] = useState([]); // 器材準備區 (取代購物車)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const recSize = useMemo(() => calculateRecommendedSize(f.height, f.weight), [f.height, f.weight]);
   const recBoot = useMemo(() => calculateBootSize(f.shoeSize), [f.shoeSize]);
@@ -5685,6 +5745,7 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
         },
         rentals: prepList
       });
+      setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
       setIsSubmitting(false);
@@ -5865,6 +5926,45 @@ function EquipmentRentalPage({ equipments, sysConfig, onBook, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* 裝備預留成功提示浮窗 */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-slate-900/80 z-[110] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl relative overflow-hidden text-center border border-white flex flex-col">
+            <div className="mx-auto w-20 h-20 bg-cyan-100 text-cyan-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner transform rotate-3">
+              <CheckCircle className="w-10 h-10 -rotate-3" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 mb-3">裝備預留請求已送出！</h2>
+            
+            <div className="bg-cyan-50 border border-cyan-100 p-5 rounded-2xl mb-8 shadow-sm">
+               <p className="text-cyan-800 text-sm font-bold leading-relaxed">
+                 <span className="text-cyan-600 bg-cyan-100 px-2 py-0.5 rounded mr-1">重要</span>
+                 請至官方 LINE 聯繫確認付款資訊，才有完成預訂喔！<br className="mt-1" />
+                 與我們確認後，確保您的器材能如期為您準備。
+               </p>
+            </div>
+            
+            <div className="space-y-3 mt-auto">
+              <a 
+                href={sysConfig.line ? (String(sysConfig.line).startsWith('@') ? `https://line.me/R/ti/p/${sysConfig.line}` : `https://line.me/ti/p/~${sysConfig.line}`) : '#'} 
+                target="_blank" 
+                rel="noreferrer" 
+                onClick={() => onSuccess && onSuccess()}
+                className="w-full py-4 bg-[#00C300] text-white rounded-2xl font-black shadow-lg shadow-[#00C300]/30 hover:bg-[#00A000] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-6 h-6" /> 立即與我們對話 (LINE)
+              </a>
+              
+              <button 
+                onClick={() => onSuccess && onSuccess()} 
+                className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mt-2"
+              >
+                前往查看預約紀錄
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -6097,17 +6197,19 @@ function App() {
 
   if (isLoading) return <div className="flex h-screen items-center justify-center bg-slate-100 font-black text-slate-400 tracking-widest animate-pulse">SYSTEM LOADING...</div>;
 
+  const isDarkTheme = !isAdminMode && currentView === 'home';
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-      <nav className="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 shadow-sm">
+    <div className={`min-h-screen font-sans ${isDarkTheme ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`}>
+      <nav className={`backdrop-blur-md sticky top-0 z-40 border-b shadow-sm ${isDarkTheme ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
           <div className="flex items-center cursor-pointer group" onClick={() => { setCurrentView('home'); setIsAdminMode(false); }}>
             <div className="bg-blue-600 p-2 rounded-lg transition-transform group-hover:scale-110"><Waves className="h-5 w-5 text-white" /></div>
-            <span className="ml-3 text-xl font-black text-slate-900 tracking-tight">鯊墾丁 (SHARKENTING)</span>
+            <span className={`ml-3 text-xl font-black tracking-tight ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>鯊墾丁 (SHARKENTING)</span>
           </div>
           <div className="flex items-center gap-3">
              {isAdminMode && <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-full border border-green-200 shadow-inner"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>最高權限已載入</div>}
-             <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-rose-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+             <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-rose-600 text-white shadow-md' : (isDarkTheme ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}`}>
                {isAdminMode ? <><X className="w-4 h-4 mr-2" /> 退出管理後台</> : <><Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">營運管理中心</span></>}
              </button>
           </div>
@@ -6217,34 +6319,34 @@ function App() {
                   <QuickCard variant="dashboard" icon={<AbyssRadarIcon className="w-6 h-6" />} colorTheme="indigo" title="我的預約查詢" desc="追蹤報名審核進度，即時掌握所有訂單狀態" onClick={() => setCurrentView('dashboard')} />
                 </div>
 
-                <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(8,145,178,0.08)] bg-gradient-to-b from-cyan-100 to-white z-0">
-                   {/* 沉浸式清透海洋背景裝飾 (Clear Ocean Immersion) */}
-                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-blue-50 rounded-[4rem] -z-10 overflow-hidden border border-white">
+                <div className="relative mt-24 mb-12 rounded-[4rem] p-1 shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-gradient-to-b from-cyan-900/30 to-slate-950 z-0">
+                   {/* 沉浸式清透海洋背景裝飾 (Dark Ocean Immersion) */}
+                   <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 rounded-[4rem] -z-10 overflow-hidden border border-slate-800">
                        {/* 海底光影 (Sunrays) */}
-                       <div className="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-b from-cyan-100/30 via-white/10 to-transparent blur-3xl transform skew-x-12 pointer-events-none"></div>
-                       <div className="absolute top-0 right-1/4 w-1/3 h-full bg-gradient-to-b from-blue-100/30 via-white/10 to-transparent blur-3xl transform -skew-x-12 pointer-events-none"></div>
+                       <div className="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-b from-cyan-900/20 via-slate-800/10 to-transparent blur-3xl transform skew-x-12 pointer-events-none"></div>
+                       <div className="absolute top-0 right-1/4 w-1/3 h-full bg-gradient-to-b from-blue-900/20 via-slate-800/10 to-transparent blur-3xl transform -skew-x-12 pointer-events-none"></div>
                        
-                       {/* 潛水主題點綴元素 (清透魚群與波浪) */}
-                       <div className="absolute top-10 left-10 text-cyan-500/10 transform -rotate-12 pointer-events-none animate-[pulse_6s_ease-in-out_infinite]"><Fish className="w-64 h-64" /></div>
-                       <div className="absolute bottom-0 right-0 text-blue-500/10 pointer-events-none transform rotate-6 translate-x-1/4 translate-y-1/4"><Waves className="w-96 h-96" /></div>
+                       {/* 潛水主題點綴元素 (深色魚群與波浪) */}
+                       <div className="absolute top-10 left-10 text-cyan-500/5 transform -rotate-12 pointer-events-none animate-[pulse_6s_ease-in-out_infinite]"><Fish className="w-64 h-64" /></div>
+                       <div className="absolute bottom-0 right-0 text-blue-500/5 pointer-events-none transform rotate-6 translate-x-1/4 translate-y-1/4"><Waves className="w-96 h-96" /></div>
                        
-                       {/* 清透浮游氣泡 */}
-                       <div className="absolute top-1/4 right-[10%] w-12 h-12 bg-cyan-200/30 rounded-full blur-[1px] animate-[bounce_4s_infinite] shadow-[0_0_20px_rgba(255,255,255,0.5)]"></div>
-                       <div className="absolute top-1/3 right-[25%] w-6 h-6 bg-blue-200/40 rounded-full blur-[0.5px] animate-[bounce_5s_infinite_1s]"></div>
-                       <div className="absolute bottom-1/4 left-[15%] w-16 h-16 bg-white/60 rounded-full blur-[2px] animate-[bounce_7s_infinite_reverse] shadow-[0_0_30px_rgba(255,255,255,0.8)]"></div>
-                       <div className="absolute top-1/2 left-[5%] w-3 h-3 bg-cyan-300/50 rounded-full animate-ping opacity-80"></div>
+                       {/* 浮游氣泡 */}
+                       <div className="absolute top-1/4 right-[10%] w-12 h-12 bg-cyan-900/30 rounded-full blur-[1px] animate-[bounce_4s_infinite] shadow-[0_0_20px_rgba(6,182,212,0.2)]"></div>
+                       <div className="absolute top-1/3 right-[25%] w-6 h-6 bg-blue-900/40 rounded-full blur-[0.5px] animate-[bounce_5s_infinite_1s]"></div>
+                       <div className="absolute bottom-1/4 left-[15%] w-16 h-16 bg-slate-800/60 rounded-full blur-[2px] animate-[bounce_7s_infinite_reverse] shadow-[0_0_30px_rgba(255,255,255,0.1)]"></div>
+                       <div className="absolute top-1/2 left-[5%] w-3 h-3 bg-cyan-700/50 rounded-full animate-ping opacity-80"></div>
                    </div>
                    
-                   <div className="bg-white/40 backdrop-blur-2xl p-8 md:p-14 rounded-[3.8rem] relative z-10">
+                   <div className="bg-slate-900/40 backdrop-blur-2xl p-8 md:p-14 rounded-[3.8rem] relative z-10">
                       <div className="text-center max-w-2xl mx-auto mb-12">
-                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-100 mb-4 shadow-sm">
-                           <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
-                           <span className="text-cyan-700 font-black tracking-widest text-[10px] uppercase">Explore the Ocean</span>
+                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-900/30 border border-cyan-800 mb-4 shadow-sm">
+                           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                           <span className="text-cyan-400 font-black tracking-widest text-[10px] uppercase">Explore the Ocean</span>
                          </div>
-                         <h3 className="text-3xl md:text-5xl font-black text-slate-800 flex items-center justify-center gap-4 tracking-tight drop-shadow-sm">
+                         <h3 className="text-3xl md:text-5xl font-black text-white flex items-center justify-center gap-4 tracking-tight drop-shadow-sm">
                             聯絡與門市資訊
                          </h3>
-                         <p className="text-slate-600 font-bold mt-5 leading-relaxed text-sm md:text-base">
+                         <p className="text-slate-400 font-bold mt-5 leading-relaxed text-sm md:text-base">
                             無論是課程諮詢、裝備預留，還是想了解最新的潛水行程，<br className="hidden sm:block"/>歡迎透過以下方式與我們聯繫！
                          </p>
                       </div>
@@ -6282,29 +6384,29 @@ function App() {
                             />
                          </div>
                          
-                         {/* 右側地圖區 (清透風格) */}
-                         <div className="xl:col-span-7 relative min-h-[400px] lg:min-h-[500px] h-full bg-white/60 p-3 md:p-4 rounded-[3rem] shadow-[0_15px_40px_rgba(6,182,212,0.1)] border border-white group">
-                            {/* 移除濾鏡，恢復 Google Map 原色 */}
+                         {/* 右側地圖區 (深海暗色風格) */}
+                         <div className="xl:col-span-7 relative min-h-[400px] lg:min-h-[500px] h-full bg-slate-800/40 p-3 md:p-4 rounded-[3rem] shadow-[0_15px_40px_rgba(0,0,0,0.3)] border border-slate-700 group">
+                            {/* 加入暗色地圖濾鏡 */}
                             <iframe 
                               title="門市位置地圖" 
-                              className="w-full h-full rounded-[2.5rem] bg-slate-50 transition-all duration-700 opacity-90 group-hover:opacity-100 shadow-inner" 
-                              style={{ border: 0, minHeight: '400px' }} 
+                              className="w-full h-full rounded-[2.5rem] bg-slate-900 transition-all duration-700 opacity-80 group-hover:opacity-100 shadow-inner" 
+                              style={{ border: 0, minHeight: '400px', filter: 'invert(90%) hue-rotate(180deg) contrast(125%)' }} 
                               loading="lazy" 
                               src={`https://maps.google.com/maps?q=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}>
                             </iframe>
                             
                             {/* 定位 UI 標示 */}
-                            <div className="absolute top-8 right-8 bg-white/95 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center gap-3 pointer-events-none group-hover:border-cyan-200 transition-colors duration-500 z-20">
+                            <div className="absolute top-8 right-8 bg-slate-900/90 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.5)] border border-slate-700 flex items-center gap-3 pointer-events-none group-hover:border-cyan-700 transition-colors duration-500 z-20">
                                <div className="relative flex items-center justify-center">
-                                  <div className="absolute w-6 h-6 bg-cyan-400/30 rounded-full animate-ping"></div>
-                                  <div className="w-2.5 h-2.5 bg-cyan-500 rounded-full shadow-[0_0_12px_rgba(6,182,212,0.6)]"></div>
+                                  <div className="absolute w-6 h-6 bg-cyan-500/30 rounded-full animate-ping"></div>
+                                  <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full shadow-[0_0_12px_rgba(34,211,238,0.6)]"></div>
                                </div>
-                               <span className="text-xs font-black text-slate-700 tracking-widest uppercase">實體門市位置</span>
+                               <span className="text-xs font-black text-slate-300 tracking-widest uppercase">實體門市位置</span>
                             </div>
 
                             {/* Google Maps 開啟按鈕 (懸浮) */}
                             <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0">
-                               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}`} target="_blank" rel="noreferrer" className="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl font-black shadow-[0_10px_25px_rgba(0,0,0,0.3)] hover:bg-cyan-600 transition-all flex items-center gap-2 hover:scale-105 border border-white/10">
+                               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sysConfig.address || '屏東縣恆春鎮')}`} target="_blank" rel="noreferrer" className="bg-slate-900/95 backdrop-blur-md text-cyan-400 px-6 py-3 rounded-2xl font-black shadow-[0_10px_25px_rgba(0,0,0,0.5)] hover:text-white hover:bg-cyan-700 transition-all flex items-center gap-2 hover:scale-105 border border-slate-700">
                                   <MapPin className="w-5 h-5"/> 在 Google Maps 中開啟
                                </a>
                             </div>
@@ -6314,7 +6416,7 @@ function App() {
                 </div>
 
                 {/* 頁尾版權宣告 */}
-                <footer className="text-center text-slate-400 text-[11px] font-bold mt-16 pb-4 tracking-wider uppercase">
+                <footer className="text-center text-slate-500 text-[11px] font-bold mt-16 pb-4 tracking-wider uppercase">
                    {sysConfig.footerText || "© 2026 鯊墾丁 SHARKENTING . HUANG."}
                 </footer>
 
@@ -6332,10 +6434,8 @@ function App() {
             {currentView === 'equipments' && <EquipmentRentalPage equipments={equipmentsList} sysConfig={sysConfig} onBook={async (data) => {
                 try {
                    await submitRegistration(data);
-                   setCurrentView('dashboard');
-                   window.scrollTo(0,0);
-                } catch(e) { alert("送出失敗"); }
-            }} onBack={() => setCurrentView('home')} />}
+                } catch(e) { alert("送出失敗"); throw e; }
+            }} onSuccess={() => { setCurrentView('dashboard'); window.scrollTo(0,0); }} onBack={() => setCurrentView('home')} />}
             {currentView === 'dashboard' && <UserDashboard bookings={bookings} sysConfig={sysConfig} userUid={user?.uid} />}
           </>
         ) : (
