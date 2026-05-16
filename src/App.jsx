@@ -720,6 +720,11 @@ function PaymentProofModal({ booking, onClose }) {
       alert('請上傳圖片格式檔案');
       return;
     }
+    // 加入大小限制防護 (超過 2MB 拒絕，避免 firebase 問題)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('圖片檔案過大，請選擇小於 2MB 的圖片');
+      return;
+    }
     try {
       const base64 = await resizeImage(file, 800);
       setImage(base64);
@@ -731,6 +736,7 @@ function PaymentProofModal({ booking, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if(isSubmitting) return;
+    if(!last5 || !amount || !date) { alert("請填寫完整匯款資訊"); return; }
     setIsSubmitting(true);
     try {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', booking.id), {
@@ -1224,6 +1230,8 @@ function BookingCard({ booking: b, type, db, appId }) {
                {b.isReturningCustomer && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-black">回客優惠</span>}
                {b.hasMedicalIssue && <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1 shadow-sm"><AlertTriangle className="w-3 h-3" />醫療聲明異常</span>}
                {type === 'accommodation' && b.details?.breakdown && <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded text-[10px] font-black">系統試算</span>}
+               {/* 👉 後台卡片標題旁邊新增：已傳證明的綠色標籤 */}
+               {b.paymentProof && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-black flex items-center gap-1 shadow-sm"><CircleDollarSign className="w-3 h-3" />已傳繳款證明</span>}
              </div>
              <div className="flex flex-wrap gap-3 text-sm text-slate-500 font-medium mb-1.5">
                <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" /> {bName}</span>
@@ -5520,7 +5528,7 @@ function UserDashboard({ bookings, sysConfig }) {
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [expandedDocs, setExpandedDocs] = useState({});
-  const [paymentBooking, setPaymentBooking] = useState(null);
+  const [paymentBooking, setPaymentBooking] = useState(null); // 👉 保留控制繳費上傳的 Modal 狀態
 
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
@@ -5632,6 +5640,25 @@ function UserDashboard({ bookings, sysConfig }) {
                         </a>
                       </div>
                     )}
+
+                    {/* 👉 移出 isExpanded 外層：讓繳款證明按鈕直接顯示於卡片主體 */}
+                    <div className="mt-6 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm animate-in slide-in-from-bottom-2">
+                       <div>
+                           <p className="font-black text-indigo-900 flex items-center gap-2 mb-1"><CircleDollarSign className="w-5 h-5"/> 繳款證明與狀態</p>
+                           {b.paymentProof ? (
+                               <p className="text-sm font-bold text-indigo-700 opacity-90">
+                                 已於 {b.paymentProof.date} 提供證明 (後五碼: {b.paymentProof.last5})，金額 NT$ {b.paymentProof.amount}
+                               </p>
+                           ) : (
+                               <p className="text-sm font-bold text-indigo-700 opacity-90">
+                                 完成匯款後，請點擊右方按鈕上傳您的繳款證明截圖與資訊，以利加速對帳。
+                               </p>
+                           )}
+                       </div>
+                       <button onClick={() => setPaymentBooking(b)} className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-sm shadow-md hover:-translate-y-0.5 transition-all shrink-0">
+                           {b.paymentProof ? '查看/修改證明' : '上傳繳款證明'}
+                       </button>
+                    </div>
 
                     <button 
                        onClick={() => toggleExpand(b.id)} 
@@ -5795,24 +5822,7 @@ function UserDashboard({ bookings, sysConfig }) {
                                </div>
                             </div>
                          )}
-
-                         <div className="mt-6 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm animate-in slide-in-from-bottom-2">
-                            <div>
-                                <p className="font-black text-indigo-900 flex items-center gap-2 mb-1"><CircleDollarSign className="w-5 h-5"/> 繳款證明與狀態</p>
-                                {b.paymentProof ? (
-                                    <p className="text-sm font-bold text-indigo-700 opacity-90">
-                                      已於 {b.paymentProof.date} 提供證明 (後五碼: {b.paymentProof.last5})，金額 NT$ {b.paymentProof.amount}
-                                    </p>
-                                ) : (
-                                    <p className="text-sm font-bold text-indigo-700 opacity-90">
-                                      完成匯款後，請點擊右方按鈕上傳您的繳款證明截圖與資訊，以利加速對帳。
-                                    </p>
-                                )}
-                            </div>
-                            <button onClick={() => setPaymentBooking(b)} className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-sm shadow-md hover:-translate-y-0.5 transition-all shrink-0">
-                                {b.paymentProof ? '查看/修改證明' : '上傳繳款證明'}
-                            </button>
-                         </div>
+                         {/* 👉 原本在展開區域內的繳款區塊已被移除，移到上方免展開位置 */}
                       </div>
                     )}
                   </div>
