@@ -447,6 +447,36 @@ function exportToCSV(filename, rows) {
   }
 }
 
+// 圖片壓縮輔助函數 (轉為 Base64 降低大小，避免超過資料庫單筆限制)
+function resizeImage(file, maxSize = 800) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > height && width > maxSize) {
+          height *= maxSize / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // 產生 LINE 連結輔助函數 (確保最穩定跳轉至加入好友/對話視窗)
 function generateLineLink(lineId) {
   if (!lineId) return '#';
@@ -674,6 +704,81 @@ function AISizeAdvisor({ height, weight, shoeSize, showWeight = false }) {
 // --------------------------------------------------------
 // 基礎 UI 組件
 // --------------------------------------------------------
+
+// 繳款證明上傳 Modal
+function PaymentProofModal({ booking, onClose }) {
+  const [last5, setLast5] = useState(booking.paymentProof?.last5 || '');
+  const [amount, setAmount] = useState(booking.paymentProof?.amount || booking.price || '');
+  const [date, setDate] = useState(booking.paymentProof?.date || new Date().toLocaleDateString('sv-SE'));
+  const [image, setImage] = useState(booking.paymentProof?.image || null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('請上傳圖片格式檔案');
+      return;
+    }
+    try {
+      const base64 = await resizeImage(file, 800);
+      setImage(base64);
+    } catch (err) {
+      alert('圖片處理失敗');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if(isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', booking.id), {
+        paymentProof: {
+          last5, amount, date, image, uploadedAt: serverTimestamp()
+        }
+      });
+      alert('繳款證明已上傳！');
+      onClose();
+    } catch(err) {
+      alert('上傳失敗，請稍後再試');
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+     <div className="fixed inset-0 bg-slate-900/80 z-[120] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
+       <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative">
+         <h3 className="text-xl font-black text-slate-800 mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <CircleDollarSign className="w-6 h-6 text-indigo-500" /> 上傳繳款證明
+         </h3>
+         <form onSubmit={handleSubmit} className="space-y-4">
+            <FormInput label="匯款帳號後五碼 *" required value={last5} onChange={setLast5} placeholder="例: 12345" />
+            <FormInput label="匯款金額 *" required type="number" value={amount} onChange={setAmount} placeholder="例: 3000" />
+            <FormInput label="匯款日期 *" required type="date" value={date} onChange={setDate} />
+            
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 block ml-1">繳款截圖 / 照片 (選填)</label>
+              <input type="file" accept="image/*" onChange={handleImageChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer border border-slate-200 rounded-xl p-1" />
+              {image && (
+                 <div className="mt-3 relative inline-block">
+                    <img src={image} alt="預覽" className="h-32 w-auto rounded-lg border border-slate-200 shadow-sm" />
+                    <button type="button" onClick={() => setImage(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"><X className="w-3 h-3" /></button>
+                 </div>
+              )}
+            </div>
+            
+            <div className="flex gap-3 pt-4 border-t border-slate-100 mt-4">
+               <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
+               <button type="submit" disabled={isSubmitting} className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                  {isSubmitting ? '上傳中...' : '確認上傳'}
+               </button>
+            </div>
+         </form>
+       </div>
+     </div>
+  );
+}
 
 function AdminLoginModal({ onVerify, onClose }) {
   const [email, setEmail] = useState('');
@@ -1276,6 +1381,31 @@ function BookingCard({ booking: b, type, db, appId }) {
                  </div>
               </div>
             )}
+
+            {b.paymentProof && (
+               <div className="col-span-1 md:col-span-2 mt-2">
+                  <p className="font-bold text-slate-700 border-b pb-1 mb-2 flex items-center gap-2">
+                     <CircleDollarSign className="w-4 h-4 text-green-600" /> 顧客已上傳繳款證明
+                  </p>
+                  <div className="bg-green-50 p-4 rounded-xl border border-green-200 flex flex-col sm:flex-row gap-5 items-start">
+                     <div className="space-y-1.5 flex-1 text-sm">
+                        <p><span className="text-slate-500 w-24 inline-block font-bold">匯款後五碼</span> <span className="font-black text-slate-800 text-base">{b.paymentProof.last5}</span></p>
+                        <p><span className="text-slate-500 w-24 inline-block font-bold">匯款金額</span> <span className="font-black text-green-700 text-base">NT$ {b.paymentProof.amount}</span></p>
+                        <p><span className="text-slate-500 w-24 inline-block font-bold">匯款日期</span> <span className="font-black text-slate-800">{b.paymentProof.date}</span></p>
+                     </div>
+                     {b.paymentProof.image && (
+                        <a href={b.paymentProof.image} target="_blank" rel="noreferrer" className="shrink-0 group">
+                           <div className="relative overflow-hidden rounded-lg border border-green-200 shadow-sm">
+                             <img src={b.paymentProof.image} alt="繳款截圖" className="h-28 w-auto object-cover group-hover:scale-110 transition-transform duration-300" />
+                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-white text-xs font-bold">點擊放大</span>
+                             </div>
+                           </div>
+                        </a>
+                     )}
+                  </div>
+               </div>
+            )}
          </div>
       )}
     </div>
@@ -1723,7 +1853,8 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
   const [publishType, setPublishType] = useState(isEdit ? (editingActivity.isCourse ? 'course' : (editingActivity.diveCategory === '體驗潛水' ? 'dsd' : 'fundive')) : 'fundive');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  let initData = { name: '', price: 0, date: '', diveCategory: '岸潛', capacity: 4, courseTemplateId: '', isCourse: false, airTanks: 2, nitroxTanks: 0, tanksShoreAir: 0, tanksShoreNitrox: 0, tanksBoatAir: 0, tanksBoatNitrox: 0, notes: '', coach: '', electives: [], services: [], certFee: 0, certSystem: '', schedule: [], airTankPrice: sysConfig.airTankPrice || 800, nitroxTankPrice: sysConfig.nitroxTankPrice || 1200 };
+  // 👉 新增 includesAcc 預設值為 true (相容舊資料)
+  let initData = { name: '', price: 0, date: '', diveCategory: '岸潛', capacity: 4, courseTemplateId: '', isCourse: false, includesAcc: true, airTanks: 2, nitroxTanks: 0, tanksShoreAir: 0, tanksShoreNitrox: 0, tanksBoatAir: 0, tanksBoatNitrox: 0, notes: '', coach: '', electives: [], services: [], certFee: 0, certSystem: '', schedule: [], airTankPrice: sysConfig.airTankPrice || 800, nitroxTankPrice: sysConfig.nitroxTankPrice || 1200 };
   if (editingActivity) {
     initData = { ...initData, ...editingActivity };
     if (editingActivity.airTanks === undefined && editingActivity.tanks !== undefined) {
@@ -1731,6 +1862,7 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
     }
     if (initData.airTankPrice === undefined) initData.airTankPrice = sysConfig.airTankPrice || 800;
     if (initData.nitroxTankPrice === undefined) initData.nitroxTankPrice = sysConfig.nitroxTankPrice || 1200;
+    if (initData.includesAcc === undefined) initData.includesAcc = true; // 舊資料預設為含住宿
   }
   const [formData, setFormData] = useState(initData);
 
@@ -1757,6 +1889,7 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
         price: tmpl.price, 
         diveCategory: '課程', 
         isCourse: true,
+        // 👉 維持 includesAcc 的設定，不被模板覆蓋 (模板目前沒有此欄位，統一在此設定)
         compulsories: tmpl.compulsories || [],
         electives: tmpl.electives || [], // 自動帶入選修項目
         services: tmpl.services || [], // 自動帶入服務項目
@@ -1824,6 +1957,17 @@ function ActivityManageModal({ editingActivity, courseTemplates, sysConfig, db, 
              </div>
           )}
           
+          {/* 👉 只有課程類型才會顯示此選項 */}
+          {(publishType === 'course' || formData.isCourse) && (
+             <label className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-200 rounded-xl cursor-pointer shadow-sm hover:bg-indigo-100 transition-colors mb-4">
+                <input type="checkbox" checked={formData.includesAcc !== false} onChange={e => setFormData({...formData, includesAcc: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded" />
+                <div>
+                  <span className="font-black text-indigo-900 block text-sm">此課程包含免費背包房住宿</span>
+                  <span className="text-xs font-bold text-indigo-600 mt-1 block">取消勾選後，報名表單將自動跳過住宿選擇流程。</span>
+                </div>
+             </label>
+          )}
+
           <FormInput label="活動標題 (梯次名稱) *" placeholder="例如: OWD 週末班" required value={formData.name} onChange={v => setFormData({ ...formData, name: v })} />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <FormInput label="活動日期 *" type="date" required value={formData.date} onChange={v => setFormData({ ...formData, date: v })} />
@@ -3420,10 +3564,21 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
   const isTrip = activity.diveCategory === '潛旅';
   const isCourse = activity.isCourse;
   const isDSD = activity.diveCategory === '體驗潛水'; // 判定是否為體驗潛水
+  const includesAcc = activity.includesAcc !== false; // 👉 判定此活動是否包含住宿 (預設為 true)
 
   // 動態決定流程步驟：加入潛水圖示，並為體驗潛水略過經驗步驟
   const stepTitles = useMemo(() => {
     if (isCourse) {
+      // 👉 若不包含住宿，移除住宿步驟
+      if (!includesAcc) {
+         return [
+          { num: 1, icon: BookOpen, title: '行前簡報', sub: '課程資訊總覽' },
+          { num: 2, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
+          { num: 3, icon: LifeBuoy, title: '海底探索', sub: '裝備配置與加購' },
+          { num: 4, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
+          { num: 5, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
+        ];
+      }
       return [
         { num: 1, icon: BookOpen, title: '行前簡報', sub: '課程資訊總覽' },
         { num: 2, icon: DivingMaskIcon, title: '準備下潛', sub: '基本與保險資料' },
@@ -3446,16 +3601,21 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
       { num: 3, icon: Waves, title: '平安升水', sub: '個人潛水經驗' },
       { num: 4, icon: CheckCircle, title: '潛水日誌', sub: '醫療健康聲明' }
     ];
-  }, [isCourse, isDSD]);
+  }, [isCourse, isDSD, includesAcc]);
 
   const totalSteps = stepTitles.length;
   
   const isStepOverview = isCourse && step === 1;
   const isStepBasic = (isCourse && step === 2) || (!isCourse && step === 1);
   const isStepEq = (isCourse && step === 3) || (!isCourse && step === 2);
-  const isStepAcc = isCourse && step === 4;
-  const isStepExp = (isCourse && step === 5) || (!isCourse && !isDSD && step === 3);
-  const isStepMedical = (isCourse && step === 6) || (isDSD && step === 3) || (!isCourse && !isDSD && step === 4);
+  
+  // 👉 調整：依據是否有住宿步驟，動態平移後續步驟的索引
+  const isStepAcc = isCourse && includesAcc && step === 4;
+  const expStepIndex = isCourse ? (includesAcc ? 5 : 4) : 3;
+  const medStepIndex = isCourse ? (includesAcc ? 6 : 5) : (isDSD ? 3 : 4);
+  
+  const isStepExp = (!isDSD && step === expStepIndex);
+  const isStepMedical = (step === medStepIndex);
 
   // Step 1 / 2: 基礎與保險
   const [f, setF] = useState({ name: '', nickname: '', phone: '', idNumber: '', birthday: '', height: '', weight: '', shoeSize: '', emergencyName: '', emergencyRelation: '', emergencyPhone: '' });
@@ -3592,6 +3752,9 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         }
       });
 
+      // 👉 若為課程且不含住宿，強制將 accOption 設為 'self'
+      const finalAccOption = (isCourse && !includesAcc) ? 'self' : (isTrip ? 'trip' : accOption);
+
       const submitData = {
         type: 'activity', 
         itemName: activity.name || activity.courseName, 
@@ -3605,7 +3768,7 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
         certSystem: requireCert ? (activity.certSystem || '') : '',
         useLocalShopEq,
         isReturningCustomer,
-        accOption: isTrip ? 'trip' : accOption,
+        accOption: finalAccOption, // 👉 使用整理後的住宿選項
         divingExperience: isDSD ? null : exp, // 若為體驗潛水，則不傳送潛水經驗資料
         medicalAnswers,
         medicalIssues,
@@ -3617,7 +3780,8 @@ function RegistrationForm({ activity, equipments, onClose, onSubmit, sysConfig, 
       let gotoAcc = false;
       let accContext = null;
 
-      if (isCourse && accOption === 'upgrade') {
+      // 👉 若不含住宿，就不觸發升級房型的導航
+      if (isCourse && includesAcc && accOption === 'upgrade') {
         gotoAcc = true;
         accContext = { type: 'course_upgrade', date: activity.date, days: activity.days || 3, baseDeduct: 800 }; 
       } else if (isDSD && accOption === 'upgrade') {
@@ -5356,6 +5520,7 @@ function UserDashboard({ bookings, sysConfig }) {
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [expandedDocs, setExpandedDocs] = useState({});
+  const [paymentBooking, setPaymentBooking] = useState(null);
 
   const filteredResults = useMemo(() => {
     if (!hasSearched) return [];
@@ -5630,6 +5795,24 @@ function UserDashboard({ bookings, sysConfig }) {
                                </div>
                             </div>
                          )}
+
+                         <div className="mt-6 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm animate-in slide-in-from-bottom-2">
+                            <div>
+                                <p className="font-black text-indigo-900 flex items-center gap-2 mb-1"><CircleDollarSign className="w-5 h-5"/> 繳款證明與狀態</p>
+                                {b.paymentProof ? (
+                                    <p className="text-sm font-bold text-indigo-700 opacity-90">
+                                      已於 {b.paymentProof.date} 提供證明 (後五碼: {b.paymentProof.last5})，金額 NT$ {b.paymentProof.amount}
+                                    </p>
+                                ) : (
+                                    <p className="text-sm font-bold text-indigo-700 opacity-90">
+                                      完成匯款後，請點擊右方按鈕上傳您的繳款證明截圖與資訊，以利加速對帳。
+                                    </p>
+                                )}
+                            </div>
+                            <button onClick={() => setPaymentBooking(b)} className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-sm shadow-md hover:-translate-y-0.5 transition-all shrink-0">
+                                {b.paymentProof ? '查看/修改證明' : '上傳繳款證明'}
+                            </button>
+                         </div>
                       </div>
                     )}
                   </div>
@@ -5637,6 +5820,8 @@ function UserDashboard({ bookings, sysConfig }) {
               }) : <div className="bg-white rounded-[2rem] p-20 text-center shadow-inner font-black text-slate-300">查無相關預約紀錄 / No records found</div>}
            </div>
         )}
+
+        {paymentBooking && <PaymentProofModal booking={paymentBooking} onClose={() => setPaymentBooking(null)} />}
       </div>
     </div>
   );
