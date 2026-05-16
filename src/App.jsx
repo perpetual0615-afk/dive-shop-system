@@ -448,7 +448,7 @@ function exportToCSV(filename, rows) {
 }
 
 // 圖片壓縮輔助函數 (轉為 Base64 降低大小，避免超過資料庫單筆限制)
-function resizeImage(file, maxSize = 800) {
+function resizeImage(file, maxSize = 600) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -468,8 +468,10 @@ function resizeImage(file, maxSize = 800) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.6));
+        // 提高壓縮率，降低畫質至 0.5，確保字串不會超過 Firestore 單一文檔 1MB 限制
+        resolve(canvas.toDataURL('image/jpeg', 0.5));
       };
+      img.onerror = reject;
       img.src = e.target.result;
     };
     reader.onerror = reject;
@@ -720,13 +722,13 @@ function PaymentProofModal({ booking, onClose }) {
       alert('請上傳圖片格式檔案');
       return;
     }
-    // 加入大小限制防護 (超過 2MB 拒絕，避免 firebase 問題)
-    if (file.size > 2 * 1024 * 1024) {
-      alert('圖片檔案過大，請選擇小於 2MB 的圖片');
+    // 放寬上傳限制到 5MB，依賴前端大幅壓縮
+    if (file.size > 5 * 1024 * 1024) {
+      alert('圖片檔案過大 (超過 5MB)，請選擇較小的圖片');
       return;
     }
     try {
-      const base64 = await resizeImage(file, 800);
+      const base64 = await resizeImage(file, 600);
       setImage(base64);
     } catch (err) {
       alert('圖片處理失敗');
@@ -737,17 +739,25 @@ function PaymentProofModal({ booking, onClose }) {
     e.preventDefault();
     if(isSubmitting) return;
     if(!last5 || !amount || !date) { alert("請填寫完整匯款資訊"); return; }
+    
+    // 防止 Base64 字串過大超出 Firestore 單一文檔 1MB 的限制
+    if (image && image.length > 800000) {
+      alert('圖片尺寸過大，請裁切或選擇更小的圖片');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', booking.id), {
         paymentProof: {
-          last5, amount, date, image, uploadedAt: serverTimestamp()
+          last5, amount, date, image: image || null, uploadedAt: serverTimestamp()
         }
       });
       alert('繳款證明已上傳！');
       onClose();
     } catch(err) {
-      alert('上傳失敗，請稍後再試');
+      console.error("Upload error:", err);
+      alert(`上傳失敗，請稍後再試 (${err.message})`);
       setIsSubmitting(false);
     }
   };
@@ -1391,9 +1401,9 @@ function BookingCard({ booking: b, type, db, appId }) {
             )}
 
             {b.paymentProof && (
-               <div className="col-span-1 md:col-span-2 mt-2">
-                  <p className="font-bold text-slate-700 border-b pb-1 mb-2 flex items-center gap-2">
-                     <CircleDollarSign className="w-4 h-4 text-green-600" /> 顧客已上傳繳款證明
+               <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t-2 border-slate-100 border-dashed">
+                  <p className="font-bold text-slate-700 border-b pb-2 mb-3 flex items-center gap-2">
+                     <CircleDollarSign className="w-5 h-5 text-green-600" /> 顧客已上傳繳款證明
                   </p>
                   <div className="bg-green-50 p-4 rounded-xl border border-green-200 flex flex-col sm:flex-row gap-5 items-start">
                      <div className="space-y-1.5 flex-1 text-sm">
@@ -1446,7 +1456,7 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
     }
 
     if (type === 'activity') {
-      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人', '緊急聯絡關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒'];
+      headers = ['訂單狀態', '裝備歸還狀態', '報名時間', '活動/課程名稱', '參加者姓名', '聯絡電話', '身分證/護照', '出生年月日', '身高(cm)', '體重(kg)', '總配重(kg)', '緊急聯絡人', '緊急聯絡關係', '緊急聯絡電話', '預估金額(NT$)', '住宿配套', '選修加購', '裝備需求', '使用當地裝備', '證照系統', '證照等級', '總潛水支數', '特殊專長', '備註提醒', '匯款後五碼', '匯款金額', '匯款日期'];
       rows = exportBookings.map(b => {
         const weight = ((b.weights?.w1||0)*1 + (b.weights?.w15||0)*1.5 + (b.weights?.w2||0)*2 + (b.weights?.w25||0)*2.5);
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '無/自備';
@@ -1456,22 +1466,22 @@ function BookingAdminPanel({ db, appId, bookings, type, title }) {
         const returnStatus = b.equipmentReturned ? '已歸還' : (b.rentals?.length > 0 ? '未歸還' : '無租借');
         const exp = b.divingExperience || {};
         const specStr = exp.specialties?.length > 0 ? exp.specialties.join('、') : '無';
-        return [statusStr, returnStatus, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.emergencyName || '', b.emergencyRelation || '', b.emergencyPhone || '', b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || ''];
+        return [statusStr, returnStatus, formatTs(b.timestamp), b.itemName || '', `${b.name||''} ${b.nickname ? '('+b.nickname+')' : ''}`, b.phone || '', b.idNumber || '', b.birthday || '', b.height || '', b.weight || '', weight, b.emergencyName || '', b.emergencyRelation || '', b.emergencyPhone || '', b.price || 0, accStr, electivesStr, eqStr, b.useLocalShopEq ? '是' : '否', exp.certSystem || '', exp.certLevel || '', exp.loggedDives || '', specStr, exp.personalNotes || '', b.paymentProof?.last5 || '', b.paymentProof?.amount || '', b.paymentProof?.date || ''];
       });
     } else if (type === 'accommodation') {
-      headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '退房日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵'];
+      headers = ['訂單狀態', '提交時間', '預訂房型', '預訂人姓名', '聯絡電話', '入住日期', '退房日期', '預訂晚數', '預訂房間數', '入住人數', '課程升級折抵', '匯款後五碼', '匯款金額', '匯款日期'];
       rows = typeBookings.map(b => {
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'cancelled' ? '已取消' : '待審核';
         const deductStr = b.details?.courseDeductTotal > 0 ? `${b.details.courseStudents}人, 折$${b.details.courseDeductTotal}` : '無';
         const checkOutDate = b.details?.checkIn ? new Date(new Date(b.details.checkIn).getTime() + (b.details.nights || 1) * 86400000).toLocaleDateString('sv-SE') : '';
-        return [statusStr, formatTs(b.timestamp), b.itemName || '', b.details?.name || '', b.details?.phone || '', b.details?.checkIn || '', checkOutDate, b.details?.nights || 1, b.details?.roomCount || 1, b.details?.guests || 1, deductStr];
+        return [statusStr, formatTs(b.timestamp), b.itemName || '', b.details?.name || '', b.details?.phone || '', b.details?.checkIn || '', checkOutDate, b.details?.nights || 1, b.details?.roomCount || 1, b.details?.guests || 1, deductStr, b.paymentProof?.last5 || '', b.paymentProof?.amount || '', b.paymentProof?.date || ''];
       });
     } else if (type === 'equipment') {
-      headers = ['訂單狀態', '提交時間', '租借人姓名', '聯絡電話', '取件日期', '租借天數', '總計金額(NT$)', '租借項目清單'];
+      headers = ['訂單狀態', '提交時間', '租借人姓名', '聯絡電話', '取件日期', '租借天數', '總計金額(NT$)', '租借項目清單', '匯款後五碼', '匯款金額', '匯款日期'];
       rows = typeBookings.map(b => {
         const eqStr = b.rentals?.length > 0 ? b.rentals.map(r => `${r.name}(${r.size||'F'})`).join('、 ') : '';
         const statusStr = b.status === 'confirmed' ? '已確認' : b.status === 'returned' ? '已歸還' : b.status === 'cancelled' ? '已取消' : '待審核';
-        return [statusStr, formatTs(b.timestamp), b.name || '', b.phone || '', b.details?.date || '', b.details?.days || 1, b.price || 0, eqStr];
+        return [statusStr, formatTs(b.timestamp), b.name || '', b.phone || '', b.details?.date || '', b.details?.days || 1, b.price || 0, eqStr, b.paymentProof?.last5 || '', b.paymentProof?.amount || '', b.paymentProof?.date || ''];
       });
     }
 
