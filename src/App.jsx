@@ -1210,8 +1210,117 @@ const restoreEquipmentStock = async (rentals, db, appId) => {
     }
 };
 
+// 👉 新增：預約單專用編輯 Modal
+function BookingEditModal({ booking, type, db, appId, onClose }) {
+  const [f, setF] = useState(() => ({
+    name: booking.name || booking.details?.name || '',
+    phone: booking.phone || booking.details?.phone || '',
+    price: booking.price || 0,
+    adminNotes: booking.adminNotes || '',
+    idNumber: booking.idNumber || '',
+    birthday: booking.birthday || '',
+    height: booking.height || '',
+    weight: booking.weight || '',
+    shoeSize: booking.shoeSize || '',
+    emergencyName: booking.emergencyName || '',
+    emergencyRelation: booking.emergencyRelation || '',
+    emergencyPhone: booking.emergencyPhone || '',
+  }));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const updates = { 
+         price: parseInt(f.price) || 0,
+         adminNotes: f.adminNotes 
+      };
+      
+      if (type === 'activity') {
+         updates.name = f.name;
+         updates.phone = f.phone;
+         updates.idNumber = f.idNumber;
+         updates.birthday = f.birthday;
+         updates.height = f.height;
+         updates.weight = f.weight;
+         updates.shoeSize = f.shoeSize;
+         updates.emergencyName = f.emergencyName;
+         updates.emergencyRelation = f.emergencyRelation;
+         updates.emergencyPhone = f.emergencyPhone;
+      } else if (type === 'equipment') {
+         updates.name = f.name;
+         updates.phone = f.phone;
+      } else if (type === 'accommodation') {
+         // 住宿預約的聯絡人資訊存在 details 內，使用 Firebase 的點記號法 (dot notation) 安全更新
+         updates['details.name'] = f.name;
+         updates['details.phone'] = f.phone;
+      }
+
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', booking.id), updates);
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert('更新失敗');
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/80 z-[120] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in" onClick={(e) => e.stopPropagation()}>
+       <div className="bg-white rounded-[2rem] w-full max-w-2xl p-6 relative overflow-hidden flex flex-col max-h-[90vh]">
+         <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-4 shrink-0">
+           <div>
+              <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><Edit3 className="w-5 h-5 text-blue-600"/> 編輯預約報名資料</h3>
+              <p className="text-xs font-bold text-slate-500 mt-1">您可以手動修改顧客填寫的資料、調整總金額或新增內部備註。</p>
+           </div>
+           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"><X className="w-5 h-5"/></button>
+         </div>
+         
+         <form id="editBookingForm" onSubmit={handleSubmit} className="overflow-y-auto custom-scrollbar flex-1 pr-2 space-y-5 pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <FormInput label="聯絡人姓名" required value={f.name} onChange={v => setF({...f, name: v})} />
+               <FormInput label="聯絡手機" required value={f.phone} onChange={v => setF({...f, phone: v})} />
+               <FormInput label="總計金額 (NT$)" type="number" required value={f.price} onChange={v => setF({...f, price: v})} />
+            </div>
+            
+            {type === 'activity' && (
+               <>
+                  <div className="border-t border-slate-100 pt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                     <FormInput label="身分證/護照號碼" value={f.idNumber} onChange={v => setF({...f, idNumber: v})} />
+                     <FormInput label="出生日期" type="date" value={f.birthday} onChange={v => setF({...f, birthday: v})} />
+                     <FormInput label="身高 (cm)" type="number" value={f.height} onChange={v => setF({...f, height: v})} />
+                     <FormInput label="體重 (kg)" type="number" value={f.weight} onChange={v => setF({...f, weight: v})} />
+                     <FormInput label="鞋碼 (cm)" type="number" value={f.shoeSize} onChange={v => setF({...f, shoeSize: v})} />
+                  </div>
+                  <div className="border-t border-slate-100 pt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                     <FormInput label="緊急聯絡人" value={f.emergencyName} onChange={v => setF({...f, emergencyName: v})} />
+                     <FormInput label="關係" value={f.emergencyRelation} onChange={v => setF({...f, emergencyRelation: v})} />
+                     <FormInput label="緊急聯絡電話" value={f.emergencyPhone} onChange={v => setF({...f, emergencyPhone: v})} />
+                  </div>
+               </>
+            )}
+
+            <div className="border-t border-slate-100 pt-5">
+               <label className="text-sm font-bold text-slate-700 block mb-2 flex items-center gap-2"><PenTool className="w-4 h-4 text-amber-500" /> 管理員內部備註 (僅後台可見)</label>
+               <textarea value={f.adminNotes} onChange={e => setF({...f, adminNotes: e.target.value})} className="w-full p-4 border border-slate-300 rounded-xl font-medium outline-none focus:border-blue-500 focus:bg-white bg-slate-50 transition-colors shadow-sm h-28" placeholder="例如：已收取訂金、裝備特殊需求、客戶特別要求事項等..."></textarea>
+            </div>
+         </form>
+         
+         <div className="flex gap-3 pt-5 border-t border-slate-100 mt-4 shrink-0">
+            <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">取消</button>
+            <button type="submit" form="editBookingForm" disabled={isSubmitting} className="flex-1 py-3.5 bg-blue-600 text-white font-black rounded-xl shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+               {isSubmitting ? '儲存中...' : <><Save className="w-4 h-4"/> 儲存所有變更</>}
+            </button>
+         </div>
+       </div>
+    </div>
+  );
+}
+
 function BookingCard({ booking: b, type, db, appId }) {
   const [expanded, setExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // 👉 新增：控制編輯浮窗的狀態
   const bName = String(b.name || b.details?.name || '未知');
   const bPhone = String(b.phone || b.details?.phone || '未知');
   const submitDate = formatTs(b.timestamp);
@@ -1332,6 +1441,11 @@ function BookingCard({ booking: b, type, db, appId }) {
                   <button onClick={(e) => handleUpdateStatus(e, 'cancelled')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex-1 md:flex-none ${b.status === 'cancelled' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>取消</button>
                </div>
                
+               {/* 👉 新增：編輯資料按鈕 */}
+               <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all shrink-0" title="編輯報名資料">
+                  <Edit3 className="w-4 h-4" />
+               </button>
+
                <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0" title="永久刪除此紀錄">
                   <Trash2 className="w-4 h-4" />
                </button>
@@ -1466,7 +1580,21 @@ function BookingCard({ booking: b, type, db, appId }) {
                   </div>
                </div>
             )}
+
+            {/* 👉 新增：管理員內部備註顯示區塊 */}
+            {b.adminNotes && (
+               <div className="col-span-1 md:col-span-2 mt-4 bg-amber-50 p-4 rounded-xl border border-amber-200 shadow-sm">
+                  <p className="font-bold text-amber-800 mb-2 flex items-center gap-2"><PenTool className="w-4 h-4" /> 管理員內部備註 (僅後台可見)</p>
+                  <p className="text-sm font-bold text-amber-700 whitespace-pre-wrap leading-relaxed">{b.adminNotes}</p>
+               </div>
+            )}
+            
          </div>
+      )}
+      
+      {/* 👉 新增：編輯資料浮窗元件掛載 */}
+      {isEditing && (
+         <BookingEditModal booking={b} type={type} db={db} appId={appId} onClose={() => setIsEditing(false)} />
       )}
     </div>
   );
@@ -6461,22 +6589,67 @@ function App() {
 
   return (
     <div className={`min-h-screen font-sans ${isDarkTheme ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`}>
-      <nav className={`backdrop-blur-md sticky top-0 z-40 border-b shadow-sm ${isDarkTheme ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-          <div className="flex items-center cursor-pointer group" onClick={() => { setCurrentView('home'); setIsAdminMode(false); }}>
-            <div className="bg-blue-600 p-2 rounded-lg transition-transform group-hover:scale-110"><Waves className="h-5 w-5 text-white" /></div>
-            <span className={`ml-3 text-xl font-black tracking-tight ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>鯊墾丁 (SHARKENTING)</span>
-          </div>
-          <div className="flex items-center gap-3">
-             {isAdminMode && <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-full border border-green-200 shadow-inner"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>最高權限已載入</div>}
-             <button onClick={handleAdminToggle} className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${isAdminMode ? 'bg-rose-600 text-white shadow-md' : (isDarkTheme ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}`}>
-               {isAdminMode ? <><X className="w-4 h-4 mr-2" /> 退出管理後台</> : <><Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">營運管理中心</span></>}
-             </button>
-          </div>
-        </div>
-      </nav>
+      
+      {/* --- 右上角懸浮操作群組 (Stacked HUD) --- */}
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex flex-col gap-3 pointer-events-none">
+        
+        {/* 回到大廳 / Logo 按鈕 */}
+        <button
+          onClick={() => { setCurrentView('home'); setIsAdminMode(false); window.scrollTo(0, 0); }}
+          className={`w-36 sm:w-44 flex items-center justify-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl backdrop-blur-xl border transition-all duration-500 shadow-lg group pointer-events-auto hover:scale-105 ${
+            isDarkTheme
+              ? 'bg-slate-900/60 border-slate-700/50 text-white shadow-cyan-900/20 hover:border-cyan-500/50'
+              : 'bg-white/80 border-white text-slate-900 shadow-[0_8px_30px_rgba(0,0,0,0.05)] hover:border-blue-100'
+          }`}
+        >
+           <div className={`p-1.5 rounded-lg transition-transform duration-500 group-hover:scale-110 ${isDarkTheme ? 'bg-cyan-500/20 text-cyan-400' : 'bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-inner'}`}>
+              <Waves className="w-4 h-4 sm:w-4 sm:h-4" />
+           </div>
+           <div className="flex flex-col text-left justify-center flex-1">
+              <span className="font-black text-sm leading-none tracking-tight">鯊墾丁</span>
+              <span className={`text-[8px] font-bold tracking-[0.2em] uppercase mt-0.5 ${isDarkTheme ? 'text-cyan-400/80' : 'text-blue-600/70'}`}>Sharkenting</span>
+           </div>
+        </button>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 營運管理中心 按鈕 */}
+        <div className="flex flex-col items-end gap-2 pointer-events-auto w-full">
+           {isAdminMode && (
+             <div className="w-full flex items-center justify-center gap-2 py-1 bg-slate-900/80 backdrop-blur-md text-emerald-400 text-[10px] font-black rounded-lg border border-slate-700 shadow-lg animate-in fade-in slide-in-from-top-2">
+               <div className="relative flex items-center justify-center">
+                 <div className="absolute w-2 h-2 rounded-full bg-emerald-400 animate-ping opacity-70"></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 relative z-10"></div>
+               </div>
+               最高權限
+             </div>
+           )}
+
+           <button
+              onClick={handleAdminToggle}
+              className={`w-36 sm:w-44 flex items-center justify-center px-4 py-2 sm:px-5 sm:py-3 rounded-xl text-sm font-black transition-all duration-300 backdrop-blur-xl border shadow-lg group hover:scale-105 ${
+                isAdminMode
+                  ? 'bg-rose-500/90 text-white border-rose-400 shadow-[0_5px_15px_rgba(244,63,94,0.3)] hover:bg-rose-600'
+                  : (isDarkTheme
+                      ? 'bg-slate-900/60 text-cyan-300 border-slate-700/50 hover:bg-slate-800 hover:text-cyan-100 hover:border-cyan-500/50 shadow-cyan-900/20'
+                      : 'bg-white/80 text-blue-700 border-white hover:bg-white hover:border-blue-100 shadow-[0_8px_30px_rgba(0,0,0,0.05)]')
+              }`}
+           >
+             {isAdminMode ? (
+               <>
+                 <X className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-90 shrink-0" />
+                 <span className="tracking-wide">退出管理</span>
+               </>
+             ) : (
+               <>
+                 <Settings className={`w-4 h-4 mr-2 transition-transform duration-500 group-hover:rotate-90 shrink-0 ${isDarkTheme ? 'text-cyan-400' : 'text-blue-500'}`} />
+                 <span className="tracking-wide whitespace-nowrap">營運管理</span>
+               </>
+             )}
+           </button>
+        </div>
+      </div>
+
+      {/* 釋放上方空間，稍微縮小 pt 讓版面更緊湊飽滿 */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 sm:pt-28">
         {!isAdminMode ? (
           <>
             {currentView === 'home' && (
